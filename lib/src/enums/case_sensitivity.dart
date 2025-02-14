@@ -1,0 +1,4 @@
+enum CaseSensitivity {
+  sensitive,
+  insensitive,
+}

@@ -1,0 +1,17 @@
+name: keeper
+description: A flexible validation library for Dart, inspired by Zod. Supports chaining, custom rules, nullable values, and built-in validators for emails, phones, and more.
+version: 0.0.1
+repository: https://github.com/edunatalec/keeper
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+
+dev_dependencies:
+  lints: ^5.1.1
+  test: ^1.25.15
+
+topics:
+  - validation
+  - zod
