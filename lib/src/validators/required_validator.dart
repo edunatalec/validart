@@ -8,7 +8,6 @@ class RequiredValidator<T> extends KValidator<T> {
     if (value == null) return message;
     if (value is Map && value.isEmpty) return message;
     if (value is String && value.isEmpty) return message;
-    if (value is Iterable && value.isEmpty) return message;
 
     return null;
   }

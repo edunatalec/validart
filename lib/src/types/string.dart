@@ -140,7 +140,7 @@ class KString extends KRefine<String> {
     return add(
       StartsWithValidator(
         prefix,
-        message: message ?? _message.startsWidth(prefix),
+        message: message ?? _message.startsWith(prefix),
       ),
     );
   }

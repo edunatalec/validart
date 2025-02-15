@@ -4,12 +4,13 @@ class BoolMessage extends BaseMessage {
   final String isTrue;
   final String isFalse;
 
-  BoolMessage({
-    required super.required,
-    required super.refine,
-    required this.isTrue,
-    required this.isFalse,
-  });
+  const BoolMessage({
+    super.required,
+    super.refine,
+    String? isTrue,
+    String? isFalse,
+  }) : isTrue = 'The value must be true',
+       isFalse = 'The value must be false';
 
   @override
   BoolMessage copyWith({

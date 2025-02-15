@@ -1,21 +1,22 @@
-import 'package:keeper/src/messages/num_message.dart';
+import 'package:keeper/src/messages/number_message.dart';
 
-class IntMessage extends NumMessage<int> {
+class IntMessage extends NumberMessage<int> {
   final String odd;
   final String even;
 
   IntMessage({
-    required super.required,
-    required super.refine,
-    required super.min,
-    required super.max,
-    required super.multipleOf,
-    required super.between,
-    required super.positive,
-    required super.negative,
-    required this.odd,
-    required this.even,
-  });
+    super.required,
+    super.refine,
+    super.min,
+    super.max,
+    super.multipleOf,
+    super.between,
+    super.positive,
+    super.negative,
+    String? odd,
+    String? even,
+  }) : odd = odd ?? 'The number must be odd',
+       even = even ?? 'The number must be even';
 
   @override
   IntMessage copyWith({

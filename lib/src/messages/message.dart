@@ -6,37 +6,42 @@ import 'package:keeper/src/messages/num_message.dart';
 import 'package:keeper/src/messages/string_message.dart';
 
 class Message {
-  final BoolMessage boolMessage;
-  final NumMessage numMessage;
-  final DoubleMessage doubleMessage;
-  final IntMessage intMessage;
-  final StringMessage stringMessage;
-  final MapMessage mapMessage;
+  final BoolMessage bool;
+  final NumMessage num;
+  final DoubleMessage double;
+  final IntMessage int;
+  final StringMessage string;
+  final MapMessage map;
 
   Message({
-    required this.boolMessage,
-    required this.numMessage,
-    required this.doubleMessage,
-    required this.intMessage,
-    required this.stringMessage,
-    required this.mapMessage,
-  });
+    BoolMessage? bool,
+    NumMessage? num,
+    DoubleMessage? double,
+    IntMessage? int,
+    StringMessage? string,
+    MapMessage? map,
+  }) : bool = bool ?? BoolMessage(),
+       num = num ?? NumMessage(),
+       double = double ?? DoubleMessage(),
+       int = int ?? IntMessage(),
+       string = string ?? StringMessage(),
+       map = map ?? MapMessage();
 
   Message copyWith({
-    BoolMessage? boolMessage,
-    NumMessage? numMessage,
-    DoubleMessage? doubleMessage,
-    IntMessage? intMessage,
-    StringMessage? stringMessage,
-    MapMessage? mapMessage,
+    BoolMessage? bool,
+    NumMessage? num,
+    DoubleMessage? double,
+    IntMessage? int,
+    StringMessage? string,
+    MapMessage? map,
   }) {
     return Message(
-      boolMessage: boolMessage ?? this.boolMessage,
-      numMessage: numMessage ?? this.numMessage,
-      doubleMessage: doubleMessage ?? this.doubleMessage,
-      intMessage: intMessage ?? this.intMessage,
-      stringMessage: stringMessage ?? this.stringMessage,
-      mapMessage: mapMessage ?? this.mapMessage,
+      bool: bool ?? this.bool,
+      num: num ?? this.num,
+      double: double ?? this.double,
+      int: int ?? this.int,
+      string: string ?? this.string,
+      map: map ?? this.map,
     );
   }
 }

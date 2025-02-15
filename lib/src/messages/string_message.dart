@@ -7,64 +7,81 @@ class StringMessage extends BaseMessage {
   final String cpf;
   final String cnpj;
   final String cep;
-  final String Function(int max) min;
-  final String Function(int min) max;
+  final String Function(int min) min;
+  final String Function(int max) max;
   final String phone;
   final String time;
   final String ip;
   final String date;
   final String Function(String data) contains;
   final String Function(String data) equals;
-  final String Function(String prefix) startsWidth;
+  final String Function(String prefix) startsWith;
   final String Function(String sufix) endsWith;
   final String pattern;
 
   StringMessage({
-    required super.required,
-    required super.refine,
-    required this.email,
-    required this.uuid,
-    required this.url,
-    required this.cpf,
-    required this.cnpj,
-    required this.cep,
-    required this.min,
-    required this.max,
-    required this.phone,
-    required this.time,
-    required this.ip,
-    required this.date,
-    required this.contains,
-    required this.equals,
-    required this.startsWidth,
-    required this.endsWith,
-    required this.pattern,
-  });
-
-  @override
-  StringMessage copyWith({
-    String? required,
+    super.required,
+    super.refine,
     String? email,
     String? uuid,
     String? url,
     String? cpf,
     String? cnpj,
     String? cep,
-    String Function(int max)? min,
-    String Function(int min)? max,
+    String Function(int min)? min,
+    String Function(int max)? max,
     String? phone,
     String? time,
     String? ip,
     String? date,
     String Function(String data)? contains,
     String Function(String data)? equals,
-    String Function(String prefix)? startsWidth,
+    String Function(String prefix)? startsWith,
     String Function(String sufix)? endsWith,
     String? pattern,
+  }) : email = email ?? 'Enter a valid email',
+       uuid = uuid ?? 'Invalid UUID',
+       url = url ?? 'Enter a valid URL',
+       cpf = cpf ?? 'Invalid CPF',
+       cnpj = cnpj ?? 'Invalid CNPJ',
+       cep = cep ?? 'Invalid postal code',
+       min = min ?? ((min) => 'At least $min characters required'),
+       max = max ?? ((max) => 'No more than $max characters allowed'),
+       phone = phone ?? 'Invalid phone number',
+       time = time ?? 'Invalid time format',
+       ip = ip ?? 'Invalid IP address',
+       date = date ?? 'Invalid date',
+       contains = contains ?? ((data) => 'Must contain "$data"'),
+       equals = equals ?? ((data) => 'Must be exactly "$data"'),
+       startsWith = startsWith ?? ((prefix) => 'Must start with "$prefix"'),
+       endsWith = endsWith ?? ((sufix) => 'Must end with "$sufix"'),
+       pattern = pattern ?? 'Invalid format';
+
+  @override
+  StringMessage copyWith({
+    String? required,
     String? refine,
+    String? email,
+    String? uuid,
+    String? url,
+    String? cpf,
+    String? cnpj,
+    String? cep,
+    String Function(int min)? min,
+    String Function(int max)? max,
+    String? phone,
+    String? time,
+    String? ip,
+    String? date,
+    String Function(String data)? contains,
+    String Function(String data)? equals,
+    String Function(String prefix)? startsWith,
+    String Function(String sufix)? endsWith,
+    String? pattern,
   }) {
     return StringMessage(
       required: required ?? this.required,
+      refine: refine ?? this.refine,
       email: email ?? this.email,
       uuid: uuid ?? this.uuid,
       url: url ?? this.url,
@@ -79,10 +96,9 @@ class StringMessage extends BaseMessage {
       date: date ?? this.date,
       contains: contains ?? this.contains,
       equals: equals ?? this.equals,
-      startsWidth: startsWidth ?? this.startsWidth,
+      startsWith: startsWith ?? this.startsWith,
       endsWith: endsWith ?? this.endsWith,
       pattern: pattern ?? this.pattern,
-      refine: refine ?? this.refine,
     );
   }
 }

@@ -14,6 +14,8 @@ class KMap extends KType<Map<String, dynamic>> {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
+  Map<String, KType> get object => _object;
+
   @override
   KMap add(KValidator<Map<String, dynamic>> validator) {
     super.add(validator);

@@ -1,23 +1,25 @@
-import 'package:keeper/src/messages/num_message.dart';
+import 'package:keeper/src/messages/number_message.dart';
 
-class DoubleMessage extends NumMessage<double> {
+class DoubleMessage extends NumberMessage<double> {
   final String finite;
   final String decimal;
   final String integer;
 
   DoubleMessage({
-    required super.required,
-    required super.refine,
-    required super.min,
-    required super.max,
-    required super.multipleOf,
-    required super.between,
-    required super.positive,
-    required super.negative,
-    required this.finite,
-    required this.decimal,
-    required this.integer,
-  });
+    super.required,
+    super.refine,
+    super.min,
+    super.max,
+    super.multipleOf,
+    super.between,
+    super.positive,
+    super.negative,
+    String? finite,
+    String? decimal,
+    String? integer,
+  }) : finite = finite ?? 'The number must be finite',
+       decimal = decimal ?? 'The number must be a decimal (not an integer)',
+       integer = integer ?? 'The number must be an integer';
 
   @override
   DoubleMessage copyWith({

@@ -1,5 +1,3 @@
-library;
-
 export 'src/enums/area_code_format.dart';
 export 'src/enums/case_sensitivity.dart';
 export 'src/enums/country_code_format.dart';
@@ -14,6 +12,16 @@ export 'src/messages/message.dart';
 export 'src/messages/num_message.dart';
 export 'src/messages/number_message.dart';
 export 'src/messages/string_message.dart';
+
+export 'src/types/bool.dart';
+export 'src/types/double.dart';
+export 'src/types/int.dart';
+export 'src/types/map.dart';
+export 'src/types/num.dart';
+export 'src/types/number.dart';
+export 'src/types/refine.dart';
+export 'src/types/string.dart';
+export 'src/types/type.dart';
 
 export 'src/validators/bool/is_false_validator.dart';
 export 'src/validators/bool/is_true_validator.dart';
