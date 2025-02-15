@@ -7,6 +7,8 @@ class IntMessage extends NumberMessage<int> {
   IntMessage({
     super.required,
     super.refine,
+    super.any,
+    super.every,
     super.min,
     super.max,
     super.multipleOf,
@@ -22,6 +24,8 @@ class IntMessage extends NumberMessage<int> {
   IntMessage copyWith({
     String? required,
     String? refine,
+    String? any,
+    String? every,
     String Function(int min)? min,
     String Function(int max)? max,
     String Function(int multipleOf)? multipleOf,
@@ -34,6 +38,8 @@ class IntMessage extends NumberMessage<int> {
     return IntMessage(
       required: required ?? this.required,
       refine: refine ?? this.refine,
+      any: any ?? this.any,
+      every: every ?? this.every,
       min: min ?? this.min,
       max: max ?? this.max,
       multipleOf: multipleOf ?? this.multipleOf,

@@ -7,6 +7,8 @@ class BoolMessage extends BaseMessage {
   const BoolMessage({
     super.required,
     super.refine,
+    super.any,
+    super.every,
     String? isTrue,
     String? isFalse,
   }) : isTrue = 'The value must be true',
@@ -18,10 +20,14 @@ class BoolMessage extends BaseMessage {
     String? refine,
     String? isTrue,
     String? isFalse,
+    String? any,
+    String? every,
   }) {
     return BoolMessage(
       required: required ?? this.required,
       refine: refine ?? this.refine,
+      any: any ?? this.any,
+      every: every ?? this.every,
       isTrue: isTrue ?? this.isTrue,
       isFalse: isFalse ?? this.isFalse,
     );

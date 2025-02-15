@@ -24,6 +24,20 @@ class KMap extends KType<Map<String, dynamic>> {
   }
 
   @override
+  KMap any(covariant List<KMap> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+
+    return this;
+  }
+
+  @override
+  KMap every(covariant List<KMap> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+
+    return this;
+  }
+
+  @override
   KMap optional() {
     super.optional();
 

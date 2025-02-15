@@ -75,6 +75,20 @@ class KDouble extends KNumber<double> {
   }
 
   @override
+  KDouble any(covariant List<KDouble> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+
+    return this;
+  }
+
+  @override
+  KDouble every(covariant List<KDouble> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+
+    return this;
+  }
+
+  @override
   KDouble optional() {
     super.optional();
 

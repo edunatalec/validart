@@ -156,6 +156,20 @@ class KString extends KRefine<String> {
   }
 
   @override
+  KString any(covariant List<KString> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+
+    return this;
+  }
+
+  @override
+  KString every(covariant List<KString> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+
+    return this;
+  }
+
+  @override
   KString optional() {
     super.optional();
 

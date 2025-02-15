@@ -70,6 +70,20 @@ class KInt extends KNumber<int> {
   }
 
   @override
+  KInt any(covariant List<KInt> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+
+    return this;
+  }
+
+  @override
+  KInt every(covariant List<KInt> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+
+    return this;
+  }
+
+  @override
   KInt optional() {
     super.optional();
 

@@ -1,3 +1,5 @@
+import 'package:keeper/src/validators/any_validator.dart';
+import 'package:keeper/src/validators/every_validator.dart';
 import 'package:keeper/src/validators/required_validator.dart';
 import 'package:keeper/src/validators/validator.dart';
 
@@ -14,6 +16,14 @@ abstract class KType<T> {
     _validators.add(validator);
 
     return this;
+  }
+
+  KType<T> any(List<KType<T>> types, {String? message}) {
+    return add(AnyValidator(types, message: message!));
+  }
+
+  KType<T> every(List<KType<T>> types, {String? message}) {
+    return add(EveryValidator(types, message: message!));
   }
 
   KType<T> optional() {

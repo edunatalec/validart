@@ -28,6 +28,20 @@ class KBool extends KRefine<bool> {
   }
 
   @override
+  KBool any(covariant List<KBool> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+
+    return this;
+  }
+
+  @override
+  KBool every(covariant List<KBool> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+
+    return this;
+  }
+
+  @override
   KBool optional() {
     super.optional();
 

@@ -11,6 +11,8 @@ class NumberMessage<T extends num> extends BaseMessage {
   NumberMessage({
     super.required,
     super.refine,
+    super.any,
+    super.every,
     String Function(T min)? min,
     String Function(T max)? max,
     String Function(T multipleOf)? multipleOf,
@@ -32,6 +34,8 @@ class NumberMessage<T extends num> extends BaseMessage {
   NumberMessage<T> copyWith({
     String? required,
     String? refine,
+    String? any,
+    String? every,
     String Function(T min)? min,
     String Function(T max)? max,
     String Function(T multipleOf)? multipleOf,
@@ -42,6 +46,8 @@ class NumberMessage<T extends num> extends BaseMessage {
     return NumberMessage<T>(
       required: required ?? this.required,
       refine: refine ?? this.refine,
+      any: any ?? this.any,
+      every: every ?? this.every,
       min: min ?? this.min,
       max: max ?? this.max,
       multipleOf: multipleOf ?? this.multipleOf,

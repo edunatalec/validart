@@ -413,4 +413,45 @@ void main() {
       expect(validator.validate('hello'), true);
     });
   });
+
+  group('every', () {
+    test('should pass only if all validators pass', () {
+      final validator = k.string().every([
+        k.string().min(5),
+        k.string().max(10),
+        k.string().contains('test'),
+      ]);
+
+      expect(validator.validate('test123'), true);
+      expect(validator.validate('test12'), true);
+      expect(validator.validate('short'), false);
+      expect(validator.validate('this is a long test'), false);
+      expect(validator.validate('randomword'), false);
+    });
+  });
+
+  group('any', () {
+    test('should pass if at least one validator passes', () {
+      final validator = k.string().any([
+        k.string().equals('hello'),
+        k.string().equals('world'),
+      ]);
+
+      expect(validator.validate('hello'), true);
+      expect(validator.validate('world'), true);
+      expect(validator.validate('hello world'), false);
+      expect(validator.validate('random text'), false);
+    });
+
+    test('should pass if at least one validation condition is met', () {
+      final validator = k.string().any([
+        k.string().min(5),
+        k.string().contains('keeper'),
+      ]);
+
+      expect(validator.validate('short'), true);
+      expect(validator.validate('keeper'), true);
+      expect(validator.validate('tiny'), false);
+    });
+  });
 }

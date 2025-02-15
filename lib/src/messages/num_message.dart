@@ -4,6 +4,8 @@ class NumMessage extends NumberMessage<num> {
   NumMessage({
     super.required,
     super.refine,
+    super.any,
+    super.every,
     super.min,
     super.max,
     super.multipleOf,

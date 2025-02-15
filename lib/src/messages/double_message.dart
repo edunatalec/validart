@@ -8,6 +8,8 @@ class DoubleMessage extends NumberMessage<double> {
   DoubleMessage({
     super.required,
     super.refine,
+    super.any,
+    super.every,
     super.min,
     super.max,
     super.multipleOf,
@@ -25,6 +27,8 @@ class DoubleMessage extends NumberMessage<double> {
   DoubleMessage copyWith({
     String? required,
     String? refine,
+    String? any,
+    String? every,
     String Function(double min)? min,
     String Function(double max)? max,
     String Function(double multipleOf)? multipleOf,
@@ -38,6 +42,8 @@ class DoubleMessage extends NumberMessage<double> {
     return DoubleMessage(
       required: required ?? this.required,
       refine: refine ?? this.refine,
+      any: any ?? this.any,
+      every: every ?? this.every,
       min: min ?? this.min,
       max: max ?? this.max,
       multipleOf: multipleOf ?? this.multipleOf,

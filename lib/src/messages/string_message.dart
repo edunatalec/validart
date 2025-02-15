@@ -22,6 +22,8 @@ class StringMessage extends BaseMessage {
   StringMessage({
     super.required,
     super.refine,
+    super.any,
+    super.every,
     String? email,
     String? uuid,
     String? url,
@@ -61,6 +63,8 @@ class StringMessage extends BaseMessage {
   StringMessage copyWith({
     String? required,
     String? refine,
+    String? any,
+    String? every,
     String? email,
     String? uuid,
     String? url,
@@ -82,6 +86,8 @@ class StringMessage extends BaseMessage {
     return StringMessage(
       required: required ?? this.required,
       refine: refine ?? this.refine,
+      any: any ?? this.any,
+      every: every ?? this.every,
       email: email ?? this.email,
       uuid: uuid ?? this.uuid,
       url: url ?? this.url,

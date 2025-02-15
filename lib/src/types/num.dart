@@ -60,6 +60,20 @@ class KNum extends KNumber {
   }
 
   @override
+  KNum any(covariant List<KNum> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+
+    return this;
+  }
+
+  @override
+  KNum every(covariant List<KNum> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+
+    return this;
+  }
+
+  @override
   KNum optional() {
     super.optional();
 
