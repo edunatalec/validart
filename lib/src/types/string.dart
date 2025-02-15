@@ -3,8 +3,7 @@ import 'package:keeper/src/enums/case_sensitivity.dart';
 import 'package:keeper/src/enums/country_code_format.dart';
 import 'package:keeper/src/enums/phone_type.dart';
 import 'package:keeper/src/messages/string_message.dart';
-import 'package:keeper/src/types/type.dart';
-import 'package:keeper/src/validators/refine_validator.dart';
+import 'package:keeper/src/types/refine.dart';
 import 'package:keeper/src/validators/required_validator.dart';
 import 'package:keeper/src/validators/string/cep_validator.dart';
 import 'package:keeper/src/validators/string/cnpj_validator.dart';
@@ -25,7 +24,7 @@ import 'package:keeper/src/validators/string/url_validator.dart';
 import 'package:keeper/src/validators/string/uuid_validator.dart';
 import 'package:keeper/src/validators/validator.dart';
 
-class KString extends KType<String> {
+class KString extends KRefine<String> {
   final StringMessage _message;
 
   KString(this._message, {required String? message}) {
@@ -97,14 +96,17 @@ class KString extends KType<String> {
     );
   }
 
-  KString time({String? message}) =>
-      add(TimeValidator(message: message ?? _message.time));
+  KString time({String? message}) {
+    return add(TimeValidator(message: message ?? _message.time));
+  }
 
-  KString ip({String? message}) =>
-      add(IPValidator(message: message ?? _message.ip));
+  KString ip({String? message}) {
+    return add(IPValidator(message: message ?? _message.ip));
+  }
 
-  KString date({String? message}) =>
-      add(DateValidator(message: message ?? _message.date));
+  KString date({String? message}) {
+    return add(DateValidator(message: message ?? _message.date));
+  }
 
   KString contains(
     String data, {
@@ -167,9 +169,10 @@ class KString extends KType<String> {
     return this;
   }
 
+  @override
   KString refine(bool Function(String? data) validator, {String? message}) {
-    return add(
-      RefineValidator<String>(validator, message: message ?? _message.refine),
-    );
+    super.refine(validator, message: message ?? _message.refine);
+
+    return this;
   }
 }

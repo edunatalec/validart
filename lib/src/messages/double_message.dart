@@ -1,10 +1,11 @@
 import 'package:keeper/src/messages/num_message.dart';
 
-class IntMessage extends NumMessage<int> {
-  final String odd;
-  final String even;
+class DoubleMessage extends NumMessage<double> {
+  final String finite;
+  final String decimal;
+  final String integer;
 
-  IntMessage({
+  DoubleMessage({
     required super.required,
     required super.refine,
     required super.min,
@@ -13,24 +14,26 @@ class IntMessage extends NumMessage<int> {
     required super.between,
     required super.positive,
     required super.negative,
-    required this.odd,
-    required this.even,
+    required this.finite,
+    required this.decimal,
+    required this.integer,
   });
 
   @override
-  IntMessage copyWith({
+  DoubleMessage copyWith({
     String? required,
     String? refine,
-    String Function(int min)? min,
-    String Function(int max)? max,
-    String Function(int multipleOf)? multipleOf,
-    String Function(int min, int max)? between,
+    String Function(double min)? min,
+    String Function(double max)? max,
+    String Function(double multipleOf)? multipleOf,
+    String Function(double min, double max)? between,
     String? positive,
     String? negative,
-    String? odd,
-    String? even,
+    String? finite,
+    String? decimal,
+    String? integer,
   }) {
-    return IntMessage(
+    return DoubleMessage(
       required: required ?? this.required,
       refine: refine ?? this.refine,
       min: min ?? this.min,
@@ -39,8 +42,9 @@ class IntMessage extends NumMessage<int> {
       between: between ?? this.between,
       positive: positive ?? this.positive,
       negative: negative ?? this.negative,
-      odd: odd ?? this.odd,
-      even: even ?? this.even,
+      finite: finite ?? this.finite,
+      decimal: decimal ?? this.decimal,
+      integer: integer ?? this.integer,
     );
   }
 }

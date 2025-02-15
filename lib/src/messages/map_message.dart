@@ -1,9 +1,9 @@
-class MapMessage {
-  final String required;
-  final String refine;
+import 'package:keeper/src/messages/base_message.dart';
 
-  MapMessage({required this.required, required this.refine});
+class MapMessage extends BaseMessage {
+  MapMessage({required super.required, required super.refine});
 
+  @override
   MapMessage copyWith({String? required, String? refine}) {
     return MapMessage(
       required: required ?? this.required,

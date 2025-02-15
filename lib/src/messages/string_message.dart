@@ -1,5 +1,6 @@
-class StringMessage {
-  final String required;
+import 'package:keeper/src/messages/base_message.dart';
+
+class StringMessage extends BaseMessage {
   final String email;
   final String uuid;
   final String url;
@@ -17,10 +18,10 @@ class StringMessage {
   final String Function(String prefix) startsWidth;
   final String Function(String sufix) endsWith;
   final String pattern;
-  final String refine;
 
   StringMessage({
-    required this.required,
+    required super.required,
+    required super.refine,
     required this.email,
     required this.uuid,
     required this.url,
@@ -38,9 +39,9 @@ class StringMessage {
     required this.startsWidth,
     required this.endsWith,
     required this.pattern,
-    required this.refine,
   });
 
+  @override
   StringMessage copyWith({
     String? required,
     String? email,

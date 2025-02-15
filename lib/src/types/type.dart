@@ -35,7 +35,9 @@ abstract class KType<T> {
       final message = validator.validate(value);
 
       if (message != null) {
-        if (validator is RequiredValidator && isOptional) return null;
+        if (validator is RequiredValidator && isOptional && value != null) {
+          return null;
+        }
 
         return message;
       }

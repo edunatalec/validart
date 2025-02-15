@@ -9,12 +9,28 @@ class KMap extends KType<Map<String, dynamic>> {
   final MapMessage _message;
 
   KMap(this._object, this._message, {String? message}) {
+    assert(_object.isNotEmpty, 'Map must have at least one field.');
+
     add(RequiredValidator(message: message ?? _message.required));
   }
 
   @override
   KMap add(KValidator<Map<String, dynamic>> validator) {
     super.add(validator);
+
+    return this;
+  }
+
+  @override
+  KMap optional() {
+    super.optional();
+
+    return this;
+  }
+
+  @override
+  KMap nullable() {
+    super.nullable();
 
     return this;
   }
@@ -43,7 +59,9 @@ class KMap extends KType<Map<String, dynamic>> {
       final message = validator.validate(value);
 
       if (message != null) {
-        if (validator is RequiredValidator && isOptional) return null;
+        if (validator is RequiredValidator && isOptional && value != null) {
+          return null;
+        }
 
         if (validator is RefineMapValidator) {
           errors.addAll({validator.path: message});

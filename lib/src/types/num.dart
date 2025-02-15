@@ -1,90 +1,80 @@
-import 'package:keeper/src/messages/int_message.dart';
+import 'package:keeper/src/messages/num_message.dart';
 import 'package:keeper/src/types/number.dart';
-import 'package:keeper/src/validators/int/even_validator.dart';
-import 'package:keeper/src/validators/int/odd_validator.dart';
 import 'package:keeper/src/validators/required_validator.dart';
 import 'package:keeper/src/validators/validator.dart';
 
-class KInt extends KNumber<int> {
-  final IntMessage _message;
+class KNum extends KNumber {
+  final NumMessage _message;
 
-  KInt(this._message, {required String? message}) {
+  KNum(this._message, {required String? message}) {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
   @override
-  KInt add(KValidator<int> validator) {
+  KNum add(KValidator<num> validator) {
     super.add(validator);
 
     return this;
   }
 
   @override
-  KInt min(int min, {String? message}) {
+  KNum min(num min, {String? message}) {
     super.min(min, message: message ?? _message.min(min));
 
     return this;
   }
 
   @override
-  KInt max(int max, {String? message}) {
+  KNum max(num max, {String? message}) {
     super.max(max, message: message ?? _message.max(max));
 
     return this;
   }
 
   @override
-  KInt positive({String? message}) {
+  KNum positive({String? message}) {
     super.positive(message: message ?? _message.positive);
 
     return this;
   }
 
   @override
-  KInt negative({String? message}) {
+  KNum negative({String? message}) {
     super.negative(message: message ?? _message.negative);
 
     return this;
   }
 
   @override
-  KInt between(int min, int max, {String? message}) {
+  KNum between(num min, num max, {String? message}) {
     super.between(min, max, message: message ?? _message.between(min, max));
 
     return this;
   }
 
   @override
-  KInt multipleOf(int factor, {String? message}) {
+  KNum multipleOf(num factor, {String? message}) {
     super.multipleOf(factor, message: message ?? _message.multipleOf(factor));
 
     return this;
   }
 
-  KInt even({String? message}) {
-    return add(EvenValidator(message: message ?? _message.even));
-  }
-
-  KInt odd({String? message}) {
-    return add(OddValidator(message: message ?? _message.odd));
-  }
-
   @override
-  KInt optional() {
+  KNum optional() {
     super.optional();
 
     return this;
   }
 
   @override
-  KInt nullable() {
+  KNum nullable() {
     super.nullable();
 
     return this;
   }
 
   @override
-  KInt refine(bool Function(int? data) validator, {String? message}) {
+  KNum refine(bool Function(num? data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
 
     return this;
