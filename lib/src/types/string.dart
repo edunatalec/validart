@@ -2,6 +2,7 @@ import 'package:keeper/src/enums/area_code_format.dart';
 import 'package:keeper/src/enums/case_sensitivity.dart';
 import 'package:keeper/src/enums/country_code_format.dart';
 import 'package:keeper/src/enums/phone_type.dart';
+import 'package:keeper/src/enums/uuid_version.dart';
 import 'package:keeper/src/messages/string_message.dart';
 import 'package:keeper/src/types/refine.dart';
 import 'package:keeper/src/validators/required_validator.dart';
@@ -42,8 +43,13 @@ class KString extends KRefine<String> {
     return add(EmailValidator(message: message ?? _message.email));
   }
 
-  KString uuid({String? message}) {
-    return add(UUIDValidator(message: message ?? _message.uuid));
+  KString uuid({UUIDVersion? version, String? message}) {
+    return add(
+      UUIDValidator(
+        message: message ?? _message.uuid,
+        version: version ?? UUIDVersion.v4,
+      ),
+    );
   }
 
   KString url({String? message}) {
@@ -81,14 +87,14 @@ class KString extends KRefine<String> {
   }
 
   KString phone(
-    List<PhoneType> types, {
+    PhoneType type, {
     String? message,
     AreaCodeFormat areaCode = AreaCodeFormat.required,
     CountryCodeFormat countryCode = CountryCodeFormat.none,
   }) {
     return add(
       PhoneValidator(
-        types,
+        type,
         message: message ?? _message.phone,
         areaCode: areaCode,
         countryCode: countryCode,

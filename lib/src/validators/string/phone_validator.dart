@@ -4,12 +4,12 @@ import 'package:keeper/src/enums/phone_type.dart';
 import 'package:keeper/src/validators/validator.dart';
 
 class PhoneValidator extends KValidator<String> {
-  final List<PhoneType> types;
+  final PhoneType type;
   final AreaCodeFormat areaCode;
   final CountryCodeFormat countryCode;
 
   PhoneValidator(
-    this.types, {
+    this.type, {
     required super.message,
     this.areaCode = AreaCodeFormat.required,
     this.countryCode = CountryCodeFormat.none,
@@ -19,27 +19,25 @@ class PhoneValidator extends KValidator<String> {
   String? validate(String? value) {
     if (value == null) return message;
 
-    for (final type in types) {
-      final pattern = _buildPattern(type);
+    final pattern = _buildPattern();
 
-      if (RegExp(pattern).hasMatch(value)) return null;
-    }
+    if (RegExp(pattern).hasMatch(value)) return null;
 
     return message;
   }
 
-  String _buildPattern(PhoneType type) {
+  String _buildPattern() {
     String pattern = '^';
 
-    pattern += _getCountryCodePattern(type);
-    pattern += _getAreaCodePattern(type);
+    pattern += _getCountryCodePattern;
+    pattern += _getAreaCodePattern;
     pattern += type.pattern;
     pattern += '\$';
 
     return pattern;
   }
 
-  String _getCountryCodePattern(PhoneType type) {
+  String get _getCountryCodePattern {
     switch (countryCode) {
       case CountryCodeFormat.required:
         return type.countryCode;
@@ -50,7 +48,7 @@ class PhoneValidator extends KValidator<String> {
     }
   }
 
-  String _getAreaCodePattern(PhoneType type) {
+  String get _getAreaCodePattern {
     switch (areaCode) {
       case AreaCodeFormat.required:
         return type.areaCode;

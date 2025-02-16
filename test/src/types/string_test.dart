@@ -28,11 +28,57 @@ void main() {
   });
 
   group('uuid', () {
-    test('should validate UUID correctly', () {
+    test('should validate UUID v4 correctly (default)', () {
       final validator = k.string().uuid();
 
-      expect(validator.validate('123e4567-e89b-12d3-a456-426614174000'), true);
+      expect(validator.validate('550e8400-e29b-41d4-a716-446655440000'), true);
+      expect(validator.validate('550e8400-e29b-31d4-a716-446655440000'), false);
+      expect(validator.validate('550e8400-e29b-41d4-a716-44665544'), false);
+      expect(
+        validator.validate('550e8400-e29b-41d4-a716-4466554400000'),
+        false,
+      );
       expect(validator.validate('invalid-uuid'), false);
+      expect(validator.validate(null), false);
+      expect(validator.validate(''), false);
+    });
+
+    test('should validate UUID v1 correctly', () {
+      final validator = k.string().uuid(version: UUIDVersion.v1);
+
+      expect(validator.validate('550e8400-e29b-11d4-a716-446655440000'), true);
+      expect(validator.validate('8793b364-ec9e-11ef-b36b-de390fc56918'), true);
+      expect(validator.validate('550e8400-e29b-41d4-a716-446655440000'), false);
+      expect(validator.validate('9073926b-929f-31c2-abc9-fad77ae3e8eb'), false);
+    });
+
+    test('should validate UUID v3 correctly', () {
+      final validator = k.string().uuid(version: UUIDVersion.v3);
+
+      expect(validator.validate('550e8400-e29b-31d4-a716-446655440000'), true);
+      expect(validator.validate('9073926b-929f-31c2-abc9-fad77ae3e8eb'), true);
+      expect(validator.validate('550e8400-e29b-41d4-a716-446655440000'), false);
+      expect(validator.validate('cfbff0d1-9375-5685-968c-48ce8b15ae17'), false);
+    });
+
+    test('should validate UUID v5 correctly', () {
+      final validator = k.string().uuid(version: UUIDVersion.v5);
+
+      expect(validator.validate('550e8400-e29b-51d4-a716-446655440000'), true);
+      expect(validator.validate('cfbff0d1-9375-5685-968c-48ce8b15ae17'), true);
+      expect(validator.validate('550e8400-e29b-41d4-a716-446655440000'), false);
+      expect(validator.validate('8793b364-ec9e-11ef-b36b-de390fc56918'), false);
+    });
+
+    test('should validate multiple UUID versions', () {
+      final validator = k.string().any([
+        k.string().uuid(version: UUIDVersion.v1),
+        k.string().uuid(version: UUIDVersion.v4),
+      ]);
+
+      expect(validator.validate('8793b364-ec9e-11ef-b36b-de390fc56918'), true);
+      expect(validator.validate('e8ffc3c2-52cb-4056-b67c-776e78cfb836'), true);
+      expect(validator.validate('cfbff0d1-9375-5685-968c-48ce8b15ae17'), false);
     });
   });
 
@@ -106,7 +152,7 @@ void main() {
   group('phone', () {
     test('should validate Brazilian phone array correctly', () {
       final validator = k.string().phone(
-        [PhoneType.brazil],
+        PhoneType.brazil,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -119,9 +165,10 @@ void main() {
       expect(arrayValidator.validate(['98765-4321']), false);
       expect(arrayValidator.validate(['11 98765-4321', '98765-4321']), false);
     });
+
     test('should validate Brazilian phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.brazil],
+        PhoneType.brazil,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -137,7 +184,7 @@ void main() {
 
     test('should validate USA phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.usa],
+        PhoneType.usa,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -153,7 +200,7 @@ void main() {
 
     test('should validate Argentina phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.argentina],
+        PhoneType.argentina,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -168,7 +215,7 @@ void main() {
 
     test('should validate Germany phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.germany],
+        PhoneType.germany,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -183,7 +230,7 @@ void main() {
 
     test('should validate China phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.china],
+        PhoneType.china,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -198,7 +245,7 @@ void main() {
 
     test('should validate Japan phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.japan],
+        PhoneType.japan,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -213,7 +260,7 @@ void main() {
 
     test('should validate international phone numbers correctly', () {
       final validator = k.string().phone(
-        [PhoneType.international],
+        PhoneType.international,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
       );
@@ -227,11 +274,18 @@ void main() {
     });
 
     test('should validate Brazilian and USA phone numbers correctly', () {
-      final validator = k.string().phone(
-        [PhoneType.brazil, PhoneType.usa],
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+      final validator = k.string().any([
+        k.string().phone(
+          PhoneType.brazil,
+          areaCode: AreaCodeFormat.required,
+          countryCode: CountryCodeFormat.none,
+        ),
+        k.string().phone(
+          PhoneType.usa,
+          areaCode: AreaCodeFormat.required,
+          countryCode: CountryCodeFormat.none,
+        ),
+      ]);
 
       expect(validator.validate('11 98765-4321'), true);
       expect(validator.validate('(11) 98765-4321'), true);
@@ -254,7 +308,7 @@ void main() {
       'should validate Brazilian phone numbers with country code required',
       () {
         final validator = k.string().phone(
-          [PhoneType.brazil],
+          PhoneType.brazil,
           countryCode: CountryCodeFormat.required,
           areaCode: AreaCodeFormat.required,
         );
@@ -271,7 +325,7 @@ void main() {
       'should validate Brazilian phone numbers with optional country code',
       () {
         final validator = k.string().phone(
-          [PhoneType.brazil],
+          PhoneType.brazil,
           countryCode: CountryCodeFormat.optional,
           areaCode: AreaCodeFormat.required,
         );
@@ -284,7 +338,7 @@ void main() {
 
     test('should validate Brazilian phone numbers without area code', () {
       final validator = k.string().phone(
-        [PhoneType.brazil],
+        PhoneType.brazil,
         areaCode: AreaCodeFormat.none,
         countryCode: CountryCodeFormat.none,
       );
@@ -301,7 +355,7 @@ void main() {
       'should validate Brazilian phone numbers with country code required and no area code',
       () {
         final validator = k.string().phone(
-          [PhoneType.brazil],
+          PhoneType.brazil,
           countryCode: CountryCodeFormat.required,
           areaCode: AreaCodeFormat.none,
         );
@@ -318,7 +372,7 @@ void main() {
       'should validate Brazilian phone numbers with country code optional and no area code',
       () {
         final validator = k.string().phone(
-          [PhoneType.brazil],
+          PhoneType.brazil,
           countryCode: CountryCodeFormat.optional,
           areaCode: AreaCodeFormat.none,
         );
