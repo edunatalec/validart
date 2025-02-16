@@ -4,13 +4,13 @@ version: 0.0.1
 repository: https://github.com/edunatalec/validart
 
 environment:
-  sdk: ^3.7.0
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
 
 dev_dependencies:
   coverage: ^1.11.1
-  lints: ^5.1.1
+  lints: ^5.0.0
   test: ^1.25.15
 
 topics:
