@@ -1,14 +1,25 @@
+import 'package:keeper/src/enums/case_sensitivity.dart';
 import 'package:keeper/src/validators/validator.dart';
 
 class EndsWithValidator extends KValidator<String> {
   final String suffix;
+  final CaseSensitivity caseSensitivity;
 
-  EndsWithValidator(this.suffix, {required super.message});
+  EndsWithValidator(
+    this.suffix, {
+    required super.message,
+    this.caseSensitivity = CaseSensitivity.sensitive,
+  });
 
   @override
   String? validate(String? value) {
-    if (value == null || !value.endsWith(suffix)) return message;
+    if (value == null) return message;
 
-    return null;
+    final bool endsWith =
+        caseSensitivity == CaseSensitivity.insensitive
+            ? suffix.toLowerCase().endsWith(suffix.toLowerCase())
+            : value.endsWith(suffix);
+
+    return endsWith ? null : message;
   }
 }

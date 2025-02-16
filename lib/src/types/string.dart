@@ -142,18 +142,31 @@ class KString extends KRefine<String> {
     );
   }
 
-  KString startsWidth(String prefix, {String? message}) {
+  KString startsWidth(
+    String prefix, {
+    String? message,
+    CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
+  }) {
     return add(
       StartsWithValidator(
         prefix,
         message: message ?? _message.startsWith(prefix),
+        caseSensitivity: caseSensitivity,
       ),
     );
   }
 
-  KString endsWith(String sufix, {String? message}) {
+  KString endsWith(
+    String sufix, {
+    String? message,
+    CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
+  }) {
     return add(
-      EndsWithValidator(sufix, message: message ?? _message.endsWith(sufix)),
+      EndsWithValidator(
+        sufix,
+        message: message ?? _message.endsWith(sufix),
+        caseSensitivity: caseSensitivity,
+      ),
     );
   }
 
