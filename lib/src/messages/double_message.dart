@@ -1,10 +1,29 @@
 import 'package:keeper/src/messages/number_message.dart';
 
+/// A message class for validation errors related to `double` values.
+///
+/// Extends [NumberMessage] to include additional validation messages
+/// specific to `double` numbers, such as checking for finite values,
+/// decimal numbers, and integer constraints.
 class DoubleMessage extends NumberMessage<double> {
+  /// The error message displayed when the value is not finite.
+  ///
+  /// Defaults to `'The number must be finite'`.
   final String finite;
+
+  /// The error message displayed when the value is not a decimal (i.e., it's an integer).
+  ///
+  /// Defaults to `'The number must be a decimal (not an integer)'`.
   final String decimal;
+
+  /// The error message displayed when the value is expected to be an integer but isn't.
+  ///
+  /// Defaults to `'The number must be an integer'`.
   final String integer;
 
+  /// Creates a new instance of `DoubleMessage` with optional custom error messages.
+  ///
+  /// If no custom messages are provided, default values will be used.
   DoubleMessage({
     super.required,
     super.refine,
@@ -23,6 +42,16 @@ class DoubleMessage extends NumberMessage<double> {
        decimal = decimal ?? 'The number must be a decimal (not an integer)',
        integer = integer ?? 'The number must be an integer';
 
+  /// Creates a copy of the current `DoubleMessage` instance with updated values.
+  ///
+  /// If a parameter is not provided, the existing value is retained.
+  ///
+  /// Example:
+  /// ```dart
+  /// final defaultMessage = DoubleMessage();
+  /// final customMessage = defaultMessage.copyWith(decimal: 'Must be a decimal number');
+  /// print(customMessage.decimal); // Output: 'Must be a decimal number'
+  /// ```
   @override
   DoubleMessage copyWith({
     String? required,

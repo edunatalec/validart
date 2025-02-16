@@ -1,24 +1,74 @@
 import 'package:keeper/src/messages/base_message.dart';
 
+/// A message container for validation errors related to string values.
+///
+/// This class extends `BaseMessage` and provides validation messages
+/// specific to string-based validations, such as emails, URLs, UUIDs, and more.
+///
+/// Example usage:
+/// ```dart
+/// final stringMessages = StringMessage(
+///   min: (value) => 'At least $value characters required',
+///   max: (value) => 'No more than $value characters allowed',
+///   email: 'Enter a valid email',
+///   uuid: 'Invalid UUID',
+/// );
+/// ```
 class StringMessage extends BaseMessage {
+  /// Message for email validation.
   final String email;
+
+  /// Message for UUID validation.
   final String uuid;
+
+  /// Message for URL validation.
   final String url;
+
+  /// Message for CPF (Brazilian tax ID) validation.
   final String cpf;
+
+  /// Message for CNPJ (Brazilian company tax ID) validation.
   final String cnpj;
+
+  /// Message for postal code (CEP in Brazil) validation.
   final String cep;
+
+  /// Message for the minimum string length validation.
   final String Function(int min) min;
+
+  /// Message for the maximum string length validation.
   final String Function(int max) max;
+
+  /// Message for phone number validation.
   final String phone;
+
+  /// Message for time format validation.
   final String time;
+
+  /// Message for IP address validation.
   final String ip;
+
+  /// Message for date format validation.
   final String date;
+
+  /// Message for the validation that ensures a string contains a specific substring.
   final String Function(String data) contains;
+
+  /// Message for the validation that ensures a string matches an exact value.
   final String Function(String data) equals;
+
+  /// Message for the validation that ensures a string starts with a specific prefix.
   final String Function(String prefix) startsWith;
+
+  /// Message for the validation that ensures a string ends with a specific suffix.
   final String Function(String sufix) endsWith;
+
+  /// Message for general pattern validation.
   final String pattern;
 
+  /// Creates a new instance of `StringMessage` with customizable validation messages.
+  ///
+  /// If no custom messages are provided, default messages will be used.
   StringMessage({
     super.required,
     super.refine,
@@ -59,6 +109,7 @@ class StringMessage extends BaseMessage {
        endsWith = endsWith ?? ((sufix) => 'Must end with "$sufix"'),
        pattern = pattern ?? 'Invalid format';
 
+  /// Creates a copy of this `StringMessage` with the option to override specific properties.
   @override
   StringMessage copyWith({
     String? required,

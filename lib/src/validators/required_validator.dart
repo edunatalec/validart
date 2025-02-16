@@ -1,6 +1,18 @@
 import 'package:keeper/src/validators/validator.dart';
 
+/// A validator that ensures a value is provided.
+///
+/// Example:
+/// ```dart
+/// final validator = RequiredValidator(message: 'This field is required');
+///
+/// print(validator.validate('Hello')); // null (valid)
+/// print(validator.validate('')); // 'This field is required' (invalid)
+/// print(validator.validate(null)); // 'This field is required' (invalid)
+/// print(validator.validate({})); // 'This field is required' (invalid)
+/// ```
 class RequiredValidator<T> extends KValidator<T> {
+  /// Creates a [RequiredValidator] with a custom error message.
   RequiredValidator({required super.message});
 
   @override
