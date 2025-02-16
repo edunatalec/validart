@@ -104,6 +104,21 @@ void main() {
   });
 
   group('phone', () {
+    test('should validate Brazilian phone array correctly', () {
+      final validator = k.string().phone(
+        [PhoneType.brazil],
+        areaCode: AreaCodeFormat.required,
+        countryCode: CountryCodeFormat.none,
+      );
+
+      final arrayValidator = validator.array();
+
+      expect(arrayValidator.validate(['11 98765-4321']), true);
+      expect(arrayValidator.validate(['11 98765-4321', '11 98765-4322']), true);
+
+      expect(arrayValidator.validate(['98765-4321']), false);
+      expect(arrayValidator.validate(['11 98765-4321', '98765-4321']), false);
+    });
     test('should validate Brazilian phone numbers correctly', () {
       final validator = k.string().phone(
         [PhoneType.brazil],

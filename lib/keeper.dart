@@ -13,6 +13,7 @@ export 'src/messages/num_message.dart';
 export 'src/messages/number_message.dart';
 export 'src/messages/string_message.dart';
 
+export 'src/types/array.dart';
 export 'src/types/bool.dart';
 export 'src/types/double.dart';
 export 'src/types/int.dart';
@@ -58,6 +59,8 @@ export 'src/validators/string/time_validator.dart';
 export 'src/validators/string/url_validator.dart';
 export 'src/validators/string/uuid_validator.dart';
 
+export 'src/validators/any_validator.dart';
+export 'src/validators/every_validator.dart';
 export 'src/validators/refine_map_validator.dart';
 export 'src/validators/refine_validator.dart';
 export 'src/validators/required_validator.dart';

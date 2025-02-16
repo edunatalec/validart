@@ -1,3 +1,4 @@
+import 'package:keeper/src/types/array.dart';
 import 'package:keeper/src/validators/any_validator.dart';
 import 'package:keeper/src/validators/every_validator.dart';
 import 'package:keeper/src/validators/required_validator.dart';
@@ -36,6 +37,10 @@ abstract class KType<T> {
     _isNullable = true;
 
     return this;
+  }
+
+  KArray<T> array() {
+    return KArray(this);
   }
 
   getErrorMessage(T? value) {
