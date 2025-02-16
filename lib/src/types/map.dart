@@ -1,59 +1,59 @@
-import 'package:keeper/src/messages/map_message.dart';
-import 'package:keeper/src/types/type.dart';
-import 'package:keeper/src/validators/refine_map_validator.dart';
-import 'package:keeper/src/validators/required_validator.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/messages/map_message.dart';
+import 'package:validart/src/types/type.dart';
+import 'package:validart/src/validators/refine_map_validator.dart';
+import 'package:validart/src/validators/required_validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator for `Map<String, dynamic>` values, enabling object validation.
 ///
 /// Example usage:
 /// ```dart
-/// final k = Keeper();
+/// final v = Validart();
 ///
-/// final validator = k.map({
-///   'email': k.string().email(),
-///   'password': k.string().min(8).max(20),
+/// final validator = v.map({
+///   'email': v.string().email(),
+///   'password': v.string().min(8).max(20),
 /// });
 ///
 /// print(validator.validate({'email': 'user@example.com', 'password': 'secure123'})); // true
 /// print(validator.validate({'email': 'invalid-email', 'password': '123'})); // false
 /// ```
-class KMap extends KType<Map<String, dynamic>> {
+class VMap extends VType<Map<String, dynamic>> {
   /// Stores the object schema definition.
-  final Map<String, KType> _object;
+  final Map<String, VType> _object;
 
   /// Stores the validation messages for `Map`-related errors.
   final MapMessage _message;
 
-  /// Creates an instance of `KMap` with a given schema and optional custom messages.
+  /// Creates an instance of `VMap` with a given schema and optional custom messages.
   ///
   /// Ensures the object is not empty by default.
-  KMap(this._object, this._message, {String? message}) {
+  VMap(this._object, this._message, {String? message}) {
     assert(_object.isNotEmpty, 'Map must have at least one field.');
     add(RequiredValidator(message: message ?? _message.required));
   }
 
   /// Retrieves the object schema.
-  Map<String, KType> get object => _object;
+  Map<String, VType> get object => _object;
 
-  /// Adds a validator to the `KMap` instance.
+  /// Adds a validator to the `VMap` instance.
   ///
   /// Allows chaining multiple validation rules.
   @override
-  KMap add(KValidator<Map<String, dynamic>> validator) {
+  VMap add(Validator<Map<String, dynamic>> validator) {
     super.add(validator);
     return this;
   }
 
-  /// Validates that the object matches **any** of the provided `KMap` validators.
+  /// Validates that the object matches **any** of the provided `VMap` validators.
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.map({
-  ///   'name': k.string()
+  /// final validator = v.map({
+  ///   'name': v.string()
   /// }).any([
-  ///   k.map({'age': k.int().min(18)}),
-  ///   k.map({'email': k.string().email()}),
+  ///   v.map({'age': v.int().min(18)}),
+  ///   v.map({'email': v.string().email()}),
   /// ]);
   ///
   /// print(validator.validate({'age': 25})); // true
@@ -61,7 +61,7 @@ class KMap extends KType<Map<String, dynamic>> {
   /// print(validator.validate({'phone': '12345'})); // false
   /// ```
   @override
-  KMap any(covariant List<KMap> types, {String? message}) {
+  VMap any(covariant List<VMap> types, {String? message}) {
     super.any(types, message: message ?? _message.any);
     return this;
   }
@@ -70,18 +70,18 @@ class KMap extends KType<Map<String, dynamic>> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.map({
-  ///   'email': k.string().email(),
-  ///   'password': k.string().min(8),
+  /// final validator = v.map({
+  ///   'email': v.string().email(),
+  ///   'password': v.string().min(8),
   /// }).every([
-  ///   k.map({'password': k.string().max(20)}),
+  ///   v.map({'password': v.string().max(20)}),
   /// ]);
   ///
   /// print(validator.validate({'email': 'user@example.com', 'password': 'secure123'})); // true
   /// print(validator.validate({'email': 'user@example.com', 'password': 'verylongpassword123'})); // false
   /// ```
   @override
-  KMap every(covariant List<KMap> types, {String? message}) {
+  VMap every(covariant List<VMap> types, {String? message}) {
     super.every(types, message: message ?? _message.every);
     return this;
   }
@@ -90,11 +90,11 @@ class KMap extends KType<Map<String, dynamic>> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.map({'name': k.string()}).optional();
+  /// final validator = v.map({'name': v.string()}).optional();
   /// print(validator.validate(null)); // true
   /// ```
   @override
-  KMap optional() {
+  VMap optional() {
     super.optional();
     return this;
   }
@@ -103,11 +103,11 @@ class KMap extends KType<Map<String, dynamic>> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.map({'name': k.string()}).nullable();
+  /// final validator = v.map({'name': v.string()}).nullable();
   /// print(validator.validate(null)); // true
   /// ```
   @override
-  KMap nullable() {
+  VMap nullable() {
     super.nullable();
     return this;
   }
@@ -116,9 +116,9 @@ class KMap extends KType<Map<String, dynamic>> {
   ///
   /// Example (password confirmation):
   /// ```dart
-  /// final validator = k.map({
-  ///   'password': k.string().min(8),
-  ///   'confirmPassword': k.string().min(8),
+  /// final validator = v.map({
+  ///   'password': v.string().min(8),
+  ///   'confirmPassword': v.string().min(8),
   /// }).refine(
   ///   (data) => data?['password'] == data?['confirmPassword'],
   ///   path: 'confirmPassword',
@@ -128,7 +128,7 @@ class KMap extends KType<Map<String, dynamic>> {
   /// print(validator.validate({'password': 'secure123', 'confirmPassword': 'secure123'})); // true
   /// print(validator.validate({'password': 'secure123', 'confirmPassword': 'wrongpass'})); // false
   /// ```
-  KMap refine(
+  VMap refine(
     bool Function(Map<String, dynamic>? data) validator, {
     required String path,
     String? message,
@@ -148,9 +148,9 @@ class KMap extends KType<Map<String, dynamic>> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.map({
-  ///   'email': k.string().email(),
-  ///   'password': k.string().min(8),
+  /// final validator = v.map({
+  ///   'email': v.string().email(),
+  ///   'password': v.string().min(8),
   /// });
   ///
   /// final errors = validator.getErrorMessage({

@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a string meets a minimum length requirement.
 ///
@@ -22,7 +22,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// - If the input value is `null`, validation fails.
 /// - If the input length is less than `minLength`, validation fails.
 /// - If the input length meets or exceeds `minLength`, validation passes (`null` is returned).
-class MinLengthValidator extends KValidator<String> {
+class MinLengthValidator extends Validator<String> {
   /// The minimum number of characters required for validation.
   final int minLength;
 

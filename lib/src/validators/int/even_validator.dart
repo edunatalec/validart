@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `int` value is even.
 ///
@@ -14,7 +14,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(3)); // 'The number must be even' (invalid)
 /// print(validator.validate(null)); // 'The number must be even' (invalid)
 /// ```
-class EvenValidator extends KValidator<int> {
+class EvenValidator extends Validator<int> {
   /// Creates an `EvenValidator` with a required error message.
   EvenValidator({required super.message});
 

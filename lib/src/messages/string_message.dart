@@ -1,4 +1,4 @@
-import 'package:keeper/src/messages/base_message.dart';
+import 'package:validart/src/messages/base_message.dart';
 
 /// A message container for validation errors related to string values.
 ///

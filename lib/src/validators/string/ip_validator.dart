@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/string/pattern_validator.dart';
+import 'package:validart/src/validators/string/pattern_validator.dart';
 
 /// A validator that checks whether a string is a valid IPv4 or IPv6 address.
 ///

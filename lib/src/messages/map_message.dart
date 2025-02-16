@@ -1,4 +1,4 @@
-import 'package:keeper/src/messages/base_message.dart';
+import 'package:validart/src/messages/base_message.dart';
 
 /// A message class for validation errors related to `Map<String, dynamic>` values.
 ///

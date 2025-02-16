@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a given string represents a valid date.
 ///
@@ -22,7 +22,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate('02/30/2025'));  // 'Invalid date' (invalid)
 /// print(validator.validate('invalid-date')); // 'Invalid date' (invalid)
 /// ```
-class DateValidator extends KValidator<String> {
+class DateValidator extends Validator<String> {
   /// Creates a `DateValidator` instance with a custom error [message].
   DateValidator({required super.message});
 

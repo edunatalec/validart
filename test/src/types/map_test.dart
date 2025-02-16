@@ -1,12 +1,12 @@
-import 'package:keeper/keeper.dart';
+import 'package:validart/validart.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final Keeper k = Keeper();
+  final Validart v = Validart();
 
   group('required', () {
     test('should validate required correctly', () {
-      final validator = k.map({'key': k.string()});
+      final validator = v.map({'key': v.string()});
 
       expect(validator.validate({'key': 'value'}), true);
       expect(validator.validate({}), false);
@@ -16,7 +16,7 @@ void main() {
 
   group('optional', () {
     test('should validate optional correctly', () {
-      final validator = k.map({'key': k.string()}).optional();
+      final validator = v.map({'key': v.string()}).optional();
 
       expect(validator.validate({}), true);
       expect(validator.validate(null), false);
@@ -25,7 +25,7 @@ void main() {
 
   group('nullable', () {
     test('should validate nullable correctly', () {
-      final validator = k.map({'key': k.string()}).nullable();
+      final validator = v.map({'key': v.string()}).nullable();
 
       expect(validator.validate(null), true);
       expect(validator.validate({'key': 'value'}), true);
@@ -35,9 +35,9 @@ void main() {
 
   group('validate nested fields', () {
     test('should validate nested fields correctly', () {
-      final validator = k.map({
-        'name': k.string().min(3),
-        'age': k.int().min(18),
+      final validator = v.map({
+        'name': v.string().min(3),
+        'age': v.int().min(18),
       });
 
       expect(validator.validate({'name': 'John', 'age': 25}), true);
@@ -48,8 +48,8 @@ void main() {
 
   group('refine - confirm password', () {
     test('should validate password confirmation', () {
-      final validator = k
-          .map({'password': k.string().min(8), 'confirmPassword': k.string()})
+      final validator = v
+          .map({'password': v.string().min(8), 'confirmPassword': v.string()})
           .refine(
             (data) => data!['password'] == data['confirmPassword'],
             path: 'confirmPassword',
@@ -75,11 +75,11 @@ void main() {
 
   group('refine - custom validation', () {
     test('should validate custom logic', () {
-      final validator = k
+      final validator = v
           .map({
-            'email': k.string().email(),
-            'password': k.string().min(8).max(20),
-            'confirmPassword': k.string().min(8).max(20),
+            'email': v.string().email(),
+            'password': v.string().min(8).max(20),
+            'confirmPassword': v.string().min(8).max(20),
           })
           .refine(
             (data) => data?['password'] == data?['confirmPassword'],
@@ -108,9 +108,9 @@ void main() {
 
   group('validate multiple errors', () {
     test('should return multiple validation errors', () {
-      final validator = k.map({
-        'email': k.string().email(),
-        'age': k.int().min(18),
+      final validator = v.map({
+        'email': v.string().email(),
+        'age': v.int().min(18),
       });
 
       final result = validator.getErrorMessage({
@@ -127,9 +127,9 @@ void main() {
 
   group('validate missing required fields', () {
     test('should return errors for missing required fields', () {
-      final validator = k.map({
-        'email': k.string().email(),
-        'age': k.int().min(18),
+      final validator = v.map({
+        'email': v.string().email(),
+        'age': v.int().min(18),
       });
 
       final result = validator.getErrorMessage({});

@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `int` value is odd.
 ///
@@ -14,7 +14,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(8)); // 'The number must be odd' (invalid)
 /// print(validator.validate(null)); // 'The number must be odd' (invalid)
 /// ```
-class OddValidator extends KValidator<int> {
+class OddValidator extends Validator<int> {
   /// Creates an `OddValidator` with a required error message.
   OddValidator({required super.message});
 

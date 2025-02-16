@@ -1,11 +1,11 @@
-import 'package:keeper/src/messages/bool_message.dart';
-import 'package:keeper/src/messages/double_message.dart';
-import 'package:keeper/src/messages/int_message.dart';
-import 'package:keeper/src/messages/map_message.dart';
-import 'package:keeper/src/messages/num_message.dart';
-import 'package:keeper/src/messages/string_message.dart';
+import 'package:validart/src/messages/bool_message.dart';
+import 'package:validart/src/messages/double_message.dart';
+import 'package:validart/src/messages/int_message.dart';
+import 'package:validart/src/messages/map_message.dart';
+import 'package:validart/src/messages/num_message.dart';
+import 'package:validart/src/messages/string_message.dart';
 
-/// A container for all validation messages used within Keeper.
+/// A container for all validation messages used within Validart.
 ///
 /// This class holds instances of different validation message types,
 /// allowing customization of validation error messages for various data types.
@@ -16,7 +16,7 @@ import 'package:keeper/src/messages/string_message.dart';
 ///   string: StringMessage(required: 'This field cannot be empty'),
 ///   int: IntMessage(min: (value) => 'Minimum value allowed is $value'),
 /// );
-/// final keeper = Keeper(message: customMessages);
+/// final validart = Validart(message: customMessages);
 /// ```
 class Message {
   /// Validation messages for boolean values.

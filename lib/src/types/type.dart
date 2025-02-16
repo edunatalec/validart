@@ -1,19 +1,19 @@
-import 'package:keeper/src/types/array.dart';
-import 'package:keeper/src/validators/any_validator.dart';
-import 'package:keeper/src/validators/every_validator.dart';
-import 'package:keeper/src/validators/required_validator.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/types/array.dart';
+import 'package:validart/src/validators/any_validator.dart';
+import 'package:validart/src/validators/every_validator.dart';
+import 'package:validart/src/validators/required_validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
-/// `KType<T>` is an abstract class that serves as the base for all validation types in Keeper.
+/// `VType<T>` is an abstract class that serves as the base for all validation types in Validart.
 ///
-/// This class should be extended by specific types like `KString`, `KInt`, `KBool`, etc.
-abstract class KType<T> {
-  final List<KValidator<T>> _validators = [];
+/// This class should be extended by specific types like `VString`, `VInt`, `VBool`, etc.
+abstract class VType<T> {
+  final List<Validator<T>> _validators = [];
   bool _isOptional = false;
   bool _isNullable = false;
 
   /// Returns the list of validators added to this type.
-  List<KValidator<T>> get validators => _validators;
+  List<Validator<T>> get validators => _validators;
 
   /// Indicates whether the value is optional.
   bool get isOptional => _isOptional;
@@ -25,9 +25,9 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().add(MyCustomValidator());
+  /// final validator = v.string().add(MyCustomValidator());
   /// ```
-  KType<T> add(KValidator<T> validator) {
+  VType<T> add(Validator<T> validator) {
     _validators.add(validator);
     return this;
   }
@@ -36,12 +36,12 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().any([
-  ///   k.string().email(),
-  ///   k.string().url(),
+  /// final validator = v.string().any([
+  ///   v.string().email(),
+  ///   v.string().url(),
   /// ], message: 'Must be an email or URL');
   /// ```
-  KType<T> any(List<KType<T>> types, {String? message}) {
+  VType<T> any(List<VType<T>> types, {String? message}) {
     return add(AnyValidator(types, message: message!));
   }
 
@@ -49,12 +49,12 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().every([
-  ///   k.string().min(5),
-  ///   k.string().contains('@'),
+  /// final validator = v.string().every([
+  ///   v.string().min(5),
+  ///   v.string().contains('@'),
   /// ], message: 'Must be at least 5 characters and contain @');
   /// ```
-  KType<T> every(List<KType<T>> types, {String? message}) {
+  VType<T> every(List<VType<T>> types, {String? message}) {
     return add(EveryValidator(types, message: message!));
   }
 
@@ -62,9 +62,9 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().optional();
+  /// final validator = v.string().optional();
   /// ```
-  KType<T> optional() {
+  VType<T> optional() {
     _isOptional = true;
     return this;
   }
@@ -73,9 +73,9 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().nullable();
+  /// final validator = v.string().nullable();
   /// ```
-  KType<T> nullable() {
+  VType<T> nullable() {
     _isNullable = true;
     return this;
   }
@@ -84,12 +84,12 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().email().array();
+  /// final validator = v.string().email().array();
   /// print(validator.validate(['test@example.com'])); // true
   /// print(validator.validate(['invalid-email'])); // false
   /// ```
-  KArray<T> array() {
-    return KArray(this);
+  VArray<T> array() {
+    return VArray(this);
   }
 
   /// Retrieves the error message for the given value.
@@ -116,7 +116,7 @@ abstract class KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.string().min(5);
+  /// final validator = v.string().min(5);
   /// print(validator.validate('hello')); // true
   /// print(validator.validate('hi')); // false
   /// ```

@@ -1,37 +1,37 @@
-import 'package:keeper/src/messages/double_message.dart';
-import 'package:keeper/src/types/number.dart';
-import 'package:keeper/src/validators/double/decimal_validator.dart';
-import 'package:keeper/src/validators/double/finite_validator.dart';
-import 'package:keeper/src/validators/double/integer_validator.dart';
-import 'package:keeper/src/validators/required_validator.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/messages/double_message.dart';
+import 'package:validart/src/types/number.dart';
+import 'package:validart/src/validators/double/decimal_validator.dart';
+import 'package:validart/src/validators/double/finite_validator.dart';
+import 'package:validart/src/validators/double/integer_validator.dart';
+import 'package:validart/src/validators/required_validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator for `double` values, supporting various constraints.
 ///
 /// Example usage:
 /// ```dart
-/// final k = Keeper();
+/// final v = Validart();
 ///
-/// final validator = k.double().min(10).max(100);
+/// final validator = v.double().min(10).max(100);
 /// print(validator.validate(50.5)); // true
 /// print(validator.validate(5.0)); // false
 /// ```
-class KDouble extends KNumber<double> {
+class VDouble extends VNumber<double> {
   /// Stores the validation messages for `double`-related errors.
   final DoubleMessage _message;
 
-  /// Creates an instance of `KDouble` with optional custom validation messages.
+  /// Creates an instance of `VDouble` with optional custom validation messages.
   ///
   /// By default, it ensures the value is required unless explicitly marked as optional.
-  KDouble(this._message, {required String? message}) {
+  VDouble(this._message, {required String? message}) {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
-  /// Adds a validator to the `KDouble` instance.
+  /// Adds a validator to the `VDouble` instance.
   ///
   /// Allows chaining multiple `double` validations.
   @override
-  KDouble add(KValidator<double> validator) {
+  VDouble add(Validator<double> validator) {
     super.add(validator);
     return this;
   }
@@ -40,14 +40,14 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().min(10);
+  /// final validator = v.double().min(10);
   /// print(validator.validate(15)); // true
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  KDouble min(double min, {String? message}) {
+  VDouble min(double min, {String? message}) {
     super.min(min, message: message ?? _message.min(min));
     return this;
   }
@@ -56,14 +56,14 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().max(100);
+  /// final validator = v.double().max(100);
   /// print(validator.validate(50)); // true
   /// print(validator.validate(150)); // false
   /// ```
   @override
-  KDouble max(double max, {String? message}) {
+  VDouble max(double max, {String? message}) {
     super.max(max, message: message ?? _message.max(max));
     return this;
   }
@@ -72,14 +72,14 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().positive();
+  /// final validator = v.double().positive();
   /// print(validator.validate(5.5)); // true
   /// print(validator.validate(-2.3)); // false
   /// ```
   @override
-  KDouble positive({String? message}) {
+  VDouble positive({String? message}) {
     super.positive(message: message ?? _message.positive);
     return this;
   }
@@ -88,14 +88,14 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().negative();
+  /// final validator = v.double().negative();
   /// print(validator.validate(-5.5)); // true
   /// print(validator.validate(2.3)); // false
   /// ```
   @override
-  KDouble negative({String? message}) {
+  VDouble negative({String? message}) {
     super.negative(message: message ?? _message.negative);
     return this;
   }
@@ -104,14 +104,14 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().between(10, 100);
+  /// final validator = v.double().between(10, 100);
   /// print(validator.validate(50)); // true
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  KDouble between(double min, double max, {String? message}) {
+  VDouble between(double min, double max, {String? message}) {
     super.between(min, max, message: message ?? _message.between(min, max));
     return this;
   }
@@ -120,15 +120,15 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().multipleOf(2.5);
+  /// final validator = v.double().multipleOf(2.5);
   /// print(validator.validate(5.0)); // true
   /// print(validator.validate(7.5)); // true
   /// print(validator.validate(3.1)); // false
   /// ```
   @override
-  KDouble multipleOf(double factor, {String? message}) {
+  VDouble multipleOf(double factor, {String? message}) {
     super.multipleOf(factor, message: message ?? _message.multipleOf(factor));
     return this;
   }
@@ -137,13 +137,13 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().decimal();
+  /// final validator = v.double().decimal();
   /// print(validator.validate(3.5)); // true
   /// print(validator.validate(5.0)); // false (integer representation)
   /// ```
-  KDouble decimal({String? message}) {
+  VDouble decimal({String? message}) {
     return add(DecimalValidator(message: message ?? _message.decimal));
   }
 
@@ -151,14 +151,14 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().finite();
+  /// final validator = v.double().finite();
   /// print(validator.validate(100.0)); // true
   /// print(validator.validate(double.infinity)); // false
   /// print(validator.validate(double.nan)); // false
   /// ```
-  KDouble finite({String? message}) {
+  VDouble finite({String? message}) {
     return add(FiniteValidator(message: message ?? _message.finite));
   }
 
@@ -166,25 +166,25 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().integer();
+  /// final validator = v.double().integer();
   /// print(validator.validate(10.0)); // true
   /// print(validator.validate(10.5)); // false
   /// ```
-  KDouble integer({String? message}) {
+  VDouble integer({String? message}) {
     return add(IntegerValidator(message: message ?? _message.integer));
   }
 
-  /// Validates that the value matches **any** of the provided `KDouble` validators.
+  /// Validates that the value matches **any** of the provided `VDouble` validators.
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().any([
-  ///   k.double().min(10),
-  ///   k.double().max(5)
+  /// final validator = v.double().any([
+  ///   v.double().min(10),
+  ///   v.double().max(5)
   /// ]);
   ///
   /// print(validator.validate(12)); // true
@@ -192,7 +192,7 @@ class KDouble extends KNumber<double> {
   /// print(validator.validate(7)); // false
   /// ```
   @override
-  KDouble any(covariant List<KDouble> types, {String? message}) {
+  VDouble any(covariant List<VDouble> types, {String? message}) {
     super.any(types, message: message ?? _message.any);
     return this;
   }
@@ -201,18 +201,18 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().every([
-  ///   k.double().min(10),
-  ///   k.double().max(20)
+  /// final validator = v.double().every([
+  ///   v.double().min(10),
+  ///   v.double().max(20)
   /// ]);
   ///
   /// print(validator.validate(15)); // true
   /// print(validator.validate(25)); // false
   /// ```
   @override
-  KDouble every(covariant List<KDouble> types, {String? message}) {
+  VDouble every(covariant List<VDouble> types, {String? message}) {
     super.every(types, message: message ?? _message.every);
     return this;
   }
@@ -221,13 +221,13 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().optional();
+  /// final validator = v.double().optional();
   /// print(validator.validate(null)); // true
   /// ```
   @override
-  KDouble optional() {
+  VDouble optional() {
     super.optional();
     return this;
   }
@@ -236,20 +236,20 @@ class KDouble extends KNumber<double> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.double().nullable();
+  /// final validator = v.double().nullable();
   /// print(validator.validate(null)); // true
   /// ```
   @override
-  KDouble nullable() {
+  VDouble nullable() {
     super.nullable();
     return this;
   }
 
   /// Applies a custom validation function.
   @override
-  KDouble refine(bool Function(double? data) validator, {String? message}) {
+  VDouble refine(bool Function(double? data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given string is a valid Brazilian CNPJ.
 ///
@@ -19,7 +19,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate('invalid-cnpj'));       // 'Invalid CNPJ' (invalid)
 /// print(validator.validate('11111111111111'));     // 'Invalid CNPJ' (invalid)
 /// ```
-class CNPJValidator extends KValidator<String> {
+class CNPJValidator extends Validator<String> {
   /// Creates a `CNPJValidator` with a custom [message] for validation failures.
   CNPJValidator({required super.message});
 

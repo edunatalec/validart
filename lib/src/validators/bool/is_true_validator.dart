@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if a boolean value is `true`.
 ///
@@ -14,7 +14,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(false)); // 'The value must be true' (invalid)
 /// print(validator.validate(null));  // 'The value must be true' (invalid)
 /// ```
-class IsTrueValidator extends KValidator<bool> {
+class IsTrueValidator extends Validator<bool> {
   /// Creates an `IsTrueValidator` with a required error message.
   IsTrueValidator({required super.message});
 

@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/string/pattern_validator.dart';
+import 'package:validart/src/validators/string/pattern_validator.dart';
 
 /// A validator that checks whether a given string is a valid time format.
 ///

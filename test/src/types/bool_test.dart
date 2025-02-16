@@ -1,12 +1,12 @@
-import 'package:keeper/keeper.dart';
+import 'package:validart/validart.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final Keeper k = Keeper();
+  final Validart v = Validart();
 
   group('required', () {
     test('should validate required correctly', () {
-      final validator = k.bool();
+      final validator = v.bool();
 
       expect(validator.validate(true), true);
       expect(validator.validate(false), true);
@@ -16,7 +16,7 @@ void main() {
 
   group('isTrue', () {
     test('should validate isTrue correctly', () {
-      final validator = k.bool().isTrue();
+      final validator = v.bool().isTrue();
 
       expect(validator.validate(true), true);
       expect(validator.validate(false), false);
@@ -26,7 +26,7 @@ void main() {
 
   group('isFalse', () {
     test('should validate isFalse correctly', () {
-      final validator = k.bool().isFalse();
+      final validator = v.bool().isFalse();
 
       expect(validator.validate(false), true);
       expect(validator.validate(true), false);
@@ -36,7 +36,7 @@ void main() {
 
   group('nullable', () {
     test('should validate nullable correctly', () {
-      final validator = k.bool().nullable();
+      final validator = v.bool().nullable();
 
       expect(validator.validate(true), true);
       expect(validator.validate(false), true);
@@ -46,7 +46,7 @@ void main() {
 
   group('optional', () {
     test('should validate optional correctly', () {
-      final validator = k.bool().optional();
+      final validator = v.bool().optional();
 
       expect(validator.validate(true), true);
       expect(validator.validate(false), true);
@@ -56,7 +56,7 @@ void main() {
 
   group('refine', () {
     test('should validate refine function correctly', () {
-      final validator = k.bool().refine(
+      final validator = v.bool().refine(
         (value) => value == true,
         message: 'The value must be true.',
       );

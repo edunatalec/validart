@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a string matches a specific regular expression pattern.
 ///
@@ -25,7 +25,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// - If the input value is `null`, validation fails.
 /// - If the input does not match the specified regex pattern, validation fails.
 /// - If the input matches the pattern, validation passes (`null` is returned).
-class PatternValidator extends KValidator<String> {
+class PatternValidator extends Validator<String> {
   /// The regex pattern used for validation.
   final String pattern;
 

@@ -1,12 +1,12 @@
-import 'package:keeper/keeper.dart';
+import 'package:validart/validart.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final Keeper k = Keeper();
+  final Validart v = Validart();
 
   group('required', () {
     test('should validate required correctly', () {
-      final validator = k.string();
+      final validator = v.string();
 
       expect(validator.validate('any'), true);
       expect(validator.validate('123'), true);
@@ -18,7 +18,7 @@ void main() {
 
   group('email', () {
     test('should validate email correctly', () {
-      final validator = k.string().email();
+      final validator = v.string().email();
 
       expect(validator.validate('email'), false);
       expect(validator.validate('email@gmail.com'), true);
@@ -29,7 +29,7 @@ void main() {
 
   group('uuid', () {
     test('should validate UUID v4 correctly (default)', () {
-      final validator = k.string().uuid();
+      final validator = v.string().uuid();
 
       expect(validator.validate('550e8400-e29b-41d4-a716-446655440000'), true);
       expect(validator.validate('550e8400-e29b-31d4-a716-446655440000'), false);
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('should validate UUID v1 correctly', () {
-      final validator = k.string().uuid(version: UUIDVersion.v1);
+      final validator = v.string().uuid(version: UUIDVersion.v1);
 
       expect(validator.validate('550e8400-e29b-11d4-a716-446655440000'), true);
       expect(validator.validate('8793b364-ec9e-11ef-b36b-de390fc56918'), true);
@@ -53,7 +53,7 @@ void main() {
     });
 
     test('should validate UUID v3 correctly', () {
-      final validator = k.string().uuid(version: UUIDVersion.v3);
+      final validator = v.string().uuid(version: UUIDVersion.v3);
 
       expect(validator.validate('550e8400-e29b-31d4-a716-446655440000'), true);
       expect(validator.validate('9073926b-929f-31c2-abc9-fad77ae3e8eb'), true);
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('should validate UUID v5 correctly', () {
-      final validator = k.string().uuid(version: UUIDVersion.v5);
+      final validator = v.string().uuid(version: UUIDVersion.v5);
 
       expect(validator.validate('550e8400-e29b-51d4-a716-446655440000'), true);
       expect(validator.validate('cfbff0d1-9375-5685-968c-48ce8b15ae17'), true);
@@ -71,9 +71,9 @@ void main() {
     });
 
     test('should validate multiple UUID versions', () {
-      final validator = k.string().any([
-        k.string().uuid(version: UUIDVersion.v1),
-        k.string().uuid(version: UUIDVersion.v4),
+      final validator = v.string().any([
+        v.string().uuid(version: UUIDVersion.v1),
+        v.string().uuid(version: UUIDVersion.v4),
       ]);
 
       expect(validator.validate('8793b364-ec9e-11ef-b36b-de390fc56918'), true);
@@ -84,7 +84,7 @@ void main() {
 
   group('url', () {
     test('should validate URL correctly', () {
-      final validator = k.string().url();
+      final validator = v.string().url();
 
       expect(validator.validate('https://google.com'), true);
       expect(validator.validate('http://example.com'), true);
@@ -100,7 +100,7 @@ void main() {
 
   group('cpf', () {
     test('should validate CPF correctly', () {
-      final validator = k.string().cpf();
+      final validator = v.string().cpf();
 
       expect(validator.validate('123.456.789-09'), true);
       expect(validator.validate('12345678909'), true);
@@ -111,7 +111,7 @@ void main() {
 
   group('cnpj', () {
     test('should validate CNPJ correctly', () {
-      final validator = k.string().cnpj();
+      final validator = v.string().cnpj();
 
       expect(validator.validate('12.345.678/0001-95'), true);
       expect(validator.validate('12345678000195'), true);
@@ -122,7 +122,7 @@ void main() {
 
   group('cep', () {
     test('should validate CEP correctly', () {
-      final validator = k.string().cep();
+      final validator = v.string().cep();
 
       expect(validator.validate('01001-000'), true);
       expect(validator.validate('01001000'), true);
@@ -133,7 +133,7 @@ void main() {
 
   group('min length', () {
     test('should validate min length', () {
-      final validator = k.string().min(5);
+      final validator = v.string().min(5);
 
       expect(validator.validate('1234'), false);
       expect(validator.validate('12345'), true);
@@ -142,7 +142,7 @@ void main() {
 
   group('max length', () {
     test('should validate max length', () {
-      final validator = k.string().max(10);
+      final validator = v.string().max(10);
 
       expect(validator.validate('12345678901'), false);
       expect(validator.validate('12345'), true);
@@ -151,7 +151,7 @@ void main() {
 
   group('phone', () {
     test('should validate Brazilian phone array correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.brazil,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -167,7 +167,7 @@ void main() {
     });
 
     test('should validate Brazilian phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.brazil,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -183,7 +183,7 @@ void main() {
     });
 
     test('should validate USA phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.usa,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -199,7 +199,7 @@ void main() {
     });
 
     test('should validate Argentina phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.argentina,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -214,7 +214,7 @@ void main() {
     });
 
     test('should validate Germany phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.germany,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -229,7 +229,7 @@ void main() {
     });
 
     test('should validate China phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.china,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -244,7 +244,7 @@ void main() {
     });
 
     test('should validate Japan phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.japan,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -259,7 +259,7 @@ void main() {
     });
 
     test('should validate international phone numbers correctly', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.international,
         areaCode: AreaCodeFormat.required,
         countryCode: CountryCodeFormat.none,
@@ -274,13 +274,13 @@ void main() {
     });
 
     test('should validate Brazilian and USA phone numbers correctly', () {
-      final validator = k.string().any([
-        k.string().phone(
+      final validator = v.string().any([
+        v.string().phone(
           PhoneType.brazil,
           areaCode: AreaCodeFormat.required,
           countryCode: CountryCodeFormat.none,
         ),
-        k.string().phone(
+        v.string().phone(
           PhoneType.usa,
           areaCode: AreaCodeFormat.required,
           countryCode: CountryCodeFormat.none,
@@ -307,7 +307,7 @@ void main() {
     test(
       'should validate Brazilian phone numbers with country code required',
       () {
-        final validator = k.string().phone(
+        final validator = v.string().phone(
           PhoneType.brazil,
           countryCode: CountryCodeFormat.required,
           areaCode: AreaCodeFormat.required,
@@ -324,7 +324,7 @@ void main() {
     test(
       'should validate Brazilian phone numbers with optional country code',
       () {
-        final validator = k.string().phone(
+        final validator = v.string().phone(
           PhoneType.brazil,
           countryCode: CountryCodeFormat.optional,
           areaCode: AreaCodeFormat.required,
@@ -337,7 +337,7 @@ void main() {
     );
 
     test('should validate Brazilian phone numbers without area code', () {
-      final validator = k.string().phone(
+      final validator = v.string().phone(
         PhoneType.brazil,
         areaCode: AreaCodeFormat.none,
         countryCode: CountryCodeFormat.none,
@@ -354,7 +354,7 @@ void main() {
     test(
       'should validate Brazilian phone numbers with country code required and no area code',
       () {
-        final validator = k.string().phone(
+        final validator = v.string().phone(
           PhoneType.brazil,
           countryCode: CountryCodeFormat.required,
           areaCode: AreaCodeFormat.none,
@@ -371,7 +371,7 @@ void main() {
     test(
       'should validate Brazilian phone numbers with country code optional and no area code',
       () {
-        final validator = k.string().phone(
+        final validator = v.string().phone(
           PhoneType.brazil,
           countryCode: CountryCodeFormat.optional,
           areaCode: AreaCodeFormat.none,
@@ -387,7 +387,7 @@ void main() {
 
   group('time', () {
     test('should validate time correctly', () {
-      final validator = k.string().time();
+      final validator = v.string().time();
 
       expect(validator.validate('12:30'), true);
       expect(validator.validate('25:00'), false);
@@ -399,7 +399,7 @@ void main() {
 
   group('ip', () {
     test('should validate IP addresses', () {
-      final validator = k.string().ip();
+      final validator = v.string().ip();
 
       expect(validator.validate('192.168.0.1'), true);
       expect(validator.validate('255.255.255.255'), true);
@@ -410,7 +410,7 @@ void main() {
 
   group('date', () {
     test('should validate date format', () {
-      final validator = k.string().date();
+      final validator = v.string().date();
 
       expect(validator.validate('2025-02-10'), true);
       expect(validator.validate('2025-20-12'), true);
@@ -422,7 +422,7 @@ void main() {
 
   group('contains', () {
     test('should validate contains', () {
-      final validator = k.string().contains('hello');
+      final validator = v.string().contains('hello');
 
       expect(validator.validate('hello world'), true);
       expect(validator.validate('world'), false);
@@ -431,7 +431,7 @@ void main() {
 
   group('equals', () {
     test('should validate equals', () {
-      final validator = k.string().equals('password123');
+      final validator = v.string().equals('password123');
 
       expect(validator.validate('password123'), true);
       expect(validator.validate('Password123'), false);
@@ -440,7 +440,7 @@ void main() {
 
   group('startsWith', () {
     test('should validate starts with', () {
-      final validator = k.string().startsWidth('Hello');
+      final validator = v.string().startsWidth('Hello');
 
       expect(validator.validate('Hello World'), true);
       expect(validator.validate('World Hello'), false);
@@ -449,7 +449,7 @@ void main() {
 
   group('endsWith', () {
     test('should validate ends with', () {
-      final validator = k.string().endsWith('World');
+      final validator = v.string().endsWith('World');
 
       expect(validator.validate('Hello World'), true);
       expect(validator.validate('World Hello'), false);
@@ -458,7 +458,7 @@ void main() {
 
   group('pattern', () {
     test('should validate pattern', () {
-      final validator = k.string().pattern(r'^\d{3}-\d{3}-\d{4}$');
+      final validator = v.string().pattern(r'^\d{3}-\d{3}-\d{4}$');
 
       expect(validator.validate('123-456-7890'), true);
       expect(validator.validate('1234567890'), false);
@@ -467,7 +467,7 @@ void main() {
 
   group('refine', () {
     test('should validate custom refine function', () {
-      final validator = k.string().refine((data) => data!.contains('z'));
+      final validator = v.string().refine((data) => data!.contains('z'));
 
       expect(validator.validate('z example'), true);
       expect(validator.validate('example'), false);
@@ -476,7 +476,7 @@ void main() {
 
   group('nullable', () {
     test('should validate nullable', () {
-      final validator = k.string().nullable();
+      final validator = v.string().nullable();
 
       expect(validator.validate(null), true);
       expect(validator.validate('hello'), true);
@@ -485,10 +485,10 @@ void main() {
 
   group('every', () {
     test('should pass only if all validators pass', () {
-      final validator = k.string().every([
-        k.string().min(5),
-        k.string().max(10),
-        k.string().contains('test'),
+      final validator = v.string().every([
+        v.string().min(5),
+        v.string().max(10),
+        v.string().contains('test'),
       ]);
 
       expect(validator.validate('test123'), true);
@@ -501,9 +501,9 @@ void main() {
 
   group('any', () {
     test('should pass if at least one validator passes', () {
-      final validator = k.string().any([
-        k.string().equals('hello'),
-        k.string().equals('world'),
+      final validator = v.string().any([
+        v.string().equals('hello'),
+        v.string().equals('world'),
       ]);
 
       expect(validator.validate('hello'), true);
@@ -513,13 +513,13 @@ void main() {
     });
 
     test('should pass if at least one validation condition is met', () {
-      final validator = k.string().any([
-        k.string().min(5),
-        k.string().contains('keeper'),
+      final validator = v.string().any([
+        v.string().min(5),
+        v.string().contains('validart'),
       ]);
 
       expect(validator.validate('short'), true);
-      expect(validator.validate('keeper'), true);
+      expect(validator.validate('validart'), true);
       expect(validator.validate('tiny'), false);
     });
   });

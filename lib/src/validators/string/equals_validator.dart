@@ -1,5 +1,5 @@
-import 'package:keeper/src/enums/case_sensitivity.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/enums/case_sensitivity.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a given string is exactly equal to a specified value.
 ///
@@ -30,7 +30,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// - [message]: The error message returned if validation fails.
 /// - [caseSensitivity]: Determines whether validation should be case-sensitive.
 ///   Defaults to `CaseSensitivity.sensitive`.
-class EqualsValidator extends KValidator<String> {
+class EqualsValidator extends Validator<String> {
   /// The exact string value that the input should match.
   final String expectedValue;
 

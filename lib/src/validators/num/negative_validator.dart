@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `num` value is negative.
 ///
@@ -16,7 +16,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(5));   // 'Value must be negative' (invalid)
 /// print(validator.validate(null)); // 'Value must be negative' (invalid)
 /// ```
-class NegativeValidator<T extends num> extends KValidator<T> {
+class NegativeValidator<T extends num> extends Validator<T> {
   /// Creates a `NegativeValidator` that ensures values are negative.
   ///
   /// The [message] will be returned if validation fails.

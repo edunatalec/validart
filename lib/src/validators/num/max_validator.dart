@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `num` value does not exceed a specified maximum limit.
 ///
@@ -15,7 +15,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(101)); // 'Value must be at most 100' (invalid)
 /// print(validator.validate(null)); // 'Value must be at most 100' (invalid)
 /// ```
-class MaxValidator<T extends num> extends KValidator<T> {
+class MaxValidator<T extends num> extends Validator<T> {
   /// The maximum allowed value.
   final T max;
 

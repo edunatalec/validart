@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that allows for custom validation logic.
 ///
@@ -7,7 +7,7 @@ import 'package:keeper/src/validators/validator.dart';
 ///
 /// Example:
 /// ```dart
-/// final validator = k.string().refine(
+/// final validator = v.string().refine(
 ///   (value) => value?.contains('@') ?? false,
 ///   message: 'Must contain "@"',
 /// );
@@ -15,7 +15,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate('email@example.com')); // true
 /// print(validator.validate('invalidemail.com')); // false
 /// ```
-class RefineValidator<T> extends KValidator<T> {
+class RefineValidator<T> extends Validator<T> {
   /// A custom function that determines whether the value is valid.
   ///
   /// If the function returns `true`, the value is considered valid.

@@ -1,7 +1,7 @@
-import 'package:keeper/src/enums/area_code_format.dart';
-import 'package:keeper/src/enums/country_code_format.dart';
-import 'package:keeper/src/enums/phone_type.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/enums/area_code_format.dart';
+import 'package:validart/src/enums/country_code_format.dart';
+import 'package:validart/src/enums/phone_type.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator for phone numbers with support for different country and area codes.
 ///
@@ -32,7 +32,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// - The validator constructs a regex pattern based on the selected phone type.
 /// - It considers optional or required country/area codes.
 /// - If the input value is `null`, validation fails.
-class PhoneValidator extends KValidator<String> {
+class PhoneValidator extends Validator<String> {
   /// The expected phone number format (e.g., Brazilian, US, etc.).
   final PhoneType type;
 

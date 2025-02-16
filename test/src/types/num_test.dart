@@ -1,12 +1,12 @@
-import 'package:keeper/keeper.dart';
+import 'package:validart/validart.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final Keeper k = Keeper();
+  final Validart v = Validart();
 
   group('required', () {
     test('should validate required correctly', () {
-      final validator = k.num();
+      final validator = v.num();
 
       expect(validator.validate(10), true);
       expect(validator.validate(0), true);
@@ -17,7 +17,7 @@ void main() {
 
   group('min', () {
     test('should validate minimum value', () {
-      final validator = k.num().min(5);
+      final validator = v.num().min(5);
 
       expect(validator.validate(4), false);
       expect(validator.validate(5), true);
@@ -27,7 +27,7 @@ void main() {
 
   group('max', () {
     test('should validate maximum value', () {
-      final validator = k.num().max(10);
+      final validator = v.num().max(10);
 
       expect(validator.validate(11), false);
       expect(validator.validate(10), true);
@@ -37,7 +37,7 @@ void main() {
 
   group('positive', () {
     test('should validate positive numbers', () {
-      final validator = k.num().positive();
+      final validator = v.num().positive();
 
       expect(validator.validate(1), true);
       expect(validator.validate(0), false);
@@ -47,7 +47,7 @@ void main() {
 
   group('negative', () {
     test('should validate negative numbers', () {
-      final validator = k.num().negative();
+      final validator = v.num().negative();
 
       expect(validator.validate(-1), true);
       expect(validator.validate(0), false);
@@ -57,7 +57,7 @@ void main() {
 
   group('between', () {
     test('should validate number range', () {
-      final validator = k.num().between(5, 10);
+      final validator = v.num().between(5, 10);
 
       expect(validator.validate(4), false);
       expect(validator.validate(5), true);
@@ -69,7 +69,7 @@ void main() {
 
   group('multipleOf', () {
     test('should validate multiples of a number', () {
-      final validator = k.num().multipleOf(3);
+      final validator = v.num().multipleOf(3);
 
       expect(validator.validate(6), true);
       expect(validator.validate(9), true);
@@ -79,7 +79,7 @@ void main() {
 
   group('nullable', () {
     test('should allow null values when nullable', () {
-      final validator = k.num().nullable();
+      final validator = v.num().nullable();
 
       expect(validator.validate(null), true);
       expect(validator.validate(10), true);
@@ -88,7 +88,7 @@ void main() {
 
   group('optional', () {
     test('should allow skipping optional values', () {
-      final validator = k.num().optional();
+      final validator = v.num().optional();
 
       expect(validator.validate(5), true);
       expect(validator.validate(null), false);
@@ -97,7 +97,7 @@ void main() {
 
   group('refine', () {
     test('should validate custom refine function', () {
-      final validator = k.num().refine((data) => data! > 100);
+      final validator = v.num().refine((data) => data! > 100);
 
       expect(validator.validate(200), true);
       expect(validator.validate(50), false);

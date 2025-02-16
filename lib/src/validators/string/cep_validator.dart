@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given string is a valid Brazilian postal code (CEP).
 ///
@@ -16,7 +16,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate('1234'));       // 'Invalid CEP' (invalid)
 /// print(validator.validate(null));         // 'Invalid CEP' (invalid)
 /// ```
-class CEPValidator extends KValidator<String> {
+class CEPValidator extends Validator<String> {
   /// Creates a `CEPValidator` with a custom [message] for validation failures.
   CEPValidator({required super.message});
 

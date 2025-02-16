@@ -1,5 +1,5 @@
-import 'package:keeper/src/enums/case_sensitivity.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/enums/case_sensitivity.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a given string contains a specific substring.
 ///
@@ -22,7 +22,7 @@ import 'package:keeper/src/validators/validator.dart';
 ///
 /// print(caseInsensitiveValidator.validate('I LOVE DART!')); // null (valid)
 /// ```
-class ContainsValidator extends KValidator<String> {
+class ContainsValidator extends Validator<String> {
   /// The substring that should be present in the validated value.
   final String data;
 

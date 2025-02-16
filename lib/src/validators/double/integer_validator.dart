@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `double` value is an integer.
 ///
@@ -14,7 +14,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(3.14)); // 'The number must be an integer' (invalid)
 /// print(validator.validate(null)); // 'The number must be an integer' (invalid)
 /// ```
-class IntegerValidator extends KValidator<double> {
+class IntegerValidator extends Validator<double> {
   /// Creates an `IntegerValidator` with a required error message.
   IntegerValidator({required super.message});
 

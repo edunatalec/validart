@@ -1,11 +1,11 @@
-import 'package:keeper/src/types/type.dart';
-import 'package:keeper/src/validators/refine_validator.dart';
+import 'package:validart/src/types/type.dart';
+import 'package:validart/src/validators/refine_validator.dart';
 
-/// A base class that extends `KType<T>` and provides custom validation rules.
+/// A base class that extends `VType<T>` and provides custom validation rules.
 ///
 /// Example usage:
 /// ```dart
-/// final validator = k.string().refine(
+/// final validator = v.string().refine(
 ///   (value) => value != null && value.contains('@'),
 ///   message: 'Must contain "@"',
 /// );
@@ -13,7 +13,7 @@ import 'package:keeper/src/validators/refine_validator.dart';
 /// print(validator.validate('hello@example.com')); // true
 /// print(validator.validate('helloexample.com')); // false
 /// ```
-class KRefine<T> extends KType<T> {
+class VRefine<T> extends VType<T> {
   /// Adds a custom refinement rule.
   ///
   /// The `validator` function takes the input value and returns `true` if valid
@@ -22,7 +22,7 @@ class KRefine<T> extends KType<T> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().refine(
+  /// final validator = v.int().refine(
   ///   (value) => value != null && value.isEven,
   ///   message: 'The number must be even',
   /// );
@@ -30,7 +30,7 @@ class KRefine<T> extends KType<T> {
   /// print(validator.validate(4)); // true
   /// print(validator.validate(5)); // false
   /// ```
-  KRefine<T> refine(bool Function(T? data) validator, {String? message}) {
+  VRefine<T> refine(bool Function(T? data) validator, {String? message}) {
     add(RefineValidator<T>(validator, message: message!));
     return this;
   }

@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `num` value meets a specified minimum limit.
 ///
@@ -15,7 +15,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(9));   // 'Value must be at least 10' (invalid)
 /// print(validator.validate(null)); // 'Value must be at least 10' (invalid)
 /// ```
-class MinValidator<T extends num> extends KValidator<T> {
+class MinValidator<T extends num> extends Validator<T> {
   /// The minimum allowed value.
   final T min;
 

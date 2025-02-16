@@ -1,5 +1,5 @@
-import 'package:keeper/src/enums/case_sensitivity.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/enums/case_sensitivity.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a given string starts with a specific prefix.
 ///
@@ -34,7 +34,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// - If `caseSensitivity` is `CaseSensitivity.insensitive`, both the prefix and the input value
 ///   are converted to lowercase before comparison.
 /// - If the input value is `null`, validation fails.
-class StartsWithValidator extends KValidator<String> {
+class StartsWithValidator extends Validator<String> {
   /// The required prefix for validation.
   final String prefix;
 

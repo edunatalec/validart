@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given double value is a decimal (non-integer).
 ///
@@ -15,7 +15,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(4.0));  // 'The number must be a decimal' (invalid)
 /// print(validator.validate(null)); // 'The number must be a decimal' (invalid)
 /// ```
-class DecimalValidator extends KValidator<double> {
+class DecimalValidator extends Validator<double> {
   /// Creates a `DecimalValidator` with a required error message.
   DecimalValidator({required super.message});
 

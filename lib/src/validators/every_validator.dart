@@ -1,5 +1,5 @@
-import 'package:keeper/src/types/type.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/types/type.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a value satisfies all the given types.
 ///
@@ -7,18 +7,18 @@ import 'package:keeper/src/validators/validator.dart';
 ///
 /// Example:
 /// ```dart
-/// final validator = k.string().every([
-///   k.string().min(5),
-///   k.string().max(10),
+/// final validator = v.string().every([
+///   v.string().min(5),
+///   v.string().max(10),
 /// ], message: 'Must be between 5 and 10 characters');
 ///
 /// print(validator.validate('abcdef')); // true
 /// print(validator.validate('abc')); // false
 /// print(validator.validate('abcdefghijk')); // false
 /// ```
-class EveryValidator<T> extends KValidator<T> {
+class EveryValidator<T> extends Validator<T> {
   /// A list of types that the value must satisfy.
-  final List<KType<T>> types;
+  final List<VType<T>> types;
 
   /// Creates an [EveryValidator] with a list of required validation types.
   ///

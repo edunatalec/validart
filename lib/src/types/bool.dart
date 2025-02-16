@@ -1,36 +1,36 @@
-import 'package:keeper/src/messages/bool_message.dart';
-import 'package:keeper/src/types/refine.dart';
-import 'package:keeper/src/validators/bool/is_false_validator.dart';
-import 'package:keeper/src/validators/bool/is_true_validator.dart';
-import 'package:keeper/src/validators/required_validator.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/messages/bool_message.dart';
+import 'package:validart/src/types/refine.dart';
+import 'package:validart/src/validators/bool/is_false_validator.dart';
+import 'package:validart/src/validators/bool/is_true_validator.dart';
+import 'package:validart/src/validators/required_validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A boolean validator for ensuring boolean values match specific conditions.
 ///
 /// Example usage:
 /// ```dart
-/// final k = Keeper();
+/// final v = Validart();
 ///
-/// final validator = k.bool().isTrue();
+/// final validator = v.bool().isTrue();
 /// print(validator.validate(true)); // true
 /// print(validator.validate(false)); // false
 /// ```
-class KBool extends KRefine<bool> {
+class VBool extends VRefine<bool> {
   /// Stores the validation messages for boolean-related errors.
   final BoolMessage _message;
 
-  /// Creates an instance of `KBool` with optional custom validation messages.
+  /// Creates an instance of `VBool` with optional custom validation messages.
   ///
   /// By default, it ensures the value is required unless explicitly marked as optional.
-  KBool(this._message, {required String? message}) {
+  VBool(this._message, {required String? message}) {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
-  /// Adds a validator to the `KBool` instance.
+  /// Adds a validator to the `VBool` instance.
   ///
   /// Allows chaining multiple boolean validations.
   @override
-  KBool add(KValidator<bool> validator) {
+  VBool add(Validator<bool> validator) {
     super.add(validator);
     return this;
   }
@@ -39,13 +39,13 @@ class KBool extends KRefine<bool> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().isTrue();
+  /// final validator = v.bool().isTrue();
   /// print(validator.validate(true)); // true
   /// print(validator.validate(false)); // false
   /// ```
-  KBool isTrue({String? message}) {
+  VBool isTrue({String? message}) {
     return add(IsTrueValidator(message: message ?? _message.isTrue));
   }
 
@@ -53,32 +53,32 @@ class KBool extends KRefine<bool> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().isFalse();
+  /// final validator = v.bool().isFalse();
   /// print(validator.validate(false)); // true
   /// print(validator.validate(true)); // false
   /// ```
-  KBool isFalse({String? message}) {
+  VBool isFalse({String? message}) {
     return add(IsFalseValidator(message: message ?? _message.isFalse));
   }
 
-  /// Validates that the value matches **any** of the provided `KBool` validators.
+  /// Validates that the value matches **any** of the provided `VBool` validators.
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().any([
-  ///   k.bool().isTrue(),
-  ///   k.bool().isFalse()
+  /// final validator = v.bool().any([
+  ///   v.bool().isTrue(),
+  ///   v.bool().isFalse()
   /// ]);
   ///
   /// print(validator.validate(true)); // true
   /// print(validator.validate(false)); // true
   /// ```
   @override
-  KBool any(covariant List<KBool> types, {String? message}) {
+  VBool any(covariant List<VBool> types, {String? message}) {
     super.any(types, message: message ?? _message.any);
     return this;
   }
@@ -87,11 +87,11 @@ class KBool extends KRefine<bool> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().every([
-  ///   k.bool().isTrue(),
-  ///   k.bool().optional()
+  /// final validator = v.bool().every([
+  ///   v.bool().isTrue(),
+  ///   v.bool().optional()
   /// ]);
   ///
   /// print(validator.validate(true)); // true
@@ -99,7 +99,7 @@ class KBool extends KRefine<bool> {
   /// print(validator.validate(false)); // false
   /// ```
   @override
-  KBool every(covariant List<KBool> types, {String? message}) {
+  VBool every(covariant List<VBool> types, {String? message}) {
     super.every(types, message: message ?? _message.every);
     return this;
   }
@@ -108,15 +108,15 @@ class KBool extends KRefine<bool> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().optional();
+  /// final validator = v.bool().optional();
   /// print(validator.validate(null)); // true
   /// print(validator.validate(true)); // true
   /// print(validator.validate(false)); // true
   /// ```
   @override
-  KBool optional() {
+  VBool optional() {
     super.optional();
     return this;
   }
@@ -125,14 +125,14 @@ class KBool extends KRefine<bool> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().nullable();
+  /// final validator = v.bool().nullable();
   /// print(validator.validate(null)); // true
   /// print(validator.validate(false)); // true
   /// ```
   @override
-  KBool nullable() {
+  VBool nullable() {
     super.nullable();
     return this;
   }
@@ -141,15 +141,15 @@ class KBool extends KRefine<bool> {
   ///
   /// Example:
   /// ```dart
-  /// final k = Keeper();
+  /// final v = Validart();
   ///
-  /// final validator = k.bool().refine((value) => value == true);
+  /// final validator = v.bool().refine((value) => value == true);
   ///
   /// print(validator.validate(true)); // true
   /// print(validator.validate(false)); // false
   /// ```
   @override
-  KBool refine(bool Function(bool? data) validator, {String? message}) {
+  VBool refine(bool Function(bool? data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

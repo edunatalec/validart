@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `double` value is finite (not infinite or NaN).
 ///
@@ -15,7 +15,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(double.nan)); // 'The number must be finite' (invalid)
 /// print(validator.validate(null)); // 'The number must be finite' (invalid)
 /// ```
-class FiniteValidator extends KValidator<double> {
+class FiniteValidator extends Validator<double> {
   /// Creates a `FiniteValidator` with a required error message.
   FiniteValidator({required super.message});
 

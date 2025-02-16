@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks whether a given string is a valid Brazilian CPF number.
 ///
@@ -22,7 +22,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate('111.111.111-11')); // 'Invalid CPF' (invalid)
 /// print(validator.validate('12345678900'));    // 'Invalid CPF' (invalid)
 /// ```
-class CPFValidator extends KValidator<String> {
+class CPFValidator extends Validator<String> {
   /// Creates a `CPFValidator` instance with a custom error [message].
   CPFValidator({required super.message});
 

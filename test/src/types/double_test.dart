@@ -1,12 +1,12 @@
-import 'package:keeper/keeper.dart';
+import 'package:validart/validart.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final Keeper k = Keeper();
+  final Validart v = Validart();
 
   group('required', () {
     test('should validate required correctly', () {
-      final validator = k.double();
+      final validator = v.double();
 
       expect(validator.validate(1.0), true);
       expect(validator.validate(0.0), true);
@@ -16,7 +16,7 @@ void main() {
 
   group('min', () {
     test('should validate minimum value correctly', () {
-      final validator = k.double().min(10.5);
+      final validator = v.double().min(10.5);
 
       expect(validator.validate(10.5), true);
       expect(validator.validate(11.0), true);
@@ -26,7 +26,7 @@ void main() {
 
   group('max', () {
     test('should validate maximum value correctly', () {
-      final validator = k.double().max(100.0);
+      final validator = v.double().max(100.0);
 
       expect(validator.validate(99.9), true);
       expect(validator.validate(100.0), true);
@@ -36,7 +36,7 @@ void main() {
 
   group('between', () {
     test('should validate range correctly', () {
-      final validator = k.double().between(10.0, 20.0);
+      final validator = v.double().between(10.0, 20.0);
 
       expect(validator.validate(10.0), true);
       expect(validator.validate(15.5), true);
@@ -48,7 +48,7 @@ void main() {
 
   group('multipleOf', () {
     test('should validate multiples correctly', () {
-      final validator = k.double().multipleOf(2.5);
+      final validator = v.double().multipleOf(2.5);
 
       expect(validator.validate(5.0), true);
       expect(validator.validate(7.5), true);
@@ -58,7 +58,7 @@ void main() {
 
   group('positive', () {
     test('should validate positive numbers correctly', () {
-      final validator = k.double().positive();
+      final validator = v.double().positive();
 
       expect(validator.validate(1.0), true);
       expect(validator.validate(100.5), true);
@@ -69,7 +69,7 @@ void main() {
 
   group('negative', () {
     test('should validate negative numbers correctly', () {
-      final validator = k.double().negative();
+      final validator = v.double().negative();
 
       expect(validator.validate(-1.0), true);
       expect(validator.validate(-100.5), true);
@@ -80,7 +80,7 @@ void main() {
 
   group('finite', () {
     test('should validate finite numbers correctly', () {
-      final validator = k.double().finite();
+      final validator = v.double().finite();
 
       expect(validator.validate(1.0), true);
       expect(validator.validate(-1.0), true);
@@ -92,7 +92,7 @@ void main() {
 
   group('decimal', () {
     test('should validate decimal numbers correctly', () {
-      final validator = k.double().decimal();
+      final validator = v.double().decimal();
 
       expect(validator.validate(1.5), true);
       expect(validator.validate(10.25), true);
@@ -102,7 +102,7 @@ void main() {
 
   group('integer', () {
     test('should validate integer values correctly', () {
-      final validator = k.double().integer();
+      final validator = v.double().integer();
 
       expect(validator.validate(10.0), true);
       expect(validator.validate(0.0), true);
@@ -112,7 +112,7 @@ void main() {
 
   group('nullable', () {
     test('should validate nullable correctly', () {
-      final validator = k.double().nullable();
+      final validator = v.double().nullable();
 
       expect(validator.validate(null), true);
       expect(validator.validate(10.5), true);
@@ -121,7 +121,7 @@ void main() {
 
   group('optional', () {
     test('should validate optional correctly', () {
-      final validator = k.double().optional();
+      final validator = v.double().optional();
 
       expect(validator.validate(10.5), true);
       expect(validator.validate(null), false);
@@ -130,7 +130,7 @@ void main() {
 
   group('refine', () {
     test('should validate refine function correctly', () {
-      final validator = k.double().refine(
+      final validator = v.double().refine(
         (value) => value! > 10.0,
         message: 'The value must be greater than 10.',
       );

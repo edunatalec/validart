@@ -1,18 +1,18 @@
-# Keeper
+# Validart
 
 ## Introduction
 
-**Keeper** is a flexible and type-safe validation library for Dart, inspired by [Zod](https://zod.dev). Its name comes from the **Fire Keeper** in _Dark Souls_, symbolizing balance and protection.
+**Validart** is a flexible and type-safe validation library for Dart, inspired by [Zod](https://zod.dev).
 
-Built for **chaining**, **custom rules**, and **nullable values**. Keeper includes validators for **emails, phone numbers, numbers, and more**, making validation in Dart simple and scalable.
+Built for **chaining**, **custom rules**, and **nullable values**. Validart includes validators for **emails, phone numbers, numbers, and more**, making validation in Dart simple and scalable.
 
 ## Installation
 
-To install **Keeper**, add it to your `pubspec.yaml`:
+To install **Validart**, add it to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  keeper: ^0.0.1
+  validart: ^0.0.1
 ```
 
 Then, run:
@@ -21,10 +21,10 @@ Then, run:
 dart pub get
 ```
 
-Import Keeper in your Dart file:
+Import Validart in your Dart file:
 
 ```dart
-import 'package:keeper/keeper.dart';
+import 'package:validart/validart.dart';
 ```
 
 ## Basic Usage
@@ -32,8 +32,8 @@ import 'package:keeper/keeper.dart';
 Create a schema and validate data:
 
 ```dart
-final k = Keeper();
-final validator = k.string().email();
+final v = Validart();
+final validator = v.string().email();
 
 print(validator.validate('user@example.com')); // true
 print(validator.validate('invalid-email'));   // false
@@ -42,7 +42,7 @@ print(validator.validate('invalid-email'));   // false
 Retrieve error messages:
 
 ```dart
-final validator = k.string().email();
+final validator = v.string().email();
 print(validator.getErrorMessage('invalid-email'));
 // "Enter a valid email"
 ```
@@ -52,7 +52,7 @@ print(validator.getErrorMessage('invalid-email'));
 ### String
 
 ```dart
-final validator = k.string().min(5).max(20).email();
+final validator = v.string().min(5).max(20).email();
 
 print(validator.validate('test')); // false (too short)
 print(validator.validate('user@example.com')); // true
@@ -77,7 +77,7 @@ print(validator.getErrorMessage('invalid-email'));
 ### int
 
 ```dart
-final validator = k.int().min(10).max(100).odd();
+final validator = v.int().min(10).max(100).odd();
 
 print(validator.validate(5));  // false (too small)
 print(validator.validate(99)); // true (odd and within range)
@@ -97,7 +97,7 @@ print(validator.validate(100)); // false (not odd)
 ### double
 
 ```dart
-final validator = k.double().positive().decimal();
+final validator = v.double().positive().decimal();
 
 print(validator.validate(5.5));  // true
 print(validator.validate(-2.3)); // false (not positive)
@@ -118,7 +118,7 @@ print(validator.validate(-2.3)); // false (not positive)
 Supports both `int` and `double`.
 
 ```dart
-final validator = k.num().between(1, 10);
+final validator = v.num().between(1, 10);
 
 print(validator.validate(5));    // true
 print(validator.validate(11.2)); // false (out of range)
@@ -136,7 +136,7 @@ print(validator.validate(11.2)); // false (out of range)
 ### bool
 
 ```dart
-final validator = k.bool().isTrue();
+final validator = v.bool().isTrue();
 
 print(validator.validate(true));  // true
 print(validator.validate(false)); // false
@@ -154,10 +154,10 @@ print(validator.validate(false)); // false
 Validates objects with structured keys.
 
 ```dart
-final validator = k.map({
-  'email': k.string().email(),
-  'password': k.string().min(8).max(20),
-  'confirmPassword': k.string().min(8).max(20),
+final validator = v.map({
+  'email': v.string().email(),
+  'password': v.string().min(8).max(20),
+  'confirmPassword': v.string().min(8).max(20),
 }).refine(
   (data) => data?['password'] == data?['confirmPassword'],
   path: 'confirmPassword',
@@ -175,9 +175,9 @@ final validator = k.map({
 You can combine multiple validators using `.any()` or `.every()`:
 
 ```dart
-final validator = k.string().any([
-  k.string().email(),
-  k.string().url(),
+final validator = v.string().any([
+  v.string().email(),
+  v.string().url(),
 ]);
 
 print(validator.validate('user@example.com')); // true
@@ -186,9 +186,9 @@ print(validator.validate('invalid')); // false
 ```
 
 ```dart
-final validator = k.string().every([
-  k.string().min(5),
-  k.string().contains('test'),
+final validator = v.string().every([
+  v.string().min(5),
+  v.string().contains('test'),
 ]);
 
 print(validator.validate('test123')); // true (min length and contains 'test')
@@ -197,12 +197,12 @@ print(validator.validate('12345'));   // false (does not contain 'test')
 
 ## Arrays
 
-Keeper allows validating lists of values using **`.array()`**, ensuring that each element meets the defined validation rules.
+Validart allows validating lists of values using **`.array()`**, ensuring that each element meets the defined validation rules.
 
 ### Example:
 
 ```dart
-final validator = k.string().phone(
+final validator = v.string().phone(
   PhoneType.brazil,
   areaCode: AreaCodeFormat.required,
   countryCode: CountryCodeFormat.none,

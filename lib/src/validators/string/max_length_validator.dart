@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a string does not exceed a maximum length.
 ///
@@ -22,7 +22,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// - If the input value is `null`, validation passes.
 /// - If the input length is greater than `maxLength`, validation fails.
 /// - If the input length is less than or equal to `maxLength`, validation passes (`null` is returned).
-class MaxLengthValidator extends KValidator<String> {
+class MaxLengthValidator extends Validator<String> {
   /// The maximum number of characters allowed for validation.
   final int maxLength;
 

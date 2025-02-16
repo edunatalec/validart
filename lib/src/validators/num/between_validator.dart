@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a given `num` value falls within a specified range.
 ///
@@ -16,7 +16,7 @@ import 'package:keeper/src/validators/validator.dart';
 /// print(validator.validate(21)); // 'Value must be between 10 and 20' (invalid)
 /// print(validator.validate(null)); // 'Value must be between 10 and 20' (invalid)
 /// ```
-class BetweenValidator<T extends num> extends KValidator<T> {
+class BetweenValidator<T extends num> extends Validator<T> {
   /// The minimum allowed value.
   final T min;
 

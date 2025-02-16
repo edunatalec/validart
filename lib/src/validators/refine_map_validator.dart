@@ -1,4 +1,4 @@
-import 'package:keeper/src/validators/refine_validator.dart';
+import 'package:validart/src/validators/refine_validator.dart';
 
 /// A specialized validator for refining validation logic on a map.
 ///
@@ -7,10 +7,10 @@ import 'package:keeper/src/validators/refine_validator.dart';
 ///
 /// Example:
 /// ```dart
-/// final validator = k.map({
-///   'email': k.string().email(),
-///   'password': k.string().min(8),
-///   'confirmPassword': k.string().min(8),
+/// final validator = v.map({
+///   'email': v.string().email(),
+///   'password': v.string().min(8),
+///   'confirmPassword': v.string().min(8),
 /// }).refine(
 ///   (data) => data?['password'] == data?['confirmPassword'],
 ///   path: 'confirmPassword',

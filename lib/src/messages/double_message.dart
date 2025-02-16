@@ -1,4 +1,4 @@
-import 'package:keeper/src/messages/number_message.dart';
+import 'package:validart/src/messages/number_message.dart';
 
 /// A message class for validation errors related to `double` values.
 ///

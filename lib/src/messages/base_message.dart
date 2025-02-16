@@ -1,4 +1,4 @@
-/// A base class for validation messages used in the Keeper validation library.
+/// A base class for validation messages used in the Validart validation library.
 ///
 /// This class provides default error messages for common validation scenarios
 /// such as required fields, refinement checks, and logical validators like `any`

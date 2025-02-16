@@ -1,36 +1,36 @@
-import 'package:keeper/src/messages/int_message.dart';
-import 'package:keeper/src/types/number.dart';
-import 'package:keeper/src/validators/int/even_validator.dart';
-import 'package:keeper/src/validators/int/odd_validator.dart';
-import 'package:keeper/src/validators/required_validator.dart';
-import 'package:keeper/src/validators/validator.dart';
+import 'package:validart/src/messages/int_message.dart';
+import 'package:validart/src/types/number.dart';
+import 'package:validart/src/validators/int/even_validator.dart';
+import 'package:validart/src/validators/int/odd_validator.dart';
+import 'package:validart/src/validators/required_validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 /// A validator for `int` values, supporting various constraints.
 ///
 /// Example usage:
 /// ```dart
-/// final k = Keeper();
+/// final v = Validart();
 ///
-/// final validator = k.int().min(10).max(100);
+/// final validator = v.int().min(10).max(100);
 /// print(validator.validate(50)); // true
 /// print(validator.validate(5)); // false
 /// ```
-class KInt extends KNumber<int> {
+class VInt extends VNumber<int> {
   /// Stores the validation messages for `int`-related errors.
   final IntMessage _message;
 
-  /// Creates an instance of `KInt` with optional custom validation messages.
+  /// Creates an instance of `VInt` with optional custom validation messages.
   ///
   /// By default, it ensures the value is required unless explicitly marked as optional.
-  KInt(this._message, {required String? message}) {
+  VInt(this._message, {required String? message}) {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
-  /// Adds a validator to the `KInt` instance.
+  /// Adds a validator to the `VInt` instance.
   ///
   /// Allows chaining multiple `int` validations.
   @override
-  KInt add(KValidator<int> validator) {
+  VInt add(Validator<int> validator) {
     super.add(validator);
     return this;
   }
@@ -39,12 +39,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().min(10);
+  /// final validator = v.int().min(10);
   /// print(validator.validate(15)); // true
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  KInt min(int min, {String? message}) {
+  VInt min(int min, {String? message}) {
     super.min(min, message: message ?? _message.min(min));
     return this;
   }
@@ -53,12 +53,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().max(100);
+  /// final validator = v.int().max(100);
   /// print(validator.validate(50)); // true
   /// print(validator.validate(150)); // false
   /// ```
   @override
-  KInt max(int max, {String? message}) {
+  VInt max(int max, {String? message}) {
     super.max(max, message: message ?? _message.max(max));
     return this;
   }
@@ -67,12 +67,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().positive();
+  /// final validator = v.int().positive();
   /// print(validator.validate(5)); // true
   /// print(validator.validate(-2)); // false
   /// ```
   @override
-  KInt positive({String? message}) {
+  VInt positive({String? message}) {
     super.positive(message: message ?? _message.positive);
     return this;
   }
@@ -81,12 +81,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().negative();
+  /// final validator = v.int().negative();
   /// print(validator.validate(-5)); // true
   /// print(validator.validate(2)); // false
   /// ```
   @override
-  KInt negative({String? message}) {
+  VInt negative({String? message}) {
     super.negative(message: message ?? _message.negative);
     return this;
   }
@@ -95,12 +95,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().between(10, 100);
+  /// final validator = v.int().between(10, 100);
   /// print(validator.validate(50)); // true
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  KInt between(int min, int max, {String? message}) {
+  VInt between(int min, int max, {String? message}) {
     super.between(min, max, message: message ?? _message.between(min, max));
     return this;
   }
@@ -109,12 +109,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().multipleOf(5);
+  /// final validator = v.int().multipleOf(5);
   /// print(validator.validate(10)); // true
   /// print(validator.validate(7)); // false
   /// ```
   @override
-  KInt multipleOf(int factor, {String? message}) {
+  VInt multipleOf(int factor, {String? message}) {
     super.multipleOf(factor, message: message ?? _message.multipleOf(factor));
     return this;
   }
@@ -123,11 +123,11 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().even();
+  /// final validator = v.int().even();
   /// print(validator.validate(4)); // true
   /// print(validator.validate(5)); // false
   /// ```
-  KInt even({String? message}) {
+  VInt even({String? message}) {
     return add(EvenValidator(message: message ?? _message.even));
   }
 
@@ -135,21 +135,21 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().odd();
+  /// final validator = v.int().odd();
   /// print(validator.validate(5)); // true
   /// print(validator.validate(4)); // false
   /// ```
-  KInt odd({String? message}) {
+  VInt odd({String? message}) {
     return add(OddValidator(message: message ?? _message.odd));
   }
 
-  /// Validates that the value matches **any** of the provided `KInt` validators.
+  /// Validates that the value matches **any** of the provided `VInt` validators.
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().any([
-  ///   k.int().min(10),
-  ///   k.int().max(5)
+  /// final validator = v.int().any([
+  ///   v.int().min(10),
+  ///   v.int().max(5)
   /// ]);
   ///
   /// print(validator.validate(12)); // true
@@ -157,7 +157,7 @@ class KInt extends KNumber<int> {
   /// print(validator.validate(7)); // false
   /// ```
   @override
-  KInt any(covariant List<KInt> types, {String? message}) {
+  VInt any(covariant List<VInt> types, {String? message}) {
     super.any(types, message: message ?? _message.any);
     return this;
   }
@@ -166,16 +166,16 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().every([
-  ///   k.int().min(10),
-  ///   k.int().max(20)
+  /// final validator = v.int().every([
+  ///   v.int().min(10),
+  ///   v.int().max(20)
   /// ]);
   ///
   /// print(validator.validate(15)); // true
   /// print(validator.validate(25)); // false
   /// ```
   @override
-  KInt every(covariant List<KInt> types, {String? message}) {
+  VInt every(covariant List<VInt> types, {String? message}) {
     super.every(types, message: message ?? _message.every);
     return this;
   }
@@ -184,11 +184,11 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().optional();
+  /// final validator = v.int().optional();
   /// print(validator.validate(null)); // true
   /// ```
   @override
-  KInt optional() {
+  VInt optional() {
     super.optional();
     return this;
   }
@@ -197,11 +197,11 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().nullable();
+  /// final validator = v.int().nullable();
   /// print(validator.validate(null)); // true
   /// ```
   @override
-  KInt nullable() {
+  VInt nullable() {
     super.nullable();
     return this;
   }
@@ -210,12 +210,12 @@ class KInt extends KNumber<int> {
   ///
   /// Example:
   /// ```dart
-  /// final validator = k.int().refine((value) => value! % 2 == 0);
+  /// final validator = v.int().refine((value) => value! % 2 == 0);
   /// print(validator.validate(4)); // true
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  KInt refine(bool Function(int? data) validator, {String? message}) {
+  VInt refine(bool Function(int? data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }
