@@ -593,6 +593,36 @@ void main() {
       expect(validator.validate('randomword'), false);
       expect(validator.validate(null), false);
     });
+
+    test('should return the default message', () {
+      final validator = v.string().every([
+        v.string().min(5),
+        v.string().max(10),
+        v.string().contains('test'),
+      ]);
+
+      expect(validator.getErrorMessage('test123'), null);
+      expect(validator.getErrorMessage('test12'), null);
+      expect(validator.getErrorMessage('short'), 'Invalid value');
+      expect(validator.getErrorMessage('this is a long test'), 'Invalid value');
+      expect(validator.getErrorMessage('randomword'), 'Invalid value');
+      expect(validator.getErrorMessage(null), 'Required');
+    });
+
+    test('should return the new message', () {
+      final validator = v.string(message: 'New required message').every([
+        v.string().min(5),
+        v.string().max(10),
+        v.string().contains('test'),
+      ], message: 'New message');
+
+      expect(validator.getErrorMessage('test123'), null);
+      expect(validator.getErrorMessage('test12'), null);
+      expect(validator.getErrorMessage('short'), 'New message');
+      expect(validator.getErrorMessage('this is a long test'), 'New message');
+      expect(validator.getErrorMessage('randomword'), 'New message');
+      expect(validator.getErrorMessage(null), 'New required message');
+    });
   });
 
   group('any', () {
@@ -607,6 +637,32 @@ void main() {
       expect(validator.validate('hello world'), false);
       expect(validator.validate('random text'), false);
       expect(validator.validate(null), false);
+    });
+
+    test('return the default message', () {
+      final validator = v.string().any([
+        v.string().equals('hello'),
+        v.string().equals('world'),
+      ]);
+
+      expect(validator.getErrorMessage('hello'), null);
+      expect(validator.getErrorMessage('world'), null);
+      expect(validator.getErrorMessage('hello world'), 'Invalid value');
+      expect(validator.getErrorMessage('random text'), 'Invalid value');
+      expect(validator.getErrorMessage(null), 'Required');
+    });
+
+    test('return the default message', () {
+      final validator = v.string(message: 'New required message').any([
+        v.string().equals('hello'),
+        v.string().equals('world'),
+      ], message: 'New message');
+
+      expect(validator.getErrorMessage('hello'), null);
+      expect(validator.getErrorMessage('world'), null);
+      expect(validator.getErrorMessage('hello world'), 'New message');
+      expect(validator.getErrorMessage('random text'), 'New message');
+      expect(validator.getErrorMessage(null), 'New required message');
     });
   });
 }
