@@ -28,11 +28,9 @@ class AnyValidator<T> extends Validator<T> {
 
   @override
   validate(value) {
-    for (final type in types) {
-      final message = type.getErrorMessage(value);
+    final any = types.any((type) => type.validate(value));
 
-      if (message == null) return null;
-    }
+    if (any) return null;
 
     return message;
   }

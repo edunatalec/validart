@@ -27,12 +27,10 @@ class EveryValidator<T> extends Validator<T> {
 
   @override
   validate(value) {
-    for (final type in types) {
-      final message = type.getErrorMessage(value);
+    final every = types.every((type) => type.validate(value));
 
-      if (message != null) return message;
-    }
+    if (every) return null;
 
-    return null;
+    return message;
   }
 }
