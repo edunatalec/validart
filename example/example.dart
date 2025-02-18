@@ -1,7 +1,24 @@
 import 'package:validart/validart.dart';
 
 void main() {
-  final v = Validart();
+  final baseMessage = BaseMessage(
+    required: 'This field is required',
+    refine: 'Invalid value provided',
+    any: 'At least one condition must be met',
+    every: 'All conditions must be met',
+  );
+
+  final stringMessage = StringMessage(
+    email: 'Please provide a valid email',
+    min: (value) => 'Minimum length: $value characters',
+  ).mergeWithBase(baseMessage);
+
+  final customMessages = Message(
+    base: baseMessage,
+    string: stringMessage,
+  );
+
+  final v = Validart(message: customMessages);
 
   // Example: Validating a required string
   final nameValidator = v.string();
@@ -45,5 +62,5 @@ void main() {
 
   print(userValidator.validate(validUser)); // true
   print(userValidator.getErrorMessage(invalidUser));
-  // {'name': 'At least 3 characters required', 'email': 'Enter a valid email', 'age': 'The number must be at least 18'}
+  // {'name': 'Minimum length: 3 characters', 'email': 'Please provide a valid email', 'age': 'The number must be at least 18'}
 }
