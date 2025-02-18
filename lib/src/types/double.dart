@@ -47,8 +47,8 @@ class VDouble extends VNumber<double> {
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  VDouble min(double min, {String? message}) {
-    super.min(min, message: message ?? _message.min(min));
+  VDouble min(double min, {String Function(double min)? message}) {
+    super.min(min, message: message ?? _message.min);
     return this;
   }
 
@@ -63,8 +63,8 @@ class VDouble extends VNumber<double> {
   /// print(validator.validate(150)); // false
   /// ```
   @override
-  VDouble max(double max, {String? message}) {
-    super.max(max, message: message ?? _message.max(max));
+  VDouble max(double max, {String Function(double max)? message}) {
+    super.max(max, message: message ?? _message.max);
     return this;
   }
 
@@ -111,8 +111,12 @@ class VDouble extends VNumber<double> {
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  VDouble between(double min, double max, {String? message}) {
-    super.between(min, max, message: message ?? _message.between(min, max));
+  VDouble between(
+    double min,
+    double max, {
+    String Function(double min, double max)? message,
+  }) {
+    super.between(min, max, message: message ?? _message.between);
     return this;
   }
 
@@ -128,8 +132,8 @@ class VDouble extends VNumber<double> {
   /// print(validator.validate(3.1)); // false
   /// ```
   @override
-  VDouble multipleOf(double factor, {String? message}) {
-    super.multipleOf(factor, message: message ?? _message.multipleOf(factor));
+  VDouble multipleOf(double factor, {String Function(double factor)? message}) {
+    super.multipleOf(factor, message: message ?? _message.multipleOf);
     return this;
   }
 

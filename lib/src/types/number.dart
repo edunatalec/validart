@@ -27,8 +27,8 @@ class VNumber<T extends num> extends VAnyEvery<T> {
   /// print(validator.validate(9)); // false
   /// print(validator.validate(10)); // true
   /// ```
-  VNumber min(T min, {String? message}) {
-    add(MinValidator(min, message: message!));
+  VNumber min(T min, {String Function(T min)? message}) {
+    add(MinValidator(min, message: message!(min)));
     return this;
   }
 
@@ -42,8 +42,8 @@ class VNumber<T extends num> extends VAnyEvery<T> {
   /// print(validator.validate(101)); // false
   /// print(validator.validate(99)); // true
   /// ```
-  VNumber max(T max, {String? message}) {
-    add(MaxValidator(max, message: message!));
+  VNumber max(T max, {String Function(T max)? message}) {
+    add(MaxValidator(max, message: message!(max)));
     return this;
   }
 
@@ -82,8 +82,8 @@ class VNumber<T extends num> extends VAnyEvery<T> {
   /// print(validator.validate(15)); // true
   /// print(validator.validate(21)); // false
   /// ```
-  VNumber between(T min, T max, {String? message}) {
-    add(BetweenValidator(min, max, message: message!));
+  VNumber between(T min, T max, {String Function(T min, T max)? message}) {
+    add(BetweenValidator(min, max, message: message!(min, max)));
     return this;
   }
 
@@ -95,8 +95,8 @@ class VNumber<T extends num> extends VAnyEvery<T> {
   /// print(validator.validate(10)); // true
   /// print(validator.validate(7));  // false
   /// ```
-  VNumber multipleOf(T factor, {String? message}) {
-    add(MultipleOfValidator(factor, message: message!));
+  VNumber multipleOf(T factor, {String Function(T)? message}) {
+    add(MultipleOfValidator(factor, message: message!(factor)));
     return this;
   }
 }

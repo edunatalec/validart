@@ -90,21 +90,21 @@ class VString extends VAnyEvery<String> {
   }
 
   /// Ensures the string has at least `minLength` characters.
-  VString min(int minLength, {String? message}) {
+  VString min(int minLength, {String Function(int minLength)? message}) {
     return add(
       MinLengthValidator(
         minLength,
-        message: message ?? _message.min(minLength),
+        message: message?.call(minLength) ?? _message.min(minLength),
       ),
     );
   }
 
   /// Ensures the string does not exceed `maxLength` characters.
-  VString max(int maxLength, {String? message}) {
+  VString max(int maxLength, {String Function(int maxLength)? message}) {
     return add(
       MaxLengthValidator(
         maxLength,
-        message: message ?? _message.max(maxLength),
+        message: message?.call(maxLength) ?? _message.max(maxLength),
       ),
     );
   }
@@ -144,13 +144,13 @@ class VString extends VAnyEvery<String> {
   /// Ensures the string contains a specific substring.
   VString contains(
     String data, {
-    String? message,
+    String Function(String data)? message,
     CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
   }) {
     return add(
       ContainsValidator(
         data,
-        message: message ?? _message.contains(data),
+        message: message?.call(data) ?? _message.contains(data),
         caseSensitivity: caseSensitivity,
       ),
     );
@@ -159,13 +159,13 @@ class VString extends VAnyEvery<String> {
   /// Ensures the string is equal to a specific value.
   VString equals(
     String data, {
-    String? message,
+    String Function(String data)? message,
     CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
   }) {
     return add(
       EqualsValidator(
         data,
-        message: message ?? _message.equals(data),
+        message: message?.call(data) ?? _message.equals(data),
         caseSensitivity: caseSensitivity,
       ),
     );
@@ -174,13 +174,13 @@ class VString extends VAnyEvery<String> {
   /// Ensures the string starts with a given prefix.
   VString startsWith(
     String prefix, {
-    String? message,
+    String Function(String prefix)? message,
     CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
   }) {
     return add(
       StartsWithValidator(
         prefix,
-        message: message ?? _message.startsWith(prefix),
+        message: message?.call(prefix) ?? _message.startsWith(prefix),
         caseSensitivity: caseSensitivity,
       ),
     );
@@ -189,13 +189,13 @@ class VString extends VAnyEvery<String> {
   /// Ensures the string ends with a given suffix.
   VString endsWith(
     String sufix, {
-    String? message,
+    String Function(String sufix)? message,
     CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
   }) {
     return add(
       EndsWithValidator(
         sufix,
-        message: message ?? _message.endsWith(sufix),
+        message: message?.call(sufix) ?? _message.endsWith(sufix),
         caseSensitivity: caseSensitivity,
       ),
     );

@@ -44,8 +44,8 @@ class VInt extends VNumber<int> {
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  VInt min(int min, {String? message}) {
-    super.min(min, message: message ?? _message.min(min));
+  VInt min(int min, {String Function(int min)? message}) {
+    super.min(min, message: message ?? _message.min);
     return this;
   }
 
@@ -58,8 +58,8 @@ class VInt extends VNumber<int> {
   /// print(validator.validate(150)); // false
   /// ```
   @override
-  VInt max(int max, {String? message}) {
-    super.max(max, message: message ?? _message.max(max));
+  VInt max(int max, {String Function(int)? message}) {
+    super.max(max, message: message ?? _message.max);
     return this;
   }
 
@@ -100,8 +100,8 @@ class VInt extends VNumber<int> {
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  VInt between(int min, int max, {String? message}) {
-    super.between(min, max, message: message ?? _message.between(min, max));
+  VInt between(int min, int max, {String Function(int min, int max)? message}) {
+    super.between(min, max, message: message ?? _message.between);
     return this;
   }
 
@@ -114,8 +114,8 @@ class VInt extends VNumber<int> {
   /// print(validator.validate(7)); // false
   /// ```
   @override
-  VInt multipleOf(int factor, {String? message}) {
-    super.multipleOf(factor, message: message ?? _message.multipleOf(factor));
+  VInt multipleOf(int factor, {String Function(int)? message}) {
+    super.multipleOf(factor, message: message ?? _message.multipleOf);
     return this;
   }
 

@@ -45,8 +45,8 @@ class VNum extends VNumber<num> {
   /// print(validator.validate(10)); // true
   /// ```
   @override
-  VNum min(num min, {String? message}) {
-    super.min(min, message: message ?? _message.min(min));
+  VNum min(num min, {String Function(num)? message}) {
+    super.min(min, message: message ?? _message.min);
     return this;
   }
 
@@ -59,8 +59,8 @@ class VNum extends VNumber<num> {
   /// print(validator.validate(99)); // true
   /// ```
   @override
-  VNum max(num max, {String? message}) {
-    super.max(max, message: message ?? _message.max(max));
+  VNum max(num max, {String Function(num)? message}) {
+    super.max(max, message: message ?? _message.max);
     return this;
   }
 
@@ -102,8 +102,8 @@ class VNum extends VNumber<num> {
   /// print(validator.validate(21)); // false
   /// ```
   @override
-  VNum between(num min, num max, {String? message}) {
-    super.between(min, max, message: message ?? _message.between(min, max));
+  VNum between(num min, num max, {String Function(num min, num max)? message}) {
+    super.between(min, max, message: message ?? _message.between);
     return this;
   }
 
@@ -116,8 +116,8 @@ class VNum extends VNumber<num> {
   /// print(validator.validate(7)); // false
   /// ```
   @override
-  VNum multipleOf(num factor, {String? message}) {
-    super.multipleOf(factor, message: message ?? _message.multipleOf(factor));
+  VNum multipleOf(num factor, {String Function(num)? message}) {
+    super.multipleOf(factor, message: message ?? _message.multipleOf);
     return this;
   }
 
