@@ -40,8 +40,7 @@ class PatternValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(value) {
-    if (value == null) return message;
+  String? validate(covariant String value) {
     if (RegExp(pattern).hasMatch(value)) return null;
 
     return message;

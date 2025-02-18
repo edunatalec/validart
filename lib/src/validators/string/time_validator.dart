@@ -33,5 +33,5 @@ class TimeValidator extends PatternValidator {
   ///
   /// - Requires a [message] to specify the validation error.
   TimeValidator({required super.message})
-    : super(r'^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$');
+      : super(r'^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$');
 }

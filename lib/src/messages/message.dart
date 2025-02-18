@@ -1,3 +1,4 @@
+import 'package:validart/src/messages/base_message.dart';
 import 'package:validart/src/messages/bool_message.dart';
 import 'package:validart/src/messages/double_message.dart';
 import 'package:validart/src/messages/int_message.dart';
@@ -41,18 +42,19 @@ class Message {
   ///
   /// If no specific messages are provided, default messages will be used.
   Message({
+    BaseMessage base = const BaseMessage(),
     BoolMessage? bool,
     NumMessage? num,
     DoubleMessage? double,
     IntMessage? int,
     StringMessage? string,
     MapMessage? map,
-  }) : bool = bool ?? const BoolMessage(),
-       num = num ?? NumMessage(),
-       double = double ?? DoubleMessage(),
-       int = int ?? IntMessage(),
-       string = string ?? StringMessage(),
-       map = map ?? const MapMessage();
+  })  : bool = bool ?? BoolMessage().mergeWithBase(base),
+        num = num ?? NumMessage().mergeWithBase(base),
+        double = double ?? DoubleMessage().mergeWithBase(base),
+        int = int ?? IntMessage().mergeWithBase(base),
+        string = string ?? StringMessage().mergeWithBase(base),
+        map = map ?? MapMessage().mergeWithBase(base);
 
   /// Creates a copy of this `Message` instance with the ability to override specific fields.
   ///

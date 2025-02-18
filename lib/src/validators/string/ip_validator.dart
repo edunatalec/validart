@@ -32,12 +32,12 @@ class IPValidator extends PatternValidator {
   /// - Supports both **IPv4** and **IPv6** address formats.
   /// - Uses regex patterns to ensure correctness.
   IPValidator({required super.message})
-    : super(
-        // Matches IPv4 addresses (e.g., 192.168.1.1, 255.255.255.255)
-        r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}'
-        r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
-        r'|'
-        // Matches IPv6 addresses (full 8-group format)
-        r'^([a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$',
-      );
+      : super(
+          // Matches IPv4 addresses (e.g., 192.168.1.1, 255.255.255.255)
+          r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}'
+          r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+          r'|'
+          // Matches IPv6 addresses (full 8-group format)
+          r'^([a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$',
+        );
 }

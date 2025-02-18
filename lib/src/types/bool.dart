@@ -1,5 +1,5 @@
 import 'package:validart/src/messages/bool_message.dart';
-import 'package:validart/src/types/refine.dart';
+import 'package:validart/src/types/any_every.dart';
 import 'package:validart/src/validators/bool/is_false_validator.dart';
 import 'package:validart/src/validators/bool/is_true_validator.dart';
 import 'package:validart/src/validators/required_validator.dart';
@@ -15,7 +15,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(true)); // true
 /// print(validator.validate(false)); // false
 /// ```
-class VBool extends VRefine<bool> {
+class VBool extends VAnyEvery<bool> {
   /// Stores the validation messages for boolean-related errors.
   final BoolMessage _message;
 
@@ -149,7 +149,7 @@ class VBool extends VRefine<bool> {
   /// print(validator.validate(false)); // false
   /// ```
   @override
-  VBool refine(bool Function(bool? data) validator, {String? message}) {
+  VBool refine(bool Function(bool data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

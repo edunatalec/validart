@@ -26,8 +26,8 @@ class MinValidator<T extends num> extends Validator<T> {
   ///
   /// Returns `null` if the value is within the allowed range, otherwise returns the validation message.
   @override
-  String? validate(value) {
-    if (value == null || value < min) return message;
+  String? validate(covariant T value) {
+    if (value < min) return message;
 
     return null;
   }

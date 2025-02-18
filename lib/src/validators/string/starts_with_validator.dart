@@ -57,13 +57,10 @@ class StartsWithValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
-    final bool startsWith =
-        caseSensitivity == CaseSensitivity.insensitive
-            ? value.toLowerCase().startsWith(prefix.toLowerCase())
-            : value.startsWith(prefix);
+  String? validate(covariant String value) {
+    final bool startsWith = caseSensitivity == CaseSensitivity.insensitive
+        ? value.toLowerCase().startsWith(prefix.toLowerCase())
+        : value.startsWith(prefix);
 
     return startsWith ? null : message;
   }

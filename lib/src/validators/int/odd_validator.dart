@@ -22,8 +22,8 @@ class OddValidator extends Validator<int> {
   ///
   /// Returns `null` if the value is odd, otherwise returns the validation message.
   @override
-  String? validate(int? value) {
-    if (value == null || value % 2 == 0) return message;
+  String? validate(covariant int value) {
+    if (value % 2 == 0) return message;
 
     return null;
   }

@@ -32,10 +32,10 @@ class BaseMessage {
     String? refine,
     String? any,
     String? every,
-  }) : required = required ?? 'Required',
-       refine = refine ?? 'Invalid value',
-       any = any ?? 'Invalid value',
-       every = every ?? 'Invalid value';
+  })  : required = required ?? 'Required',
+        refine = refine ?? 'Invalid value',
+        any = any ?? 'Invalid value',
+        every = every ?? 'Invalid value';
 
   /// Creates a copy of the current `BaseMessage` instance with updated values.
   ///

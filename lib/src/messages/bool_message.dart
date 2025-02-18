@@ -25,8 +25,28 @@ class BoolMessage extends BaseMessage {
     super.every,
     String? isTrue,
     String? isFalse,
-  }) : isTrue = isTrue ?? 'The value must be true',
-       isFalse = isFalse ?? 'The value must be false';
+  })  : isTrue = isTrue ?? 'The value must be true',
+        isFalse = isFalse ?? 'The value must be false';
+
+  /// Merges the current `BoolMessage` instance with a `BaseMessage`,
+  /// replacing only the undefined values with those from the base.
+  ///
+  /// Example:
+  /// ```dart
+  /// final baseMessage = BaseMessage(required: 'This field is mandatory');
+  /// final boolMessage = BoolMessage().mergeWithBase(baseMessage);
+  ///
+  /// print(boolMessage.required); // Output: 'This field is mandatory'
+  /// print(boolMessage.isTrue);   // Output: 'The value must be true'
+  /// ```
+  BoolMessage mergeWithBase(BaseMessage base) {
+    return copyWith(
+      required: base.required,
+      refine: base.refine,
+      any: base.any,
+      every: base.every,
+    );
+  }
 
   /// Creates a copy of the current `BoolMessage` instance with updated values.
   ///

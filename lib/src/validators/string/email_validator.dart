@@ -28,7 +28,7 @@ class EmailValidator extends PatternValidator {
   /// - Prevents consecutive dots (`..`).
   /// - Ensures a valid domain format with at least two letters after the dot.
   EmailValidator({required super.message})
-    : super(
-        r"^(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$",
-      );
+      : super(
+          r"^(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$",
+        );
 }

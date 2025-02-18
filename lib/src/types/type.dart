@@ -1,6 +1,4 @@
 import 'package:validart/src/types/array.dart';
-import 'package:validart/src/validators/any_validator.dart';
-import 'package:validart/src/validators/every_validator.dart';
 import 'package:validart/src/validators/required_validator.dart';
 import 'package:validart/src/validators/validator.dart';
 
@@ -30,32 +28,6 @@ abstract class VType<T> {
   VType<T> add(Validator<T> validator) {
     _validators.add(validator);
     return this;
-  }
-
-  /// Validates if the value satisfies at least one of the provided types.
-  ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.string().any([
-  ///   v.string().email(),
-  ///   v.string().url(),
-  /// ], message: 'Must be an email or URL');
-  /// ```
-  VType<T> any(List<VType<T>> types, {String? message}) {
-    return add(AnyValidator(types, message: message!));
-  }
-
-  /// Validates if the value satisfies all of the provided types.
-  ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.string().every([
-  ///   v.string().min(5),
-  ///   v.string().contains('@'),
-  /// ], message: 'Must be at least 5 characters and contain @');
-  /// ```
-  VType<T> every(List<VType<T>> types, {String? message}) {
-    return add(EveryValidator(types, message: message!));
   }
 
   /// Marks the value as optional, allowing it to be omitted.

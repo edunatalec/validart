@@ -37,8 +37,8 @@ class MaxLengthValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value != null && value.length > maxLength) return message;
+  String? validate(covariant String value) {
+    if (value.length > maxLength) return message;
 
     return null;
   }

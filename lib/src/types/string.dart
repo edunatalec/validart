@@ -4,7 +4,7 @@ import 'package:validart/src/enums/country_code_format.dart';
 import 'package:validart/src/enums/phone_type.dart';
 import 'package:validart/src/enums/uuid_version.dart';
 import 'package:validart/src/messages/string_message.dart';
-import 'package:validart/src/types/refine.dart';
+import 'package:validart/src/types/any_every.dart';
 import 'package:validart/src/validators/required_validator.dart';
 import 'package:validart/src/validators/string/cep_validator.dart';
 import 'package:validart/src/validators/string/cnpj_validator.dart';
@@ -33,7 +33,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('test@example.com')); // true
 /// print(validator.validate('invalid-email')); // false
 /// ```
-class VString extends VRefine<String> {
+class VString extends VAnyEvery<String> {
   final StringMessage _message;
 
   /// Creates an instance of `VString` with the specified validation messages.
@@ -172,7 +172,7 @@ class VString extends VRefine<String> {
   }
 
   /// Ensures the string starts with a given prefix.
-  VString startsWidth(
+  VString startsWith(
     String prefix, {
     String? message,
     CaseSensitivity caseSensitivity = CaseSensitivity.sensitive,
@@ -244,7 +244,7 @@ class VString extends VRefine<String> {
   /// );
   /// ```
   @override
-  VString refine(bool Function(String? data) validator, {String? message}) {
+  VString refine(bool Function(String data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

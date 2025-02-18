@@ -91,25 +91,63 @@ class StringMessage extends BaseMessage {
     String Function(String prefix)? startsWith,
     String Function(String sufix)? endsWith,
     String? pattern,
-  }) : email = email ?? 'Enter a valid email',
-       uuid = uuid ?? 'Invalid UUID',
-       url = url ?? 'Enter a valid URL',
-       cpf = cpf ?? 'Invalid CPF',
-       cnpj = cnpj ?? 'Invalid CNPJ',
-       cep = cep ?? 'Invalid postal code',
-       min = min ?? ((min) => 'At least $min characters required'),
-       max = max ?? ((max) => 'No more than $max characters allowed'),
-       phone = phone ?? 'Invalid phone number',
-       time = time ?? 'Invalid time format',
-       ip = ip ?? 'Invalid IP address',
-       date = date ?? 'Invalid date',
-       contains = contains ?? ((data) => 'Must contain "$data"'),
-       equals = equals ?? ((data) => 'Must be exactly "$data"'),
-       startsWith = startsWith ?? ((prefix) => 'Must start with "$prefix"'),
-       endsWith = endsWith ?? ((sufix) => 'Must end with "$sufix"'),
-       pattern = pattern ?? 'Invalid format';
+  })  : email = email ?? 'Enter a valid email',
+        uuid = uuid ?? 'Invalid UUID',
+        url = url ?? 'Enter a valid URL',
+        cpf = cpf ?? 'Invalid CPF',
+        cnpj = cnpj ?? 'Invalid CNPJ',
+        cep = cep ?? 'Invalid postal code',
+        min = min ?? ((min) => 'At least $min characters required'),
+        max = max ?? ((max) => 'No more than $max characters allowed'),
+        phone = phone ?? 'Invalid phone number',
+        time = time ?? 'Invalid time format',
+        ip = ip ?? 'Invalid IP address',
+        date = date ?? 'Invalid date',
+        contains = contains ?? ((data) => 'Must contain "$data"'),
+        equals = equals ?? ((data) => 'Must be exactly "$data"'),
+        startsWith = startsWith ?? ((prefix) => 'Must start with "$prefix"'),
+        endsWith = endsWith ?? ((sufix) => 'Must end with "$sufix"'),
+        pattern = pattern ?? 'Invalid format';
 
-  /// Creates a copy of this `StringMessage` with the option to override specific properties.
+  /// Merges the current `StringMessage` instance with a `BaseMessage`,
+  /// replacing only the undefined values with those from the base.
+  ///
+  /// This allows inheriting common validation messages while keeping
+  /// specific string-related messages intact.
+  ///
+  /// Example:
+  /// ```dart
+  /// final baseMessage = BaseMessage(required: 'This field is mandatory');
+  /// final stringMessage = StringMessage().mergeWithBase(baseMessage);
+  ///
+  /// print(stringMessage.required); // Output: 'This field is mandatory'
+  /// print(stringMessage.email);    // Output: 'Enter a valid email' (unchanged)
+  /// ```
+  StringMessage mergeWithBase(BaseMessage base) {
+    return copyWith(
+      required: base.required,
+      refine: base.refine,
+      any: base.any,
+      every: base.every,
+    );
+  }
+
+  /// Creates a copy of the current `StringMessage` instance with updated values.
+  ///
+  /// If a parameter is not provided, the existing value is retained.
+  ///
+  /// Example:
+  /// ```dart
+  /// final defaultMessage = StringMessage();
+  /// final customMessage = defaultMessage.copyWith(
+  ///   email: 'Please enter a valid email address',
+  ///   min: (value) => 'At least $value characters required',
+  /// );
+  ///
+  /// print(customMessage.email); // Output: 'Please enter a valid email address'
+  /// print(customMessage.min(5)); // Output: 'At least 5 characters required'
+  /// print(customMessage.required); // Output: 'Required' (unchanged)
+  /// ```
   @override
   StringMessage copyWith({
     String? required,

@@ -42,6 +42,7 @@ class VArray<T> {
       if (isValid) continue;
       return false;
     }
+
     return true;
   }
 }

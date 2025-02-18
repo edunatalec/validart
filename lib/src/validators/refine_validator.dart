@@ -20,7 +20,7 @@ class RefineValidator<T> extends Validator<T> {
   ///
   /// If the function returns `true`, the value is considered valid.
   /// If it returns `false`, the validation fails, and the provided error message is used.
-  final bool Function(T? data) validator;
+  final bool Function(T data) validator;
 
   /// Creates a [RefineValidator] with a custom validation function.
   ///
@@ -28,7 +28,7 @@ class RefineValidator<T> extends Validator<T> {
   RefineValidator(this.validator, {required super.message});
 
   @override
-  String? validate(value) {
+  String? validate(covariant T value) {
     return validator(value) ? null : message;
   }
 }

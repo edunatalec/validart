@@ -45,47 +45,6 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
-  /// Validates that the object matches **any** of the provided `VMap` validators.
-  ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.map({
-  ///   'name': v.string()
-  /// }).any([
-  ///   v.map({'age': v.int().min(18)}),
-  ///   v.map({'email': v.string().email()}),
-  /// ]);
-  ///
-  /// print(validator.validate({'age': 25})); // true
-  /// print(validator.validate({'email': 'user@example.com'})); // true
-  /// print(validator.validate({'phone': '12345'})); // false
-  /// ```
-  @override
-  VMap any(covariant List<VMap> types, {String? message}) {
-    super.any(types, message: message ?? _message.any);
-    return this;
-  }
-
-  /// Ensures that the object meets **all** the specified validation rules.
-  ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.map({
-  ///   'email': v.string().email(),
-  ///   'password': v.string().min(8),
-  /// }).every([
-  ///   v.map({'password': v.string().max(20)}),
-  /// ]);
-  ///
-  /// print(validator.validate({'email': 'user@example.com', 'password': 'secure123'})); // true
-  /// print(validator.validate({'email': 'user@example.com', 'password': 'verylongpassword123'})); // false
-  /// ```
-  @override
-  VMap every(covariant List<VMap> types, {String? message}) {
-    super.every(types, message: message ?? _message.every);
-    return this;
-  }
-
   /// Marks the object as optional, allowing it to be omitted.
   ///
   /// Example:
@@ -129,7 +88,7 @@ class VMap extends VType<Map<String, dynamic>> {
   /// print(validator.validate({'password': 'secure123', 'confirmPassword': 'wrongpass'})); // false
   /// ```
   VMap refine(
-    bool Function(Map<String, dynamic>? data) validator, {
+    bool Function(Map<String, dynamic> data) validator, {
     required String path,
     String? message,
   }) {
@@ -175,8 +134,8 @@ class VMap extends VType<Map<String, dynamic>> {
           return null;
         }
 
-        if (validator is RefineMapValidator) {
-          errors.addAll({validator.path: message});
+        if (validator is! RequiredValidator) {
+          errors.addAll({(validator as dynamic).path: message});
         }
       }
     }

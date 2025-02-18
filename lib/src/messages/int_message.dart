@@ -1,3 +1,4 @@
+import 'package:validart/src/messages/base_message.dart';
 import 'package:validart/src/messages/number_message.dart';
 
 /// A message class for validation errors related to `int` values.
@@ -31,8 +32,28 @@ class IntMessage extends NumberMessage<int> {
     super.negative,
     String? odd,
     String? even,
-  }) : odd = odd ?? 'The number must be odd',
-       even = even ?? 'The number must be even';
+  })  : odd = odd ?? 'The number must be odd',
+        even = even ?? 'The number must be even';
+
+  /// Merges the current `IntMessage` instance with a `BaseMessage`,
+  /// replacing only the undefined values with those from the base.
+  ///
+  /// Example:
+  /// ```dart
+  /// final baseMessage = BaseMessage(required: 'This field is mandatory');
+  /// final intMessage = IntMessage().mergeWithBase(baseMessage);
+  ///
+  /// print(intMessage.required); // Output: 'This field is mandatory'
+  /// print(intMessage.odd);      // Output: 'The number must be odd'
+  /// ```
+  IntMessage mergeWithBase(BaseMessage base) {
+    return copyWith(
+      required: base.required,
+      refine: base.refine,
+      any: base.any,
+      every: base.every,
+    );
+  }
 
   /// Creates a copy of the current `IntMessage` instance with updated values.
   ///

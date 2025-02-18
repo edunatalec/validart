@@ -35,9 +35,7 @@ class CPFValidator extends Validator<String> {
   ///
   /// Returns `null` if the CPF is valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
+  String? validate(covariant String value) {
     // Remove non-numeric characters
     final cpf = value.replaceAll(RegExp(r'[^\d]'), '');
 

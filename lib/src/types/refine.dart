@@ -30,7 +30,7 @@ class VRefine<T> extends VType<T> {
   /// print(validator.validate(4)); // true
   /// print(validator.validate(5)); // false
   /// ```
-  VRefine<T> refine(bool Function(T? data) validator, {String? message}) {
+  VRefine<T> refine(bool Function(T data) validator, {String? message}) {
     add(RefineValidator<T>(validator, message: message!));
     return this;
   }

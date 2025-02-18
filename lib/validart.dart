@@ -14,6 +14,7 @@ export 'src/messages/num_message.dart';
 export 'src/messages/number_message.dart';
 export 'src/messages/string_message.dart';
 
+export 'src/types/any_every.dart';
 export 'src/types/array.dart';
 export 'src/types/bool.dart';
 export 'src/types/double.dart';

@@ -49,13 +49,10 @@ class ContainsValidator extends Validator<String> {
   ///
   /// Returns `null` if the value is valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
-    final bool contains =
-        caseSensitivity == CaseSensitivity.insensitive
-            ? value.toLowerCase().contains(data.toLowerCase())
-            : value.contains(data);
+  String? validate(covariant String value) {
+    final bool contains = caseSensitivity == CaseSensitivity.insensitive
+        ? value.toLowerCase().contains(data.toLowerCase())
+        : value.contains(data);
 
     return contains ? null : message;
   }

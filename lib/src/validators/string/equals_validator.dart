@@ -54,13 +54,10 @@ class EqualsValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
-    final bool isEqual =
-        caseSensitivity == CaseSensitivity.insensitive
-            ? value.toLowerCase() == expectedValue.toLowerCase()
-            : value == expectedValue;
+  String? validate(covariant String value) {
+    final bool isEqual = caseSensitivity == CaseSensitivity.insensitive
+        ? value.toLowerCase() == expectedValue.toLowerCase()
+        : value == expectedValue;
 
     return isEqual ? null : message;
   }

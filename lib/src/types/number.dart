@@ -1,4 +1,4 @@
-import 'package:validart/src/types/refine.dart';
+import 'package:validart/src/types/any_every.dart';
 import 'package:validart/src/validators/num/between_validator.dart';
 import 'package:validart/src/validators/num/max_validator.dart';
 import 'package:validart/src/validators/num/min_validator.dart';
@@ -16,7 +16,7 @@ import 'package:validart/src/validators/num/positive_validator.dart';
 /// print(validator.validate(3));  // false (less than min)
 /// print(validator.validate(-5)); // false (not positive)
 /// ```
-class VNumber<T extends num> extends VRefine<T> {
+class VNumber<T extends num> extends VAnyEvery<T> {
   /// Sets a minimum value constraint.
   ///
   /// Ensures that the number is at least `min`.

@@ -28,5 +28,5 @@ abstract class Validator<T> {
 
   /// Validates the given [value]. Returns `null` if valid, otherwise returns
   /// the error message.
-  String? validate(T? value);
+  validate(T? value);
 }

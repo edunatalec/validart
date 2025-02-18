@@ -33,9 +33,6 @@ class UUIDValidator extends PatternValidator {
   ///
   /// - Defaults to validating `UUIDVersion.v4` if no version is specified.
   /// - If [message] is not provided, a default message including the expected version is used.
-  UUIDValidator({String? message, UUIDVersion version = UUIDVersion.v4})
-    : super(
-        version.pattern,
-        message: message ?? 'Invalid UUID (expected version ${version.name})',
-      );
+  UUIDValidator({required String message, UUIDVersion version = UUIDVersion.v4})
+      : super(version.pattern, message: message);
 }

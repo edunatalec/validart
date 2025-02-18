@@ -27,7 +27,7 @@ class AnyValidator<T> extends Validator<T> {
   AnyValidator(this.types, {required super.message});
 
   @override
-  String? validate(value) {
+  validate(value) {
     for (final type in types) {
       final message = type.getErrorMessage(value);
 

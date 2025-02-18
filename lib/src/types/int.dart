@@ -215,7 +215,7 @@ class VInt extends VNumber<int> {
   /// print(validator.validate(5)); // false
   /// ```
   @override
-  VInt refine(bool Function(int? data) validator, {String? message}) {
+  VInt refine(bool Function(int data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

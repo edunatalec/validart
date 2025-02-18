@@ -37,8 +37,8 @@ class MinLengthValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null || value.length < minLength) return message;
+  String? validate(covariant String value) {
+    if (value.length < minLength) return message;
 
     return null;
   }

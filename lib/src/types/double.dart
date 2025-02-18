@@ -249,7 +249,7 @@ class VDouble extends VNumber<double> {
 
   /// Applies a custom validation function.
   @override
-  VDouble refine(bool Function(double? data) validator, {String? message}) {
+  VDouble refine(bool Function(double data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

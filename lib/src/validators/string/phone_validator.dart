@@ -61,9 +61,7 @@ class PhoneValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
+  String? validate(covariant String value) {
     final pattern = _buildPattern();
 
     if (RegExp(pattern).hasMatch(value)) return null;

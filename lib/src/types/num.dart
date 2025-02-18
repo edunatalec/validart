@@ -198,7 +198,7 @@ class VNum extends VNumber<num> {
   /// print(validator.validate(7)); // false
   /// ```
   @override
-  VNum refine(bool Function(num? data) validator, {String? message}) {
+  VNum refine(bool Function(num data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);
     return this;
   }

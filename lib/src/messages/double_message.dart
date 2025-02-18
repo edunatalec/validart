@@ -1,3 +1,4 @@
+import 'package:validart/src/messages/base_message.dart';
 import 'package:validart/src/messages/number_message.dart';
 
 /// A message class for validation errors related to `double` values.
@@ -38,9 +39,29 @@ class DoubleMessage extends NumberMessage<double> {
     String? finite,
     String? decimal,
     String? integer,
-  }) : finite = finite ?? 'The number must be finite',
-       decimal = decimal ?? 'The number must be a decimal (not an integer)',
-       integer = integer ?? 'The number must be an integer';
+  })  : finite = finite ?? 'The number must be finite',
+        decimal = decimal ?? 'The number must be a decimal (not an integer)',
+        integer = integer ?? 'The number must be an integer';
+
+  /// Merges the current `DoubleMessage` instance with a `BaseMessage`,
+  /// replacing only the undefined values with those from the base.
+  ///
+  /// Example:
+  /// ```dart
+  /// final baseMessage = BaseMessage(required: 'This field is mandatory');
+  /// final doubleMessage = DoubleMessage().mergeWithBase(baseMessage);
+  ///
+  /// print(doubleMessage.required); // Output: 'This field is mandatory'
+  /// print(doubleMessage.finite);   // Output: 'The number must be finite'
+  /// ```
+  DoubleMessage mergeWithBase(BaseMessage base) {
+    return copyWith(
+      required: base.required,
+      refine: base.refine,
+      any: base.any,
+      every: base.every,
+    );
+  }
 
   /// Creates a copy of the current `DoubleMessage` instance with updated values.
   ///

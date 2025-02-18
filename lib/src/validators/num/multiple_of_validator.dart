@@ -28,8 +28,8 @@ class MultipleOfValidator<T extends num> extends Validator<T> {
   ///
   /// Returns `null` if the value is a valid multiple, otherwise returns the validation message.
   @override
-  String? validate(value) {
-    if (value == null || value % factor != 0) return message;
+  String? validate(covariant T value) {
+    if (value % factor != 0) return message;
 
     return null;
   }

@@ -24,8 +24,8 @@ class FiniteValidator extends Validator<double> {
   /// Returns `null` if the value is neither `double.infinity` nor `double.nan`,
   /// otherwise returns the validation message.
   @override
-  String? validate(value) {
-    if (value == null || value.isInfinite || value.isNaN) return message;
+  String? validate(covariant double value) {
+    if (value.isInfinite || value.isNaN) return message;
 
     return null;
   }

@@ -24,8 +24,8 @@ class DecimalValidator extends Validator<double> {
   /// Returns `null` if the value has a fractional part,
   /// otherwise returns the validation message.
   @override
-  String? validate(value) {
-    if (value == null || value % 1 == 0) return message;
+  String? validate(covariant double value) {
+    if (value % 1 == 0) return message;
 
     return null;
   }

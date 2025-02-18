@@ -30,8 +30,7 @@ class BetweenValidator<T extends num> extends Validator<T> {
   ///
   /// Returns `null` if the value is within the range, otherwise returns the validation message.
   @override
-  String? validate(value) {
-    if (value == null) return message;
+  String? validate(covariant T value) {
     if (value < min || value > max) return message;
 
     return null;

@@ -34,9 +34,7 @@ class DateValidator extends Validator<String> {
   ///
   /// Returns `null` if the date is valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
+  String? validate(covariant String value) {
     DateTime? date = _parseDate(value);
     if (date == null) return message;
 

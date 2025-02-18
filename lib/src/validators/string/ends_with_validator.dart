@@ -54,13 +54,10 @@ class EndsWithValidator extends Validator<String> {
   ///
   /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(String? value) {
-    if (value == null) return message;
-
-    final bool endsWith =
-        caseSensitivity == CaseSensitivity.insensitive
-            ? value.toLowerCase().endsWith(suffix.toLowerCase())
-            : value.endsWith(suffix);
+  String? validate(covariant String value) {
+    final bool endsWith = caseSensitivity == CaseSensitivity.insensitive
+        ? value.toLowerCase().endsWith(suffix.toLowerCase())
+        : value.endsWith(suffix);
 
     return endsWith ? null : message;
   }
