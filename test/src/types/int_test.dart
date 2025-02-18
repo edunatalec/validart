@@ -107,9 +107,48 @@ void main() {
     });
   });
 
+  group('optional', () {
+    test('should validate nullable values', () {
+      final validator = v.int().optional();
+
+      expect(validator.validate(5), true);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('every', () {
+    test('should pass only if all validators pass', () {
+      final validator = v.int().every([
+        v.int().min(5),
+        v.int().max(10),
+      ]);
+
+      expect(validator.validate(5), true);
+      expect(validator.validate(6), true);
+      expect(validator.validate(10), true);
+      expect(validator.validate(11), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('any', () {
+    test('should pass if at least one validator passes', () {
+      final validator = v.int().any([
+        v.int().min(10),
+        v.int().max(100),
+      ]);
+
+      expect(validator.validate(10), true);
+      expect(validator.validate(11), true);
+      expect(validator.validate(99), true);
+      expect(validator.validate(100), true);
+      expect(validator.validate(101), true);
+    });
+  });
+
   group('refine', () {
     test('should validate custom refine function', () {
-      final validator = v.int().refine((data) => data! > 10);
+      final validator = v.int().refine((data) => data > 10);
 
       expect(validator.validate(15), true);
       expect(validator.validate(10), false);

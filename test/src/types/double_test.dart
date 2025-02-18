@@ -128,10 +128,40 @@ void main() {
     });
   });
 
+  group('every', () {
+    test('should pass only if all validators pass', () {
+      final validator = v.double().every([
+        v.double().min(5.0),
+        v.double().max(10.0),
+      ]);
+
+      expect(validator.validate(5.0), true);
+      expect(validator.validate(6.0), true);
+      expect(validator.validate(10.0), true);
+      expect(validator.validate(10.1), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('any', () {
+    test('should pass if at least one validator passes', () {
+      final validator = v.double().any([
+        v.double().min(10.0),
+        v.double().max(100.0),
+      ]);
+
+      expect(validator.validate(10.0), true);
+      expect(validator.validate(11.0), true);
+      expect(validator.validate(99.0), true);
+      expect(validator.validate(100.0), true);
+      expect(validator.validate(101.0), true);
+    });
+  });
+
   group('refine', () {
     test('should validate refine function correctly', () {
       final validator = v.double().refine(
-        (value) => value! > 10.0,
+        (value) => value > 10.0,
         message: 'The value must be greater than 10.',
       );
 

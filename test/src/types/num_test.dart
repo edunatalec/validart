@@ -95,9 +95,39 @@ void main() {
     });
   });
 
+  group('every', () {
+    test('should pass only if all validators pass', () {
+      final validator = v.num().every([
+        v.num().min(5),
+        v.num().max(10),
+      ]);
+
+      expect(validator.validate(5), true);
+      expect(validator.validate(6), true);
+      expect(validator.validate(10), true);
+      expect(validator.validate(11), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('any', () {
+    test('should pass if at least one validator passes', () {
+      final validator = v.num().any([
+        v.num().min(10),
+        v.num().max(100),
+      ]);
+
+      expect(validator.validate(10), true);
+      expect(validator.validate(11), true);
+      expect(validator.validate(99), true);
+      expect(validator.validate(100), true);
+      expect(validator.validate(101), true);
+    });
+  });
+
   group('refine', () {
     test('should validate custom refine function', () {
-      final validator = v.num().refine((data) => data! > 100);
+      final validator = v.num().refine((data) => data > 100);
 
       expect(validator.validate(200), true);
       expect(validator.validate(50), false);

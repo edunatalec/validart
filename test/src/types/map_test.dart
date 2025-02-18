@@ -48,13 +48,13 @@ void main() {
 
   group('refine - confirm password', () {
     test('should validate password confirmation', () {
-      final validator = v
-          .map({'password': v.string().min(8), 'confirmPassword': v.string()})
-          .refine(
-            (data) => data!['password'] == data['confirmPassword'],
-            path: 'confirmPassword',
-            message: 'Passwords do not match',
-          );
+      final validator = v.map({
+        'password': v.string().min(8),
+        'confirmPassword': v.string()
+      }).refine(
+        (data) => data['password'] == data['confirmPassword'],
+        path: 'confirmPassword',
+      );
 
       expect(
         validator.validate({
@@ -75,17 +75,15 @@ void main() {
 
   group('refine - custom validation', () {
     test('should validate custom logic', () {
-      final validator = v
-          .map({
-            'email': v.string().email(),
-            'password': v.string().min(8).max(20),
-            'confirmPassword': v.string().min(8).max(20),
-          })
-          .refine(
-            (data) => data?['password'] == data?['confirmPassword'],
-            path: 'confirmPassword',
-            message: 'The passwords are not the same',
-          );
+      final validator = v.map({
+        'email': v.string().email(),
+        'password': v.string().min(8).max(20),
+        'confirmPassword': v.string().min(8).max(20),
+      }).refine(
+        (data) => data['password'] == data['confirmPassword'],
+        path: 'confirmPassword',
+        message: 'The passwords are not the same',
+      );
 
       expect(
         validator.validate({
@@ -135,6 +133,17 @@ void main() {
       final result = validator.getErrorMessage({});
 
       expect(result, {'email': 'Required', 'age': 'Required'});
+    });
+  });
+
+  group('object', () {
+    test('should maintain the same number of keys as the original map', () {
+      final validator = v.map({
+        'email': v.string().email(),
+        'age': v.int().min(18),
+      });
+
+      expect(validator.object.length, 2);
     });
   });
 }

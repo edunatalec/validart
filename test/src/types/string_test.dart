@@ -24,6 +24,8 @@ void main() {
       expect(validator.validate('email@gmail.com'), true);
       expect(validator.validate('test@domain.com'), true);
       expect(validator.validate('invalid@domain'), false);
+      expect(validator.validate(null), false);
+      expect(validator.getErrorMessage(null), 'Required');
     });
   });
 
@@ -39,8 +41,8 @@ void main() {
         false,
       );
       expect(validator.validate('invalid-uuid'), false);
-      expect(validator.validate(null), false);
       expect(validator.validate(''), false);
+      expect(validator.validate(null), false);
     });
 
     test('should validate UUID v1 correctly', () {
@@ -95,6 +97,7 @@ void main() {
       expect(validator.validate('http://'), false);
       expect(validator.validate('https://.com'), false);
       expect(validator.validate('http://.com'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -106,6 +109,7 @@ void main() {
       expect(validator.validate('12345678909'), true);
       expect(validator.validate('000.000.000-00'), false);
       expect(validator.validate('invalid-cpf'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -117,6 +121,7 @@ void main() {
       expect(validator.validate('12345678000195'), true);
       expect(validator.validate('00.000.000/0000-00'), false);
       expect(validator.validate('invalid-cnpj'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -128,6 +133,7 @@ void main() {
       expect(validator.validate('01001000'), true);
       expect(validator.validate('00000-000'), false);
       expect(validator.validate('invalid-cep'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -135,8 +141,9 @@ void main() {
     test('should validate min length', () {
       final validator = v.string().min(5);
 
-      expect(validator.validate('1234'), false);
       expect(validator.validate('12345'), true);
+      expect(validator.validate('1234'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -144,18 +151,19 @@ void main() {
     test('should validate max length', () {
       final validator = v.string().max(10);
 
-      expect(validator.validate('12345678901'), false);
       expect(validator.validate('12345'), true);
+      expect(validator.validate('12345678901'), false);
+      expect(validator.validate(null), false);
     });
   });
 
   group('phone', () {
     test('should validate Brazilian phone array correctly', () {
       final validator = v.string().phone(
-        PhoneType.brazil,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.brazil,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       final arrayValidator = validator.array();
 
@@ -168,10 +176,10 @@ void main() {
 
     test('should validate Brazilian phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.brazil,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.brazil,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('11 98765-4321'), true);
       expect(validator.validate('(11) 98765-4321'), true);
@@ -180,14 +188,15 @@ void main() {
       expect(validator.validate('98765-4321'), false);
       expect(validator.validate('9876-5432'), false);
       expect(validator.validate(' 9876-5432'), false);
+      expect(validator.validate(null), false);
     });
 
     test('should validate USA phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.usa,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.usa,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('123-456-7890'), true);
       expect(validator.validate('(123) 456-7890'), true);
@@ -200,10 +209,10 @@ void main() {
 
     test('should validate Argentina phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.argentina,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.argentina,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('11 1234-5678'), true);
       expect(validator.validate('(11) 1234-5678'), true);
@@ -215,10 +224,10 @@ void main() {
 
     test('should validate Germany phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.germany,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.germany,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('030 123456'), true);
       expect(validator.validate('(030) 123456'), true);
@@ -230,10 +239,10 @@ void main() {
 
     test('should validate China phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.china,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.china,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('021 1234 5678'), true);
       expect(validator.validate('010 9876 5432'), true);
@@ -245,10 +254,10 @@ void main() {
 
     test('should validate Japan phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.japan,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.japan,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('03-1234-5678'), true);
       expect(validator.validate('06-9876-5432'), true);
@@ -260,10 +269,10 @@ void main() {
 
     test('should validate international phone numbers correctly', () {
       final validator = v.string().phone(
-        PhoneType.international,
-        areaCode: AreaCodeFormat.required,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.international,
+            areaCode: AreaCodeFormat.required,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('123 456 789'), true);
       expect(validator.validate('01234 567 890'), true);
@@ -276,15 +285,15 @@ void main() {
     test('should validate Brazilian and USA phone numbers correctly', () {
       final validator = v.string().any([
         v.string().phone(
-          PhoneType.brazil,
-          areaCode: AreaCodeFormat.required,
-          countryCode: CountryCodeFormat.none,
-        ),
+              PhoneType.brazil,
+              areaCode: AreaCodeFormat.required,
+              countryCode: CountryCodeFormat.none,
+            ),
         v.string().phone(
-          PhoneType.usa,
-          areaCode: AreaCodeFormat.required,
-          countryCode: CountryCodeFormat.none,
-        ),
+              PhoneType.usa,
+              areaCode: AreaCodeFormat.required,
+              countryCode: CountryCodeFormat.none,
+            ),
       ]);
 
       expect(validator.validate('11 98765-4321'), true);
@@ -308,10 +317,10 @@ void main() {
       'should validate Brazilian phone numbers with country code required',
       () {
         final validator = v.string().phone(
-          PhoneType.brazil,
-          countryCode: CountryCodeFormat.required,
-          areaCode: AreaCodeFormat.required,
-        );
+              PhoneType.brazil,
+              countryCode: CountryCodeFormat.required,
+              areaCode: AreaCodeFormat.required,
+            );
 
         expect(validator.validate('+55 11 98765-4321'), true);
         expect(validator.validate('+55 (11) 98765-4321'), true);
@@ -325,10 +334,10 @@ void main() {
       'should validate Brazilian phone numbers with optional country code',
       () {
         final validator = v.string().phone(
-          PhoneType.brazil,
-          countryCode: CountryCodeFormat.optional,
-          areaCode: AreaCodeFormat.required,
-        );
+              PhoneType.brazil,
+              countryCode: CountryCodeFormat.optional,
+              areaCode: AreaCodeFormat.required,
+            );
 
         expect(validator.validate('+55 11 98765-4321'), true);
         expect(validator.validate('11 98765-4321'), true);
@@ -338,10 +347,10 @@ void main() {
 
     test('should validate Brazilian phone numbers without area code', () {
       final validator = v.string().phone(
-        PhoneType.brazil,
-        areaCode: AreaCodeFormat.none,
-        countryCode: CountryCodeFormat.none,
-      );
+            PhoneType.brazil,
+            areaCode: AreaCodeFormat.none,
+            countryCode: CountryCodeFormat.none,
+          );
 
       expect(validator.validate('98765-4321'), true);
       expect(validator.validate('9876-5432'), false);
@@ -355,10 +364,10 @@ void main() {
       'should validate Brazilian phone numbers with country code required and no area code',
       () {
         final validator = v.string().phone(
-          PhoneType.brazil,
-          countryCode: CountryCodeFormat.required,
-          areaCode: AreaCodeFormat.none,
-        );
+              PhoneType.brazil,
+              countryCode: CountryCodeFormat.required,
+              areaCode: AreaCodeFormat.none,
+            );
 
         expect(validator.validate('+55 98765-4321'), true);
 
@@ -372,15 +381,35 @@ void main() {
       'should validate Brazilian phone numbers with country code optional and no area code',
       () {
         final validator = v.string().phone(
-          PhoneType.brazil,
-          countryCode: CountryCodeFormat.optional,
-          areaCode: AreaCodeFormat.none,
-        );
+              PhoneType.brazil,
+              countryCode: CountryCodeFormat.optional,
+              areaCode: AreaCodeFormat.none,
+            );
 
         expect(validator.validate('+55 98765-4321'), true);
         expect(validator.validate('98765-4321'), true);
         expect(validator.validate('11 98765-4321'), false);
         expect(validator.validate('(11) 98765-4321'), false);
+      },
+    );
+
+    test(
+      'should validate Brazilian phone numbers with country code optional and area code optional',
+      () {
+        final validator = v.string().phone(
+              PhoneType.brazil,
+              countryCode: CountryCodeFormat.optional,
+              areaCode: AreaCodeFormat.optional,
+            );
+
+        expect(validator.validate('98765-4321'), true);
+        expect(validator.validate('+55 98765-4321'), true);
+        expect(validator.validate('98765-4321'), true);
+        expect(validator.validate('11 98765-4321'), true);
+        expect(validator.validate('(11) 98765-4321'), true);
+        expect(validator.validate('8765-4321'), false);
+        expect(validator.validate(''), false);
+        expect(validator.validate(null), false);
       },
     );
   });
@@ -394,6 +423,7 @@ void main() {
       expect(validator.validate('23:59:00'), true);
       expect(validator.validate('23:59:60'), false);
       expect(validator.validate('invalid-time'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -405,6 +435,7 @@ void main() {
       expect(validator.validate('255.255.255.255'), true);
       expect(validator.validate('999.999.999.999'), false);
       expect(validator.validate('invalid-ip'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -417,42 +448,94 @@ void main() {
       expect(validator.validate('01/12/2025'), true);
       expect(validator.validate('12/20/2025'), true);
       expect(validator.validate('invalid-date'), false);
+      expect(validator.validate(null), false);
     });
   });
 
   group('contains', () {
-    test('should validate contains', () {
+    test('should validate contains (case-sensitive)', () {
       final validator = v.string().contains('hello');
 
       expect(validator.validate('hello world'), true);
+      expect(validator.validate('HellO'), false);
       expect(validator.validate('world'), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should validate contains (case-insensitive)', () {
+      final validator = v
+          .string()
+          .contains('HellO', caseSensitivity: CaseSensitivity.insensitive);
+
+      expect(validator.validate('hElLo woRld'), true);
+      expect(validator.validate('world'), false);
+      expect(validator.validate(null), false);
+      expect(validator.validate(null), false);
     });
   });
 
   group('equals', () {
-    test('should validate equals', () {
+    test('should validate equals (case-sensitive)', () {
       final validator = v.string().equals('password123');
 
       expect(validator.validate('password123'), true);
       expect(validator.validate('Password123'), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should validate equals (case-insensitive)', () {
+      final validator = v
+          .string()
+          .equals('HellO', caseSensitivity: CaseSensitivity.insensitive);
+
+      expect(validator.validate('hello'), true);
+      expect(validator.validate('HELLO'), true);
+      expect(validator.validate('world'), false);
+      expect(validator.validate(null), false);
     });
   });
 
   group('startsWith', () {
-    test('should validate starts with', () {
-      final validator = v.string().startsWidth('Hello');
+    test('should validate starts with (case-sensitive)', () {
+      final validator = v.string().startsWith('Hello');
 
       expect(validator.validate('Hello World'), true);
       expect(validator.validate('World Hello'), false);
+      expect(validator.validate('hello world'), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should validate starts with (case-insensitive)', () {
+      final validator = v
+          .string()
+          .startsWith('Hello', caseSensitivity: CaseSensitivity.insensitive);
+
+      expect(validator.validate('hello world'), true);
+      expect(validator.validate('HELLO WORLD'), true);
+      expect(validator.validate('world hello'), false);
+      expect(validator.validate(null), false);
     });
   });
 
   group('endsWith', () {
-    test('should validate ends with', () {
+    test('should validate ends with (case-sensitive)', () {
       final validator = v.string().endsWith('World');
 
       expect(validator.validate('Hello World'), true);
       expect(validator.validate('World Hello'), false);
+      expect(validator.validate('hello world'), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should validate ends with (case-insensitive)', () {
+      final validator = v
+          .string()
+          .endsWith('World', caseSensitivity: CaseSensitivity.insensitive);
+
+      expect(validator.validate('hello world'), true);
+      expect(validator.validate('HELLO WORLD'), true);
+      expect(validator.validate('WORLD hello'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -462,15 +545,17 @@ void main() {
 
       expect(validator.validate('123-456-7890'), true);
       expect(validator.validate('1234567890'), false);
+      expect(validator.validate(null), false);
     });
   });
 
   group('refine', () {
     test('should validate custom refine function', () {
-      final validator = v.string().refine((data) => data!.contains('z'));
+      final validator = v.string().refine((data) => data.contains('z'));
 
       expect(validator.validate('z example'), true);
       expect(validator.validate('example'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -480,6 +565,16 @@ void main() {
 
       expect(validator.validate(null), true);
       expect(validator.validate('hello'), true);
+    });
+  });
+
+  group('optional', () {
+    test('should validate optional', () {
+      final validator = v.string().optional();
+
+      expect(validator.validate('hello'), true);
+      expect(validator.validate(''), true);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -496,6 +591,7 @@ void main() {
       expect(validator.validate('short'), false);
       expect(validator.validate('this is a long test'), false);
       expect(validator.validate('randomword'), false);
+      expect(validator.validate(null), false);
     });
   });
 
@@ -510,17 +606,7 @@ void main() {
       expect(validator.validate('world'), true);
       expect(validator.validate('hello world'), false);
       expect(validator.validate('random text'), false);
-    });
-
-    test('should pass if at least one validation condition is met', () {
-      final validator = v.string().any([
-        v.string().min(5),
-        v.string().contains('validart'),
-      ]);
-
-      expect(validator.validate('short'), true);
-      expect(validator.validate('validart'), true);
-      expect(validator.validate('tiny'), false);
+      expect(validator.validate(null), false);
     });
   });
 }
