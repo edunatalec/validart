@@ -3,25 +3,31 @@
 
 # Validart
 
-## Introduction
-
 **Validart** is a flexible and type-safe validation library for Dart, inspired by [Zod](https://zod.dev).
 
 Built for **chaining**, **custom rules**, and **nullable values**. Validart includes validators for **emails, phone numbers, numbers, and more**, making validation in Dart simple and scalable.
 
 ## Installation
 
-To install **Validart**, add it to your `pubspec.yaml`:
+To install **Validart**, run this command:
+
+With Dart:
+
+```sh
+dart pub add validart
+```
+
+With Flutter:
+
+```sh
+flutter pub add validart
+```
+
+This will add a line like this to your project's `pubspec.yaml`:
 
 ```yaml
 dependencies:
   validart: ^0.0.1
-```
-
-Then, run:
-
-```sh
-dart pub get
 ```
 
 Import Validart in your Dart file:
@@ -202,8 +208,6 @@ print(validator.validate('12345'));   // false (does not contain 'test')
 
 Validart allows validating lists of values using **`.array()`**, ensuring that each element meets the defined validation rules.
 
-### Example:
-
 ```dart
 final validator = v.string().phone(
   PhoneType.brazil,
@@ -216,4 +220,82 @@ print(validator.validate(['11 98765-4321', '11 98765-4322'])); // true
 
 print(validator.validate(['98765-4321'])); // false
 print(validator.validate(['11 98765-4321', '98765-4321'])); // false
+```
+
+## Customizing Validation Messages
+
+Validart allows you to customize the validation messages for different types, making error handling more user-friendly.
+
+### Global Message Customization
+
+You can define a **custom message set** when initializing Validart:
+
+```dart
+import 'package:validart/validart.dart';
+
+final customMessages = Message(
+  string: StringMessage(
+    required: 'This field cannot be empty',
+    min: (value) => 'Minimum length is $value characters',
+    max: (value) => 'Maximum length is $value characters',
+    email: 'Invalid email address format',
+  ),
+  int: IntMessage(
+    min: (value) => 'Minimum value allowed is $value',
+  ),
+);
+
+final v = Validart(message: customMessages);
+```
+
+Now, when a validation fails, the custom error messages will be returned instead of the default ones.
+
+```dart
+final validator = v.string().min(5);
+
+print(validator.getErrorMessage('a'));
+// Output: "Minimum length is 5 characters"
+```
+
+### Per-Validation Custom Messages
+
+You can also override messages per validation rule, instead of defining them globally.
+
+```dart
+final validator = v.string()
+  .min(5, message: 'Must be at least 5 characters')
+  .email(message: 'Please enter a valid email');
+
+print(validator.getErrorMessage('abc'));
+// Output: "Must be at least 5 characters"
+
+print(validator.getErrorMessage('invalid-email'));
+// Output: "Please enter a valid email"
+```
+
+This allows for fine-grained control over how error messages are displayed.
+
+### Using `BaseMessage` for Default Messages
+
+If you want to apply default messages across multiple validation types without redefining them for each type, you can use `BaseMessage`:
+
+```dart
+final baseMessage = BaseMessage(
+  required: 'This field is required',
+  refine: 'Invalid value provided',
+  any: 'At least one condition must be met',
+  every: 'All conditions must be met',
+);
+
+final stringMessage = StringMessage(
+  email: 'Please provide a valid email',
+  min: (value) => 'Minimum length: $value characters',
+).mergeWithBase(baseMessage);
+
+final customMessages = Message(
+  base: baseMessage,
+  string: stringMessage,
+);
+
+final v = Validart(message: customMessages);
 ```
