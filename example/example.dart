@@ -63,4 +63,51 @@ void main() {
   print(userValidator.validate(validUser)); // true
   print(userValidator.getErrorMessage(invalidUser));
   // {'name': 'Minimum length: 3 characters', 'email': 'Please provide a valid email', 'age': 'The number must be at least 18'}
+
+  // Example: Validating an array of integers with min/max constraints
+  final intArrayValidator = v.int().array().min(2).max(5);
+  print(intArrayValidator.validate([10, 20, 30])); // true
+  print(intArrayValidator.validate([10])); // false (less than 2 elements)
+  print(intArrayValidator
+      .validate([10, 20, 30, 40, 50, 60])); // false (more than 5 elements)
+
+  // Example: Validating an array of unique strings
+  final uniqueStringArrayValidator = v.string().array().unique();
+  print(uniqueStringArrayValidator
+      .validate(['apple', 'banana', 'cherry'])); // true
+  print(uniqueStringArrayValidator
+      .validate(['apple', 'banana', 'apple'])); // false (duplicate value)
+
+  // Example: Ensuring an array contains specific values
+  final containsValidator = v.string().array().contains(['admin', 'user']);
+  print(containsValidator.validate(['admin', 'user', 'guest'])); // true
+  print(containsValidator
+      .validate(['guest', 'visitor'])); // false (missing required values)
+
+  // Example: Nullable array
+  final nullableArrayValidator = v.string().array().nullable();
+  print(nullableArrayValidator.validate(null)); // true
+  print(nullableArrayValidator.validate(['valid'])); // true
+  print(nullableArrayValidator.validate([])); // false (empty array not allowed)
+
+  // Example: Array of maps (objects)
+  final userArrayValidator = v
+      .map({
+        'name': v.string().min(3),
+        'email': v.string().email(),
+      })
+      .array()
+      .min(1);
+
+  final validUsers = [
+    {'name': 'Alice', 'email': 'alice@example.com'},
+    {'name': 'Bob', 'email': 'bob@example.com'},
+  ];
+  final invalidUsers = [
+    {'name': 'Al', 'email': 'invalid-email'},
+  ];
+
+  print(userArrayValidator.validate(validUsers)); // true
+  print(userArrayValidator.getErrorMessage(invalidUsers));
+  // {'name': 'Minimum length: 3 characters', 'email': 'Please provide a valid email'}
 }
