@@ -37,6 +37,9 @@ class StringMessage extends BaseMessage {
   /// Message for date format validation.
   final String date;
 
+  /// Message for double validation.
+  final String double;
+
   /// Message for email validation.
   final String email;
 
@@ -51,6 +54,9 @@ class StringMessage extends BaseMessage {
 
   /// Message for IP address validation.
   final String ip;
+
+  /// Message for integer validation.
+  final String integer;
 
   /// Message for JWT validation.
   final String jwt;
@@ -101,11 +107,13 @@ class StringMessage extends BaseMessage {
     String? cnpj,
     String? cpf,
     String? date,
+    String? double,
     String? email,
     String Function(String data)? contains,
     String Function(String data)? equals,
     String Function(String suffix)? endsWith,
     String? ip,
+    String? integer,
     String? jwt,
     String Function(int max)? max,
     String Function(int min)? min,
@@ -124,11 +132,13 @@ class StringMessage extends BaseMessage {
         cnpj = cnpj ?? 'Invalid CNPJ',
         cpf = cpf ?? 'Invalid CPF',
         date = date ?? 'Invalid date format',
+        double = double ?? 'Invalid double value',
         email = email ?? 'Enter a valid email',
         contains = contains ?? ((data) => 'Must contain "$data"'),
         equals = equals ?? ((data) => 'Must be exactly "$data"'),
         endsWith = endsWith ?? ((suffix) => 'Must end with "$suffix"'),
         ip = ip ?? 'Invalid IP address',
+        integer = integer ?? 'Invalid integer value',
         jwt = jwt ?? 'Invalid JWT token',
         max = max ?? ((max) => 'No more than $max characters allowed'),
         min = min ?? ((min) => 'At least $min characters required'),
@@ -194,11 +204,13 @@ class StringMessage extends BaseMessage {
     String Function(String data)? contains,
     String? cpf,
     String? date,
+    String? double,
     String? email,
     String Function(String data)? equals,
     String Function(String suffix)? endsWith,
     String? every,
     String? ip,
+    String? integer,
     String? jwt,
     String Function(int max)? max,
     String Function(int min)? min,
@@ -224,11 +236,13 @@ class StringMessage extends BaseMessage {
       contains: contains ?? this.contains,
       cpf: cpf ?? this.cpf,
       date: date ?? this.date,
+      double: double ?? this.double,
       email: email ?? this.email,
       equals: equals ?? this.equals,
       endsWith: endsWith ?? this.endsWith,
       every: every ?? this.every,
       ip: ip ?? this.ip,
+      integer: integer ?? this.integer,
       jwt: jwt ?? this.jwt,
       max: max ?? this.max,
       min: min ?? this.min,

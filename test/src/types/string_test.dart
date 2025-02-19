@@ -411,6 +411,60 @@ void main() {
     });
   });
 
+  group('integer', () {
+    test('should validate integer correctly', () {
+      final validator = v.string().integer();
+
+      expect(validator.validate('123'), true);
+      expect(validator.validate('-456'), true);
+      expect(validator.validate('0'), true);
+      expect(validator.validate('3.14'), false);
+      expect(validator.validate('abc'), false);
+      expect(validator.validate('12a3'), false);
+      expect(validator.validate(''), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should return correct error message for integer validation', () {
+      final validator = v.string().integer();
+
+      expect(validator.getErrorMessage('123'), null);
+      expect(validator.getErrorMessage('-456'), null);
+      expect(validator.getErrorMessage('3.14'), 'Invalid integer value');
+      expect(validator.getErrorMessage('abc'), 'Invalid integer value');
+      expect(validator.getErrorMessage('12a3'), 'Invalid integer value');
+      expect(validator.getErrorMessage(''), 'Required');
+      expect(validator.getErrorMessage(null), 'Required');
+    });
+  });
+
+  group('double', () {
+    test('should validate double correctly', () {
+      final validator = v.string().double();
+
+      expect(validator.validate('123.45'), true);
+      expect(validator.validate('-987.6'), true);
+      expect(validator.validate('0.0'), true);
+      expect(validator.validate('100'), true);
+      expect(validator.validate('abc'), false);
+      expect(validator.validate('12a3.4'), false);
+      expect(validator.validate(''), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should return correct error message for double validation', () {
+      final validator = v.string().double();
+
+      expect(validator.getErrorMessage('123.45'), null);
+      expect(validator.getErrorMessage('-987.6'), null);
+      expect(validator.getErrorMessage('100'), null);
+      expect(validator.getErrorMessage('abc'), 'Invalid double value');
+      expect(validator.getErrorMessage('12a3.4'), 'Invalid double value');
+      expect(validator.getErrorMessage(''), 'Required');
+      expect(validator.getErrorMessage(null), 'Required');
+    });
+  });
+
   group('ip', () {
     test('should validate IP addresses', () {
       final validator = v.string().ip();

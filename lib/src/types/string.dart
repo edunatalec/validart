@@ -15,9 +15,11 @@ import 'package:validart/src/validators/string/cnpj_validator.dart';
 import 'package:validart/src/validators/string/contains_validator.dart';
 import 'package:validart/src/validators/string/cpf_validator.dart';
 import 'package:validart/src/validators/string/date_validator.dart';
+import 'package:validart/src/validators/string/double_string_validator.dart';
 import 'package:validart/src/validators/string/email_validator.dart';
 import 'package:validart/src/validators/string/ends_with_validator.dart';
 import 'package:validart/src/validators/string/equals_validator.dart';
+import 'package:validart/src/validators/string/integer_string_validator.dart';
 import 'package:validart/src/validators/string/ip_validator.dart';
 import 'package:validart/src/validators/string/jwt_validator.dart';
 import 'package:validart/src/validators/max_length_validator.dart';
@@ -278,6 +280,29 @@ class VString extends VPrimitive<String> {
     return add(DateValidator(message: message ?? _message.date));
   }
 
+  /// Ensures that the string represents a valid double value.
+  ///
+  /// This method adds a `DoubleValidator` to check whether the given string can be parsed as a `double`.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().double();
+  ///
+  /// print(validator.validate("123.45")); // true (valid)
+  /// print(validator.validate("-0.99")); // true (valid)
+  /// print(validator.validate("abc")); // false (invalid)
+  /// print(validator.validate("123,45")); // false (invalid format)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [message] *(optional)*: A custom error message displayed when validation fails.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `double` validation applied.
+  VString double({String? message}) {
+    return add(DoubleStringValidator(message: message ?? _message.double));
+  }
+
   /// Validates that the string is a properly formatted email address.
   ///
   /// This method adds an `EmailValidator` to check if the string follows the standard email format.
@@ -378,6 +403,29 @@ class VString extends VPrimitive<String> {
         caseSensitivity: caseSensitivity,
       ),
     );
+  }
+
+  /// Ensures that the string represents a valid integer value.
+  ///
+  /// This method adds an `IntegerValidator` to check whether the given string can be parsed as an `int`.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().integer();
+  ///
+  /// print(validator.validate("123")); // true (valid)
+  /// print(validator.validate("-99")); // true (valid)
+  /// print(validator.validate("3.14")); // false (invalid)
+  /// print(validator.validate("abc")); // false (invalid)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [message] *(optional)*: A custom error message displayed when validation fails.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `integer` validation applied.
+  VString integer({String? message}) {
+    return add(IntegerStringValidator(message: message ?? _message.integer));
   }
 
   /// Ensures that the string is a valid IP address (IPv4 or IPv6).
