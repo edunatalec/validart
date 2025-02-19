@@ -91,7 +91,7 @@ void main() {
   });
 
   test('should create a DoubleMessage instance from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',
@@ -113,7 +113,7 @@ void main() {
   });
 
   test('should create a copy with updated values from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',

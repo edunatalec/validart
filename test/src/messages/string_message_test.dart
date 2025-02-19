@@ -23,7 +23,7 @@ void main() {
     expect(message.phone, equals('Invalid phone number'));
     expect(message.time, equals('Invalid time format'));
     expect(message.ip, equals('Invalid IP address'));
-    expect(message.date, equals('Invalid date'));
+    expect(message.date, equals('Invalid date format'));
 
     expect(message.contains('test'), equals('Must contain "test"'));
     expect(message.equals('test'), equals('Must be exactly "test"'));
@@ -164,7 +164,7 @@ void main() {
   });
 
   test('should create a StringMessage instance from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',
@@ -180,7 +180,7 @@ void main() {
   });
 
   test('should create a copy with updated values from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',

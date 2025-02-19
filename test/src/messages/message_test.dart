@@ -23,7 +23,7 @@ void main() {
   });
 
   test('should inherit baseMessage values when provided', () {
-    final baseMessage = BaseMessage(required: 'Base required message');
+    const baseMessage = BaseMessage(required: 'Base required message');
     final message = Message(base: baseMessage);
 
     expect(message.bool.required, 'Base required message');
@@ -42,7 +42,7 @@ void main() {
     expect(updatedMessage.num.required, 'Required');
 
     final updatedBoolMessage = message.copyWith(
-      bool: BoolMessage(required: 'New required'),
+      bool: const BoolMessage(required: 'New required'),
     );
 
     expect(updatedBoolMessage.bool.required, 'New required');

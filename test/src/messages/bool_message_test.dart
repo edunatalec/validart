@@ -3,7 +3,7 @@ import 'package:validart/validart.dart';
 
 void main() {
   test('should use default messages when no parameters are provided', () {
-    final message = BoolMessage();
+    const message = BoolMessage();
 
     expect(message.required, equals('Required'));
     expect(message.refine, equals('Invalid value'));
@@ -14,7 +14,7 @@ void main() {
   });
 
   test('should use custom messages when provided', () {
-    final message = BoolMessage(
+    const message = BoolMessage(
       required: 'Custom required',
       refine: 'Custom refine',
       any: 'Custom any',
@@ -32,7 +32,7 @@ void main() {
   });
 
   test('should create a copy with updated values', () {
-    final message = BoolMessage();
+    const message = BoolMessage();
     final updatedMessage = message.copyWith(
       required: 'Updated required',
       refine: 'Updated refine',
@@ -58,7 +58,7 @@ void main() {
   });
 
   test('should create a copy while keeping previous values if not updated', () {
-    final message = BoolMessage(isTrue: 'Must be checked');
+    const message = BoolMessage(isTrue: 'Must be checked');
     final updatedMessage = message.copyWith();
 
     expect(updatedMessage.isTrue, equals('Must be checked'));
@@ -71,14 +71,14 @@ void main() {
   });
 
   test('should create BoolMessage from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',
       every: 'Base every',
     );
 
-    final message = BoolMessage().mergeWithBase(baseMessage);
+    final message = const BoolMessage().mergeWithBase(baseMessage);
 
     expect(message.required, equals('Base required'));
     expect(message.refine, equals('Base refine'));
@@ -89,9 +89,9 @@ void main() {
   });
 
   test('should override BaseMessage values when provided in BoolMessage', () {
-    final baseMessage = BaseMessage(required: 'Base required');
+    const baseMessage = BaseMessage(required: 'Base required');
 
-    final message = BoolMessage()
+    final message = const BoolMessage()
         .mergeWithBase(baseMessage)
         .copyWith(required: 'Overridden required', isTrue: 'Custom true');
 

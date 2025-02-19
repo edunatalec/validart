@@ -3,7 +3,7 @@ import 'package:validart/validart.dart';
 
 void main() {
   test('should use default messages when no parameters are provided', () {
-    final message = MapMessage();
+    const message = MapMessage();
 
     expect(message.required, equals('Required'));
     expect(message.refine, equals('Invalid value'));
@@ -12,7 +12,7 @@ void main() {
   });
 
   test('should use custom messages when provided', () {
-    final message = MapMessage(
+    const message = MapMessage(
       required: 'Custom required',
       refine: 'Custom refine',
       any: 'Custom any',
@@ -26,7 +26,7 @@ void main() {
   });
 
   test('should create a copy with updated values', () {
-    final message = MapMessage();
+    const message = MapMessage();
     final updatedMessage = message.copyWith(
       required: 'Updated required',
       refine: 'Updated refine',
@@ -46,7 +46,7 @@ void main() {
   });
 
   test('should create a copy while keeping previous values if not updated', () {
-    final message = MapMessage(required: 'Map is required');
+    const message = MapMessage(required: 'Map is required');
     final updatedMessage = message.copyWith();
 
     expect(updatedMessage.required, equals('Map is required'));
@@ -59,14 +59,14 @@ void main() {
   });
 
   test('should create a MapMessage instance from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',
       every: 'Base every',
     );
 
-    final mapMessage = MapMessage().mergeWithBase(baseMessage);
+    final mapMessage = const MapMessage().mergeWithBase(baseMessage);
 
     expect(mapMessage.required, equals('Base required'));
     expect(mapMessage.refine, equals('Base refine'));
@@ -75,14 +75,14 @@ void main() {
   });
 
   test('should create a copy with updated values from BaseMessage', () {
-    final baseMessage = BaseMessage(
+    const baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',
       every: 'Base every',
     );
 
-    final mapMessage = MapMessage().mergeWithBase(baseMessage);
+    final mapMessage = const MapMessage().mergeWithBase(baseMessage);
     final updatedMessage = mapMessage.copyWith(
       required: 'Updated required',
       refine: 'Updated refine',
