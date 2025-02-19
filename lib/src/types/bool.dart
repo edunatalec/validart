@@ -1,6 +1,6 @@
 import 'package:validart/src/messages/bool_message.dart';
 import 'package:validart/src/types/array.dart';
-import 'package:validart/src/types/refine.dart';
+import 'package:validart/src/types/primitive.dart';
 import 'package:validart/src/validators/bool/is_false_validator.dart';
 import 'package:validart/src/validators/bool/is_true_validator.dart';
 import 'package:validart/src/validators/required_validator.dart';
@@ -21,7 +21,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(true)); // true
 /// print(validator.validate(false)); // false
 /// ```
-class VBool extends VRefine<bool> {
+class VBool extends VPrimitive<bool> {
   /// Stores the validation messages for boolean-related errors.
   final BoolMessage _message;
 
@@ -46,25 +46,25 @@ class VBool extends VRefine<bool> {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
-  /// Adds a validator to the `VBool` instance.
+  /// Ensures that the boolean value is `false`.
   ///
-  /// This method allows chaining multiple boolean validation rules to refine
-  /// the validation logic.
+  /// This method adds an `IsFalseValidator` to check if the given boolean value is `false`.
   ///
   /// ### Example
   /// ```dart
-  /// final validator = v.bool().add(MyCustomBoolValidator());
+  /// final validator = v.bool().isFalse();
+  ///
+  /// print(validator.validate(false)); // true
+  /// print(validator.validate(true)); // false
   /// ```
   ///
   /// ### Parameters
-  /// - [validator]: A `Validator<bool>` instance to be added to the validation chain.
+  /// - [message] *(optional)* A custom validation message.
   ///
   /// ### Returns
-  /// The current `VBool` instance with the added validator.
-  @override
-  VBool add(Validator<bool> validator) {
-    super.add(validator);
-    return this;
+  /// The current `VBool` instance with the `isFalse` validation applied.
+  VBool isFalse({String? message}) {
+    return add(IsFalseValidator(message: message ?? _message.isFalse));
   }
 
   /// Ensures that the boolean value is `true`.
@@ -88,25 +88,104 @@ class VBool extends VRefine<bool> {
     return add(IsTrueValidator(message: message ?? _message.isTrue));
   }
 
-  /// Ensures that the boolean value is `false`.
+  /// Adds a validator to the `VBool` instance.
   ///
-  /// This method adds an `IsFalseValidator` to check if the given boolean value is `false`.
+  /// This method allows chaining multiple boolean validation rules to refine
+  /// the validation logic.
   ///
   /// ### Example
   /// ```dart
-  /// final validator = v.bool().isFalse();
-  ///
-  /// print(validator.validate(false)); // true
-  /// print(validator.validate(true)); // false
+  /// final validator = v.bool().add(MyCustomBoolValidator());
   /// ```
   ///
   /// ### Parameters
-  /// - [message] *(optional)* A custom validation message.
+  /// - [validator]: A `Validator<bool>` instance to be added to the validation chain.
   ///
   /// ### Returns
-  /// The current `VBool` instance with the `isFalse` validation applied.
-  VBool isFalse({String? message}) {
-    return add(IsFalseValidator(message: message ?? _message.isFalse));
+  /// The current `VBool` instance with the added validator.
+  @override
+  VBool add(Validator<bool> validator) {
+    super.add(validator);
+    return this;
+  }
+
+  /// Creates an array validator (`VArray<bool>`) for validating lists of boolean values.
+  ///
+  /// This method enables validation of arrays containing boolean values, ensuring that
+  /// each element adheres to the boolean validation rules applied to the `VBool` instance.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.bool().array();
+  ///
+  /// print(validator.validate([true, false, true])); // true
+  /// print(validator.validate([true, true, false])); // true
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [message] *(optional)* A custom error message to return if validation fails.
+  ///
+  /// ### Returns
+  /// A `VArray<bool>` instance for validating lists of boolean values.
+  @override
+  VArray<bool> array({String? message}) {
+    return VArray<bool>(this, _message.array, message: message);
+  }
+
+  /// Ensures that the boolean value satisfies **at least one** of the specified validation rules.
+  ///
+  /// This method applies multiple boolean validators and allows the value to pass **if at least one** of them is met.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.bool().any([
+  ///   v.bool().isTrue(),
+  ///   v.bool().nullable(),
+  /// ]);
+  ///
+  /// print(validator.validate(true)); // true (meets `isTrue`)
+  /// print(validator.validate(null)); // true (meets `nullable`)
+  /// print(validator.validate(false)); // false (does not meet any condition)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [types]: A list of `VBool` validators, where at least one must be satisfied.
+  /// - [message] *(optional)*: A custom validation message if the value does not satisfy any of the conditions.
+  ///
+  /// ### Returns
+  /// The current `VBool` instance with the `any` validation applied.
+  @override
+  VBool any(covariant List<VBool> types, {String? message}) {
+    super.any(types, message: message ?? _message.any);
+    return this;
+  }
+
+  /// Ensures that the boolean value satisfies **all** the specified validation rules.
+  ///
+  /// This method applies multiple boolean validators and requires the value to pass **all** of them.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.bool().every([
+  ///   v.bool().isTrue(),
+  ///   v.bool().nullable(),
+  /// ]);
+  ///
+  /// print(validator.validate(true)); // true
+  /// print(validator.validate(null)); // true (nullable allows null)
+  /// print(validator.validate(false)); // false (does not satisfy `isTrue`)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [types]: A list of `VBool` validators that the value must satisfy.
+  /// - [message] *(optional)*: A custom validation message if the value does not meet all conditions.
+  ///
+  /// ### Returns
+  /// The current `VBool` instance with the `every` validation applied.
+  @override
+  VBool every(covariant List<VBool> types, {String? message}) {
+    super.every(types, message: message ?? _message.every);
+    return this;
   }
 
   /// Marks the boolean value as optional.
@@ -154,28 +233,6 @@ class VBool extends VRefine<bool> {
   VBool nullable() {
     super.nullable();
     return this;
-  }
-
-  /// Creates an array validator (`VArray<bool>`) for validating lists of boolean values.
-  ///
-  /// This method enables validation of arrays containing boolean values, ensuring that
-  /// each element adheres to the boolean validation rules applied to the `VBool` instance.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.bool().array();
-  ///
-  /// print(validator.validate([true, false, true])); // true
-  /// print(validator.validate([true, true, false])); // true
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [message] *(optional)* A custom error message to return if validation fails.
-  ///
-  /// ### Returns
-  /// A `VArray<bool>` instance for validating lists of boolean values.
-  VArray<bool> array({String? message}) {
-    return VArray<bool>(this, _message.array, message: message);
   }
 
   /// Applies a custom validation function to the boolean value.

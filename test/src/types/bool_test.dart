@@ -54,6 +54,31 @@ void main() {
     });
   });
 
+  group('every', () {
+    test('should pass only if all validators pass', () {
+      final validator = v.bool().every([
+        v.bool().isFalse(),
+      ]);
+
+      expect(validator.validate(false), true);
+      expect(validator.validate(true), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('any', () {
+    test('should pass if at least one validator passes', () {
+      final validator = v.bool().any([
+        v.bool().isFalse(),
+        v.bool().isTrue(),
+      ]);
+
+      expect(validator.validate(false), true);
+      expect(validator.validate(true), true);
+      expect(validator.validate(null), false);
+    });
+  });
+
   group('refine', () {
     test('should validate refine function correctly', () {
       final validator = v.bool().refine(
