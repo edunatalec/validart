@@ -3,7 +3,7 @@ import 'package:validart/validart.dart';
 
 void main() {
   test('should use default messages when no parameters are provided', () {
-    const message = BaseMessage();
+    final message = BaseMessage();
 
     expect(message.required, equals('Required'));
     expect(message.refine, equals('Invalid value'));
@@ -12,7 +12,7 @@ void main() {
   });
 
   test('should use custom messages when provided', () {
-    const message = BaseMessage(
+    final message = BaseMessage(
       required: 'Custom required',
       refine: 'Custom refine',
       any: 'Custom any',
@@ -26,7 +26,7 @@ void main() {
   });
 
   test('should create a copy with updated values', () {
-    const message = BaseMessage();
+    final message = BaseMessage();
     final updatedMessage = message.copyWith(
       required: 'Updated required',
       refine: 'Updated refine',
@@ -46,7 +46,7 @@ void main() {
   });
 
   test('should create a copy while keeping previous values if not updated', () {
-    const message = BaseMessage(required: 'Mandatory field');
+    final message = BaseMessage(required: 'Mandatory field');
     final updatedMessage = message.copyWith();
 
     expect(updatedMessage.required, equals('Mandatory field'));

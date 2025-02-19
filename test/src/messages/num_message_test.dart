@@ -98,7 +98,7 @@ void main() {
   });
 
   test('should create a NumMessage instance from BaseMessage', () {
-    const baseMessage = BaseMessage(
+    final baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',
@@ -114,7 +114,7 @@ void main() {
   });
 
   test('should create a copy with updated values from BaseMessage', () {
-    const baseMessage = BaseMessage(
+    final baseMessage = BaseMessage(
       required: 'Base required',
       refine: 'Base refine',
       any: 'Base any',

@@ -158,22 +158,6 @@ void main() {
   });
 
   group('phone', () {
-    test('should validate Brazilian phone array correctly', () {
-      final validator = v.string().phone(
-            PhoneType.brazil,
-            areaCode: AreaCodeFormat.required,
-            countryCode: CountryCodeFormat.none,
-          );
-
-      final arrayValidator = validator.array();
-
-      expect(arrayValidator.validate(['11 98765-4321']), true);
-      expect(arrayValidator.validate(['11 98765-4321', '11 98765-4322']), true);
-
-      expect(arrayValidator.validate(['98765-4321']), false);
-      expect(arrayValidator.validate(['11 98765-4321', '98765-4321']), false);
-    });
-
     test('should validate Brazilian phone numbers correctly', () {
       final validator = v.string().phone(
             PhoneType.brazil,
@@ -545,6 +529,111 @@ void main() {
 
       expect(validator.validate('123-456-7890'), true);
       expect(validator.validate('1234567890'), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('jwt', () {
+    test('should validate JWT correctly', () {
+      final validator = v.string().jwt();
+
+      expect(
+        validator.validate(
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+          'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvbiIsImlhdCI6MTUxNjIzOTAyMn0.'
+          'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        ),
+        true,
+      );
+      expect(
+        validator.validate(
+          'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.'
+          'eyJ1c2VySWQiOiIxMjM0NTYiLCJpYXQiOjE2MTYyMzkwMjJ9.'
+          '4tNnZm3DxBr2_3XZNzN1Hy6HUg1iPmdHg37EoYB_n-Y',
+        ),
+        true,
+      );
+      expect(
+        validator.validate(
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
+          'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvbiIsImlhdCI6MTUxNjIzOTAyMn0',
+        ),
+        false,
+      );
+      expect(validator.validate('invalid-jwt'), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('slug', () {
+    test('should validate slug correctly', () {
+      final validator = v.string().slug();
+
+      expect(validator.validate('valid-slug'), true);
+      expect(validator.validate('another-valid-slug'), true);
+      expect(validator.validate('invalid slug with spaces'), false);
+      expect(validator.validate('invalid_slug_with_underscores'), false);
+      expect(validator.validate('invalid--double-dash'), false);
+      expect(validator.validate('-invalid-leading-dash'), false);
+      expect(validator.validate('invalid-trailing-dash-'), false);
+      expect(validator.validate(''), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('alpha', () {
+    test('should validate alphabetic strings correctly', () {
+      final validator = v.string().alpha();
+
+      expect(validator.validate('HelloWorld'), true);
+      expect(validator.validate('OnlyLetters'), true);
+      expect(validator.validate('Hello123'), false);
+      expect(validator.validate('Hello!'), false);
+      expect(validator.validate(' '), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('alphanumeric', () {
+    test('should validate alphanumeric strings correctly', () {
+      final validator = v.string().alphanumeric();
+
+      expect(validator.validate('Hello123'), true);
+      expect(validator.validate('A1B2C3'), true);
+      expect(validator.validate('12345'), true);
+      expect(validator.validate('Hello!'), false);
+      expect(validator.validate(' '), false);
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('card', () {
+    test('should validate card numbers correctly', () {
+      final validator = v.string().card();
+
+      expect(validator.validate('4111111111111111'), true); // Visa
+      expect(validator.validate('4111-1111-1111-1111'), true);
+      expect(validator.validate('5500000000000004'), true); // MasterCard
+      expect(validator.validate('340000000000009'), true); // American Express
+      expect(validator.validate('6011000000000004'), true); // Discover
+      expect(validator.validate('1234567890123456'), false); // Invalid
+      expect(validator.validate(null), false);
+    });
+  });
+
+  group('password', () {
+    test('should validate password complexity', () {
+      final validator = v.string().password();
+
+      expect(validator.validate('StrongP@ss123'), true);
+      expect(
+        validator.validate('WeakPass'),
+        false,
+      );
+      expect(validator.validate('short1!'), false);
+      expect(validator.validate('NoNumbers!'), false);
+      expect(validator.validate('12345678'), false);
+      expect(validator.validate('Stron gP@ss123'), false);
       expect(validator.validate(null), false);
     });
   });

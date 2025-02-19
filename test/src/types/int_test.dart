@@ -98,6 +98,30 @@ void main() {
     });
   });
 
+  group('prime', () {
+    test('should validate prime numbers correctly', () {
+      final validator = v.int().prime();
+
+      expect(validator.validate(2), true);
+      expect(validator.validate(3), true);
+      expect(validator.validate(5), true);
+      expect(validator.validate(7), true);
+      expect(validator.validate(11), true);
+      expect(validator.validate(13), true);
+
+      expect(validator.validate(1), false);
+      expect(validator.validate(4), false);
+      expect(validator.validate(6), false);
+      expect(validator.validate(8), false);
+      expect(validator.validate(9), false);
+      expect(validator.validate(10), false);
+      expect(validator.validate(15), false);
+      expect(validator.validate(20), false);
+      expect(validator.validate(25), false);
+      expect(validator.validate(100), false);
+    });
+  });
+
   group('nullable', () {
     test('should validate nullable values', () {
       final validator = v.int().nullable();
