@@ -4,8 +4,10 @@ export 'src/enums/country_code_format.dart';
 export 'src/enums/phone_type.dart';
 export 'src/enums/uuid_version.dart';
 
+export 'src/messages/array_message.dart';
 export 'src/messages/base_message.dart';
 export 'src/messages/bool_message.dart';
+export 'src/messages/date_message.dart';
 export 'src/messages/double_message.dart';
 export 'src/messages/int_message.dart';
 export 'src/messages/map_message.dart';

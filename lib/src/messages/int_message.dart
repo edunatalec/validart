@@ -1,39 +1,61 @@
+import 'package:validart/src/messages/array_message.dart';
 import 'package:validart/src/messages/base_message.dart';
 import 'package:validart/src/messages/number_message.dart';
 
 /// A message class for validation errors related to `int` values.
 ///
 /// Extends [NumberMessage] to include additional validation messages
-/// specific to `int` numbers, such as checking for odd and even values.
+/// specific to `int` numbers, such as checking for odd, even, and prime values.
+///
+/// ## Example Usage:
+/// ```dart
+/// final intMessage = IntMessage(
+///   odd: 'The number must be odd',
+///   even: 'The number must be even',
+///   prime: 'The number must be prime',
+/// );
+///
+/// print(intMessage.odd); // 'The number must be odd'
+/// print(intMessage.even); // 'The number must be even'
+/// print(intMessage.prime); // 'The number must be prime'
+/// ```
 class IntMessage extends NumberMessage<int> {
-  /// The error message displayed when the number is expected to be odd but isn't.
-  ///
-  /// Defaults to `'The number must be odd'`.
-  final String odd;
-
   /// The error message displayed when the number is expected to be even but isn't.
   ///
   /// Defaults to `'The number must be even'`.
   final String even;
 
+  /// The error message displayed when the number is expected to be odd but isn't.
+  ///
+  /// Defaults to `'The number must be odd'`.
+  final String odd;
+
+  /// The error message displayed when the number is expected to be prime but isn't.
+  ///
+  /// Defaults to `'The number must be a prime number'`.
+  final String prime;
+
   /// Creates a new instance of `IntMessage` with optional custom error messages.
   ///
-  /// If no custom messages are provided, default values will be used.
+  /// If no messages are provided, default values will be used.
   IntMessage({
-    super.required,
-    super.refine,
     super.any,
-    super.every,
-    super.min,
-    super.max,
-    super.multipleOf,
+    super.array,
     super.between,
-    super.positive,
+    super.every,
+    super.max,
+    super.min,
+    super.multipleOf,
     super.negative,
-    String? odd,
+    super.positive,
+    super.refine,
+    super.required,
     String? even,
-  })  : odd = odd ?? 'The number must be odd',
-        even = even ?? 'The number must be even';
+    String? odd,
+    String? prime,
+  })  : even = even ?? 'The number must be even',
+        odd = odd ?? 'The number must be odd',
+        prime = prime ?? 'The number must be a prime number';
 
   /// Merges the current `IntMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
@@ -48,10 +70,11 @@ class IntMessage extends NumberMessage<int> {
   /// ```
   IntMessage mergeWithBase(BaseMessage base) {
     return copyWith(
-      required: base.required,
-      refine: base.refine,
       any: base.any,
+      array: base.array,
       every: base.every,
+      refine: base.refine,
+      required: base.required,
     );
   }
 
@@ -59,7 +82,7 @@ class IntMessage extends NumberMessage<int> {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// Example:
+  /// ## Example:
   /// ```dart
   /// final defaultMessage = IntMessage();
   /// final customMessage = defaultMessage.copyWith(odd: 'Must be an odd number');
@@ -67,32 +90,36 @@ class IntMessage extends NumberMessage<int> {
   /// ```
   @override
   IntMessage copyWith({
-    String? required,
-    String? refine,
     String? any,
-    String? every,
-    String Function(int min)? min,
-    String Function(int max)? max,
-    String Function(int multipleOf)? multipleOf,
+    ArrayMessage? array,
     String Function(int min, int max)? between,
-    String? positive,
+    String? even,
+    String? every,
+    String Function(int max)? max,
+    String Function(int min)? min,
+    String Function(int multipleOf)? multipleOf,
     String? negative,
     String? odd,
-    String? even,
+    String? positive,
+    String? prime,
+    String? refine,
+    String? required,
   }) {
     return IntMessage(
-      required: required ?? this.required,
-      refine: refine ?? this.refine,
       any: any ?? this.any,
-      every: every ?? this.every,
-      min: min ?? this.min,
-      max: max ?? this.max,
-      multipleOf: multipleOf ?? this.multipleOf,
+      array: array ?? this.array,
       between: between ?? this.between,
-      positive: positive ?? this.positive,
+      even: even ?? this.even,
+      every: every ?? this.every,
+      max: max ?? this.max,
+      min: min ?? this.min,
+      multipleOf: multipleOf ?? this.multipleOf,
       negative: negative ?? this.negative,
       odd: odd ?? this.odd,
-      even: even ?? this.even,
+      positive: positive ?? this.positive,
+      prime: prime ?? this.prime,
+      refine: refine ?? this.refine,
+      required: required ?? this.required,
     );
   }
 }

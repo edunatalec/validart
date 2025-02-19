@@ -1,39 +1,53 @@
+import 'package:validart/src/messages/array_message.dart';
 import 'package:validart/src/messages/base_message.dart';
 
 /// A message class for validation errors related to `Map<String, dynamic>` values.
 ///
 /// Extends [BaseMessage] to include standard validation messages such as required,
-/// refine, any, and every.
+/// refine, any, every, and array validation.
+///
+/// ## Example Usage:
+/// ```dart
+/// final mapMessage = MapMessage(
+///   required: 'A map is required',
+///   refine: 'Invalid map format',
+/// );
+///
+/// print(mapMessage.required); // 'A map is required'
+/// print(mapMessage.refine);   // 'Invalid map format'
+/// ```
 class MapMessage extends BaseMessage {
   /// Creates a new instance of `MapMessage` with optional custom error messages.
   ///
-  /// If no custom messages are provided, default values will be used.
-  ///
-  /// Example:
-  /// ```dart
-  /// final defaultMessage = MapMessage();
-  /// final customMessage = MapMessage(required: 'A map is required');
-  /// print(customMessage.required); // Output: 'A map is required'
-  /// ```
-  const MapMessage({super.required, super.refine, super.any, super.every});
+  /// If no messages are provided, default values will be used.
+  const MapMessage({
+    super.any,
+    super.array,
+    super.every,
+    super.refine,
+    super.required,
+  });
 
-  /// Merges the current `IntMessage` instance with a `BaseMessage`,
+  /// Merges the current `MapMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
   ///
-  /// Example:
+  /// This allows inheriting common validation messages while keeping
+  /// specific map-related messages intact.
+  ///
+  /// ## Example:
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
-  /// final intMessage = IntMessage().mergeWithBase(baseMessage);
+  /// final mapMessage = MapMessage().mergeWithBase(baseMessage);
   ///
-  /// print(intMessage.required); // Output: 'This field is mandatory'
-  /// print(intMessage.odd);      // Output: 'The number must be odd'
+  /// print(mapMessage.required); // Output: 'This field is mandatory'
   /// ```
   MapMessage mergeWithBase(BaseMessage base) {
     return copyWith(
-      required: base.required,
-      refine: base.refine,
       any: base.any,
+      array: base.array,
       every: base.every,
+      refine: base.refine,
+      required: base.required,
     );
   }
 
@@ -41,7 +55,7 @@ class MapMessage extends BaseMessage {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// Example:
+  /// ## Example:
   /// ```dart
   /// final defaultMessage = MapMessage();
   /// final customMessage = defaultMessage.copyWith(required: 'A map is required');
@@ -49,16 +63,18 @@ class MapMessage extends BaseMessage {
   /// ```
   @override
   MapMessage copyWith({
-    String? required,
-    String? refine,
     String? any,
+    ArrayMessage? array,
     String? every,
+    String? refine,
+    String? required,
   }) {
     return MapMessage(
-      required: required ?? this.required,
-      refine: refine ?? this.refine,
       any: any ?? this.any,
+      array: array ?? this.array,
       every: every ?? this.every,
+      refine: refine ?? this.refine,
+      required: required ?? this.required,
     );
   }
 }

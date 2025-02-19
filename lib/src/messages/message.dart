@@ -1,5 +1,6 @@
 import 'package:validart/src/messages/base_message.dart';
 import 'package:validart/src/messages/bool_message.dart';
+import 'package:validart/src/messages/date_message.dart';
 import 'package:validart/src/messages/double_message.dart';
 import 'package:validart/src/messages/int_message.dart';
 import 'package:validart/src/messages/map_message.dart';
@@ -11,7 +12,7 @@ import 'package:validart/src/messages/string_message.dart';
 /// This class holds instances of different validation message types,
 /// allowing customization of validation error messages for various data types.
 ///
-/// Example usage:
+/// ## Example usage:
 /// ```dart
 /// final customMessages = Message(
 ///   string: StringMessage(required: 'This field cannot be empty'),
@@ -23,8 +24,8 @@ class Message {
   /// Validation messages for boolean values.
   final BoolMessage bool;
 
-  /// Validation messages for `num` values.
-  final NumMessage num;
+  /// Validation messages for date values.
+  final DateMessage date;
 
   /// Validation messages for `double` values.
   final DoubleMessage double;
@@ -32,33 +33,46 @@ class Message {
   /// Validation messages for `int` values.
   final IntMessage int;
 
-  /// Validation messages for `String` values.
-  final StringMessage string;
-
   /// Validation messages for `Map<String, dynamic>` values.
   final MapMessage map;
+
+  /// Validation messages for `num` values.
+  final NumMessage num;
+
+  /// Validation messages for `String` values.
+  final StringMessage string;
 
   /// Creates a new instance of `Message`, allowing customization of validation messages.
   ///
   /// If no specific messages are provided, default messages will be used.
+  ///
+  /// ## Example:
+  /// ```dart
+  /// final messages = Message(
+  ///   base: BaseMessage(required: 'This field is required'),
+  ///   string: StringMessage(required: 'You must provide a string'),
+  /// );
+  /// ```
   Message({
     BaseMessage base = const BaseMessage(),
     BoolMessage? bool,
-    NumMessage? num,
+    DateMessage? date,
     DoubleMessage? double,
     IntMessage? int,
-    StringMessage? string,
     MapMessage? map,
-  })  : bool = bool ?? BoolMessage().mergeWithBase(base),
-        num = num ?? NumMessage().mergeWithBase(base),
+    NumMessage? num,
+    StringMessage? string,
+  })  : bool = bool ?? const BoolMessage().mergeWithBase(base),
+        date = date ?? DateMessage().mergeWithBase(base),
         double = double ?? DoubleMessage().mergeWithBase(base),
         int = int ?? IntMessage().mergeWithBase(base),
-        string = string ?? StringMessage().mergeWithBase(base),
-        map = map ?? MapMessage().mergeWithBase(base);
+        map = map ?? const MapMessage().mergeWithBase(base),
+        num = num ?? NumMessage().mergeWithBase(base),
+        string = string ?? StringMessage().mergeWithBase(base);
 
   /// Creates a copy of this `Message` instance with the ability to override specific fields.
   ///
-  /// Example usage:
+  /// ## Example usage:
   /// ```dart
   /// final updatedMessages = defaultMessages.copyWith(
   ///   string: StringMessage(required: 'Custom required message'),
@@ -66,19 +80,21 @@ class Message {
   /// ```
   Message copyWith({
     BoolMessage? bool,
-    NumMessage? num,
+    DateMessage? date,
     DoubleMessage? double,
     IntMessage? int,
-    StringMessage? string,
     MapMessage? map,
+    NumMessage? num,
+    StringMessage? string,
   }) {
     return Message(
       bool: bool ?? this.bool,
-      num: num ?? this.num,
+      date: date ?? this.date,
       double: double ?? this.double,
       int: int ?? this.int,
-      string: string ?? this.string,
       map: map ?? this.map,
+      num: num ?? this.num,
+      string: string ?? this.string,
     );
   }
 }

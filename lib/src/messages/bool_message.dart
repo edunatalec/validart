@@ -1,3 +1,4 @@
+import 'package:validart/src/messages/array_message.dart';
 import 'package:validart/src/messages/base_message.dart';
 
 /// A message class for boolean (`true`/`false`) validation errors.
@@ -5,28 +6,29 @@ import 'package:validart/src/messages/base_message.dart';
 /// Extends [BaseMessage] to include specific messages for boolean validation,
 /// such as enforcing `true` or `false` values.
 class BoolMessage extends BaseMessage {
-  /// The error message displayed when the value is expected to be `true` but isn't.
-  ///
-  /// Defaults to `'The value must be true'`.
-  final String isTrue;
-
   /// The error message displayed when the value is expected to be `false` but isn't.
   ///
   /// Defaults to `'The value must be false'`.
   final String isFalse;
 
+  /// The error message displayed when the value is expected to be `true` but isn't.
+  ///
+  /// Defaults to `'The value must be true'`.
+  final String isTrue;
+
   /// Creates a new instance of `BoolMessage` with optional custom error messages.
   ///
   /// If no message is provided, default values are used.
   const BoolMessage({
-    super.required,
-    super.refine,
     super.any,
+    super.array,
     super.every,
-    String? isTrue,
+    super.refine,
+    super.required,
     String? isFalse,
-  })  : isTrue = isTrue ?? 'The value must be true',
-        isFalse = isFalse ?? 'The value must be false';
+    String? isTrue,
+  })  : isFalse = isFalse ?? 'The value must be false',
+        isTrue = isTrue ?? 'The value must be true';
 
   /// Merges the current `BoolMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
@@ -41,10 +43,11 @@ class BoolMessage extends BaseMessage {
   /// ```
   BoolMessage mergeWithBase(BaseMessage base) {
     return copyWith(
-      required: base.required,
-      refine: base.refine,
       any: base.any,
+      array: base.array,
       every: base.every,
+      refine: base.refine,
+      required: base.required,
     );
   }
 
@@ -60,20 +63,22 @@ class BoolMessage extends BaseMessage {
   /// ```
   @override
   BoolMessage copyWith({
-    String? required,
-    String? refine,
-    String? isTrue,
-    String? isFalse,
     String? any,
+    ArrayMessage? array,
     String? every,
+    String? isFalse,
+    String? isTrue,
+    String? refine,
+    String? required,
   }) {
     return BoolMessage(
-      required: required ?? this.required,
-      refine: refine ?? this.refine,
       any: any ?? this.any,
+      array: array ?? this.array,
       every: every ?? this.every,
-      isTrue: isTrue ?? this.isTrue,
       isFalse: isFalse ?? this.isFalse,
+      isTrue: isTrue ?? this.isTrue,
+      refine: refine ?? this.refine,
+      required: required ?? this.required,
     );
   }
 }
