@@ -1,6 +1,6 @@
 name: validart
 description: A flexible validation library for Dart, inspired by Zod. Supports chaining, custom rules, nullable values, and built-in validators for emails, phones, and more.
-version: 0.0.2
+version: 0.0.3
 repository: https://github.com/edunatalec/validart
 
 environment:
