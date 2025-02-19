@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if a list contains all required elements.
@@ -23,9 +25,9 @@ import 'package:validart/src/validators/validator.dart';
 /// ## Behavior:
 /// - If the list contains all required elements, validation passes.
 /// - If any required element is missing, validation fails.
-class ContainsArrayValidator<T> extends Validator<List<T>> {
+class ContainsArrayValidator<T> extends ValidatorWithMessage<List<T>> {
   /// The required elements that must be present in the list.
-  final List requiredElements;
+  final List<T> requiredElements;
 
   /// Creates a `ContainsArrayValidator` with a required elements list and a custom error message.
   ContainsArrayValidator({
@@ -33,14 +35,22 @@ class ContainsArrayValidator<T> extends Validator<List<T>> {
     required super.message,
   });
 
-  /// Validates whether the list contains all required elements.
-  ///
-  /// - If all required elements are found, returns `null` (valid).
-  /// - Otherwise, returns the error message.
   @override
   String? validate(covariant List<T> value) {
-    final containsAll = requiredElements.every(value.contains);
+    if (value is List<Map>) {
+      final every = requiredElements.every((element) {
+        final encodedElement = jsonEncode(element);
 
-    return containsAll ? null : message;
+        return value.any((item) {
+          return jsonEncode(item) == encodedElement;
+        });
+      });
+
+      return every ? null : message;
+    }
+
+    return requiredElements.every((element) => value.contains(element))
+        ? null
+        : message;
   }
 }

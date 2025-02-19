@@ -22,17 +22,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('02/30/2025'));  // 'Invalid date' (invalid)
 /// print(validator.validate('invalid-date')); // 'Invalid date' (invalid)
 /// ```
-class DateValidator extends Validator<String> {
+class DateValidator extends ValidatorWithMessage<String> {
   /// Creates a `DateValidator` instance with a custom error [message].
   DateValidator({required super.message});
 
-  /// Validates whether the given [value] is a correctly formatted date.
-  ///
-  /// - If [value] is `null`, the validation fails.
-  /// - Tries to parse the date using different formats.
-  /// - If parsing fails or the date is invalid, returns the error message.
-  ///
-  /// Returns `null` if the date is valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     DateTime? date = _parseDate(value);

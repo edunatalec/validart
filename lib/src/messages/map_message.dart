@@ -20,7 +20,7 @@ class MapMessage extends BaseMessage {
   /// Creates a new instance of `MapMessage` with optional custom error messages.
   ///
   /// If no messages are provided, default values will be used.
-  const MapMessage({
+  MapMessage({
     super.any,
     super.array,
     super.every,

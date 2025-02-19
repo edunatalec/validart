@@ -12,7 +12,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(DateTime(2025, 1, 2))); // null (valid)
 /// print(validator.validate(DateTime(2024, 12, 31))); // 'The date must be after January 1, 2025' (invalid)
 /// ```
-class AfterValidator extends Validator<DateTime> {
+class AfterValidator extends ValidatorWithMessage<DateTime> {
   /// The minimum allowed date (exclusive).
   final DateTime date;
 
@@ -22,10 +22,6 @@ class AfterValidator extends Validator<DateTime> {
     required super.message,
   });
 
-  /// Validates if the given [value] is strictly **after** the specified date.
-  ///
-  /// - Returns `null` if the date is **after** `date`.
-  /// - Otherwise, returns the error message.
   @override
   String? validate(covariant DateTime value) {
     return value.isAfter(date) ? null : message;

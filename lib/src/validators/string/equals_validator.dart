@@ -30,7 +30,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - [message]: The error message returned if validation fails.
 /// - [caseSensitivity]: Determines whether validation should be case-sensitive.
 ///   Defaults to `CaseSensitivity.sensitive`.
-class EqualsValidator extends Validator<String> {
+class EqualsValidator extends ValidatorWithMessage<String> {
   /// The exact string value that the input should match.
   final String expectedValue;
 
@@ -46,13 +46,6 @@ class EqualsValidator extends Validator<String> {
     this.caseSensitivity = CaseSensitivity.sensitive,
   });
 
-  /// Validates whether the given [value] is equal to [expectedValue].
-  ///
-  /// - If [caseSensitivity] is `CaseSensitivity.insensitive`, both the input
-  ///   and the expected value are converted to lowercase before comparison.
-  /// - If the value is `null`, the validation fails.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     final bool isEqual = caseSensitivity == CaseSensitivity.insensitive

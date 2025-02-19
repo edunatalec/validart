@@ -16,16 +16,12 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(-5));   // 'Value must be positive' (invalid)
 /// print(validator.validate(null)); // 'Value must be positive' (invalid)
 /// ```
-class PositiveValidator<T extends num> extends Validator<T> {
+class PositiveValidator<T extends num> extends ValidatorWithMessage<T> {
   /// Creates a `PositiveValidator` that ensures values are positive.
   ///
   /// The [message] will be returned if validation fails.
   PositiveValidator({required super.message});
 
-  /// Validates whether the given [value] is positive.
-  ///
-  /// Returns `null` if the value is valid (greater than zero),
-  /// otherwise returns the validation message.
   @override
   String? validate(covariant T value) {
     if (value <= 0) return message;

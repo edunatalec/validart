@@ -1,4 +1,4 @@
-import 'package:validart/src/types/any_every.dart';
+import 'package:validart/src/types/primitive.dart';
 import 'package:validart/src/validators/num/between_validator.dart';
 import 'package:validart/src/validators/num/max_validator.dart';
 import 'package:validart/src/validators/num/min_validator.dart';
@@ -16,86 +16,148 @@ import 'package:validart/src/validators/num/positive_validator.dart';
 /// print(validator.validate(3));  // false (less than min)
 /// print(validator.validate(-5)); // false (not positive)
 /// ```
-class VNumber<T extends num> extends VAnyEvery<T> {
-  /// Sets a minimum value constraint.
+abstract class VNumber<T extends num> extends VPrimitive<T> {
+  /// Ensures that the numeric value is greater than or equal to the specified minimum.
   ///
-  /// Ensures that the number is at least `min`.
+  /// This method adds a `MinValidator` to check if the value meets the minimum threshold.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
   /// final validator = v.num().min(10);
-  /// print(validator.validate(9)); // false
-  /// print(validator.validate(10)); // true
+  ///
+  /// print(validator.validate(15)); // true (valid)
+  /// print(validator.validate(5));  // false (invalid)
   /// ```
-  VNumber min(T min, {String Function(T min)? message}) {
+  ///
+  /// ### Parameters
+  /// - [min]: The minimum allowed value.
+  /// - [message] *(optional)*: A custom validation message that can be dynamically generated.
+  ///
+  /// ### Returns
+  /// The current `VNumber<T>` instance with the `min` validation applied.
+  VNumber<T> min(T min, {String Function(T min)? message}) {
     add(MinValidator(min, message: message!(min)));
     return this;
   }
 
-  /// Sets a maximum value constraint.
+  /// Ensures that the numeric value is less than or equal to the specified maximum.
   ///
-  /// Ensures that the number does not exceed `max`.
+  /// This method adds a `MaxValidator` to verify if the value does not exceed the maximum threshold.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
   /// final validator = v.num().max(100);
-  /// print(validator.validate(101)); // false
-  /// print(validator.validate(99)); // true
+  ///
+  /// print(validator.validate(50));  // true (valid)
+  /// print(validator.validate(150)); // false (invalid)
   /// ```
-  VNumber max(T max, {String Function(T max)? message}) {
+  ///
+  /// ### Parameters
+  /// - [max]: The maximum allowed value.
+  /// - [message] *(optional)*: A custom validation message that can be dynamically generated.
+  ///
+  /// ### Returns
+  /// The current `VNumber<T>` instance with the `max` validation applied.
+  VNumber<T> max(T max, {String Function(T max)? message}) {
     add(MaxValidator(max, message: message!(max)));
     return this;
   }
 
-  /// Ensures the number is positive (`> 0`).
+  /// Ensures that the numeric value is positive (greater than `0`).
   ///
-  /// Example:
+  /// This method adds a `PositiveValidator` to check whether the value is strictly greater than zero.
+  ///
+  /// ### Example
   /// ```dart
   /// final validator = v.num().positive();
-  /// print(validator.validate(-5)); // false
-  /// print(validator.validate(3)); // true
+  ///
+  /// print(validator.validate(5));   // true (valid)
+  /// print(validator.validate(0));   // false (invalid)
+  /// print(validator.validate(-3));  // false (invalid)
   /// ```
-  VNumber positive({String? message}) {
+  ///
+  /// ### Parameters
+  /// - [message] *(optional)*: A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VNumber<T>` instance with the `positive` validation applied.
+  VNumber<T> positive({String? message}) {
     add(PositiveValidator(message: message!));
     return this;
   }
 
-  /// Ensures the number is negative (`< 0`).
+  /// Ensures that the numeric value is negative (less than `0`).
   ///
-  /// Example:
+  /// This method applies a `NegativeValidator` to check whether the value is strictly less than zero.
+  ///
+  /// ### Example
   /// ```dart
   /// final validator = v.num().negative();
-  /// print(validator.validate(5)); // false
-  /// print(validator.validate(-3)); // true
+  ///
+  /// print(validator.validate(-5));  // true (valid)
+  /// print(validator.validate(0));   // false (invalid)
+  /// print(validator.validate(3));   // false (invalid)
   /// ```
-  VNumber negative({String? message}) {
+  ///
+  /// ### Parameters
+  /// - [message] *(optional)*: A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VNumber<T>` instance with the `negative` validation applied.
+  VNumber<T> negative({String? message}) {
     add(NegativeValidator(message: message!));
     return this;
   }
 
-  /// Ensures the number falls within a range `[min, max]`.
+  /// Ensures that the numeric value is within the specified range `[min, max]`.
   ///
-  /// Example:
+  /// This method applies a `BetweenValidator` to check whether the value is greater than or equal to `min`
+  /// and less than or equal to `max`.
+  ///
+  /// ### Example
   /// ```dart
-  /// final validator = v.num().between(10, 20);
-  /// print(validator.validate(9)); // false
-  /// print(validator.validate(15)); // true
-  /// print(validator.validate(21)); // false
+  /// final validator = v.num().between(10, 50);
+  ///
+  /// print(validator.validate(25));  // true (valid)
+  /// print(validator.validate(10));  // true (valid)
+  /// print(validator.validate(50));  // true (valid)
+  /// print(validator.validate(5));   // false (invalid)
+  /// print(validator.validate(55));  // false (invalid)
   /// ```
-  VNumber between(T min, T max, {String Function(T min, T max)? message}) {
+  ///
+  /// ### Parameters
+  /// - [min]: The minimum allowed value.
+  /// - [max]: The maximum allowed value.
+  /// - [message] *(optional)*: A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VNumber<T>` instance with the `between` validation applied.
+  VNumber<T> between(T min, T max, {String Function(T min, T max)? message}) {
     add(BetweenValidator(min, max, message: message!(min, max)));
     return this;
   }
 
-  /// Ensures the number is a multiple of the given factor.
+  /// Ensures that the numeric value is a multiple of the specified `factor`.
   ///
-  /// Example:
+  /// This method applies a `MultipleOfValidator` to check whether the value is evenly divisible by `factor`.
+  ///
+  /// ### Example
   /// ```dart
   /// final validator = v.num().multipleOf(5);
-  /// print(validator.validate(10)); // true
-  /// print(validator.validate(7));  // false
+  ///
+  /// print(validator.validate(10));  // true (valid)
+  /// print(validator.validate(15));  // true (valid)
+  /// print(validator.validate(7));   // false (invalid)
+  /// print(validator.validate(11));  // false (invalid)
   /// ```
-  VNumber multipleOf(T factor, {String Function(T)? message}) {
+  ///
+  /// ### Parameters
+  /// - [factor]: The number that the value must be a multiple of.
+  /// - [message] *(optional)*: A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VNumber<T>` instance with the `multipleOf` validation applied.
+  VNumber<T> multipleOf(T factor, {String Function(T)? message}) {
     add(MultipleOfValidator(factor, message: message!(factor)));
     return this;
   }

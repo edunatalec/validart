@@ -1,4 +1,5 @@
 import 'package:validart/src/messages/double_message.dart';
+import 'package:validart/src/types/array.dart';
 import 'package:validart/src/types/number.dart';
 import 'package:validart/src/validators/double/decimal_validator.dart';
 import 'package:validart/src/validators/double/finite_validator.dart';
@@ -249,6 +250,11 @@ class VDouble extends VNumber<double> {
   VDouble nullable() {
     super.nullable();
     return this;
+  }
+
+  @override
+  VArray<double> array({String? message}) {
+    return VArray<double>(this, _message.array, message: message);
   }
 
   /// Applies a custom validation function.

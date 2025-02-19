@@ -16,7 +16,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(21)); // 'Value must be between 10 and 20' (invalid)
 /// print(validator.validate(null)); // 'Value must be between 10 and 20' (invalid)
 /// ```
-class BetweenValidator<T extends num> extends Validator<T> {
+class BetweenValidator<T extends num> extends ValidatorWithMessage<T> {
   /// The minimum allowed value.
   final T min;
 
@@ -26,9 +26,6 @@ class BetweenValidator<T extends num> extends Validator<T> {
   /// Creates a `BetweenValidator` with the specified [min] and [max] bounds and an error [message].
   BetweenValidator(this.min, this.max, {required super.message});
 
-  /// Validates whether the given [value] falls within the range `[min, max]`.
-  ///
-  /// Returns `null` if the value is within the range, otherwise returns the validation message.
   @override
   String? validate(covariant T value) {
     if (value < min || value > max) return message;

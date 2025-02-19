@@ -1,5 +1,6 @@
 import 'package:validart/src/messages/message.dart';
 import 'package:validart/src/types/bool.dart';
+import 'package:validart/src/types/date.dart';
 import 'package:validart/src/types/double.dart';
 import 'package:validart/src/types/int.dart';
 import 'package:validart/src/types/map.dart';
@@ -48,6 +49,8 @@ class Validart {
   ///   'age': v.int().min(18),
   /// });
   /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
   VMap map(Map<String, VType> object, {String? message}) {
     return VMap(object, _message.map, message: message);
   }
@@ -58,6 +61,8 @@ class Validart {
   /// ```dart
   /// final validator = v.string().email();
   /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
   VString string({String? message}) {
     return VString(_message.string, message: message);
   }
@@ -68,6 +73,8 @@ class Validart {
   /// ```dart
   /// final validator = v.bool().isTrue();
   /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
   VBool bool({String? message}) {
     return VBool(_message.bool, message: message);
   }
@@ -78,6 +85,8 @@ class Validart {
   /// ```dart
   /// final validator = v.int().positive();
   /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
   VInt int({String? message}) {
     return VInt(_message.int, message: message);
   }
@@ -88,6 +97,8 @@ class Validart {
   /// ```dart
   /// final validator = v.double().min(8);
   /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
   VDouble double({String? message}) {
     return VDouble(_message.double, message: message);
   }
@@ -98,7 +109,25 @@ class Validart {
   /// ```dart
   /// final validator = v.num().between(1.5, 10.5);
   /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
   VNum num({String? message}) {
     return VNum(_message.num, message: message);
+  }
+
+  /// Creates a date validator (`VDate`) for validating date values.
+  ///
+  /// This method returns a `VDate` instance, which allows you to apply various
+  /// date-related validation rules such as checking if a date is before or after
+  /// a certain value, falls within a specific range, or occurs on a weekday or weekend.
+  ///
+  /// ## Example Usage:
+  /// ```dart
+  /// final validator = v.date().after(DateTime(2024, 1, 1));
+  /// ```
+  ///
+  /// - [message] *(optional)* Custom error message for when the field is required (default: "Required")
+  VDate date({String? message}) {
+    return VDate(_message.date, message: message);
   }
 }

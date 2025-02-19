@@ -16,7 +16,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('abc')); // false
 /// print(validator.validate('abcdefghijk')); // false
 /// ```
-class EveryValidator<T> extends Validator<T> {
+class EveryValidator<T> extends ValidatorWithMessage<T> {
   /// A list of types that the value must satisfy.
   final List<VType<T>> types;
 
@@ -26,7 +26,7 @@ class EveryValidator<T> extends Validator<T> {
   EveryValidator(this.types, {required super.message});
 
   @override
-  validate(value) {
+  validate(covariant T value) {
     final every = types.every((type) => type.validate(value));
 
     if (every) return null;

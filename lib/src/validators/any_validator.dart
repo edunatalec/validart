@@ -17,7 +17,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('https://example.com')); // true
 /// print(validator.validate('invalid-string')); // false
 /// ```
-class AnyValidator<T> extends Validator<T> {
+class AnyValidator<T> extends ValidatorWithMessage<T> {
   /// A list of types that the value can match.
   final List<VType<T>> types;
 
@@ -27,7 +27,7 @@ class AnyValidator<T> extends Validator<T> {
   AnyValidator(this.types, {required super.message});
 
   @override
-  validate(value) {
+  validate(covariant T value) {
     final any = types.any((type) => type.validate(value));
 
     if (any) return null;

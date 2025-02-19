@@ -32,7 +32,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - The validator constructs a regex pattern based on the selected phone type.
 /// - It considers optional or required country/area codes.
 /// - If the input value is `null`, validation fails.
-class PhoneValidator extends Validator<String> {
+class PhoneValidator extends ValidatorWithMessage<String> {
   /// The expected phone number format (e.g., Brazilian, US, etc.).
   final PhoneType type;
 
@@ -54,12 +54,6 @@ class PhoneValidator extends Validator<String> {
     this.countryCode = CountryCodeFormat.none,
   });
 
-  /// Validates whether the given [value] matches the expected phone number format.
-  ///
-  /// - The pattern is dynamically generated based on `type`, `areaCode`, and `countryCode`.
-  /// - If the value is `null`, validation fails.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     final pattern = _buildPattern();

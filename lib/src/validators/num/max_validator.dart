@@ -15,16 +15,13 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(101)); // 'Value must be at most 100' (invalid)
 /// print(validator.validate(null)); // 'Value must be at most 100' (invalid)
 /// ```
-class MaxValidator<T extends num> extends Validator<T> {
+class MaxValidator<T extends num> extends ValidatorWithMessage<T> {
   /// The maximum allowed value.
   final T max;
 
   /// Creates a `MaxValidator` with a maximum [max] value and an error [message].
   MaxValidator(this.max, {required super.message});
 
-  /// Validates whether the given [value] is less than or equal to [max].
-  ///
-  /// Returns `null` if the value is within the allowed range, otherwise returns the validation message.
   @override
   String? validate(covariant T value) {
     if (value > max) return message;

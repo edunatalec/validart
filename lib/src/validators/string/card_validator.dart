@@ -13,22 +13,14 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// print(cardValidator.validate('4111111111111111')); // null (valid)
 /// print(cardValidator.validate('1234567812345678')); // 'Invalid card number' (invalid)
-/// print(cardValidator.validate('4111-1111-1111-1111')); // 'Invalid card number' (invalid)
 /// ```
 ///
 /// ## Parameters:
 /// - [message]: Custom error message when validation fails.
-class CardValidator extends Validator<String> {
+class CardValidator extends ValidatorWithMessage<String> {
   /// Creates a `CardValidator` instance with a custom error message.
   CardValidator({required super.message});
 
-  /// Validates whether the given [value] is a valid card number.
-  ///
-  /// - Ensures only digits are present.
-  /// - Ensures length is between 13 and 19 digits.
-  /// - Uses the Luhn Algorithm to verify validity.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     // Remove spaces and hyphens

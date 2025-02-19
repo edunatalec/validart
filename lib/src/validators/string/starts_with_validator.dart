@@ -34,7 +34,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - If `caseSensitivity` is `CaseSensitivity.insensitive`, both the prefix and the input value
 ///   are converted to lowercase before comparison.
 /// - If the input value is `null`, validation fails.
-class StartsWithValidator extends Validator<String> {
+class StartsWithValidator extends ValidatorWithMessage<String> {
   /// The required prefix for validation.
   final String prefix;
 
@@ -50,12 +50,6 @@ class StartsWithValidator extends Validator<String> {
     this.caseSensitivity = CaseSensitivity.sensitive,
   });
 
-  /// Validates whether the given [value] starts with the expected prefix.
-  ///
-  /// - If `caseSensitivity` is `CaseSensitivity.insensitive`, both values are converted to lowercase.
-  /// - If the value is `null`, the validation fails.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     final bool startsWith = caseSensitivity == CaseSensitivity.insensitive

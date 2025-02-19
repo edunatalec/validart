@@ -15,14 +15,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(4.0));  // 'The number must be a decimal' (invalid)
 /// print(validator.validate(null)); // 'The number must be a decimal' (invalid)
 /// ```
-class DecimalValidator extends Validator<double> {
+class DecimalValidator extends ValidatorWithMessage<double> {
   /// Creates a `DecimalValidator` with a required error message.
   DecimalValidator({required super.message});
 
-  /// Validates whether the given [value] is a decimal.
-  ///
-  /// Returns `null` if the value has a fractional part,
-  /// otherwise returns the validation message.
   @override
   String? validate(covariant double value) {
     if (value % 1 == 0) return message;

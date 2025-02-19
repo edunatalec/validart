@@ -17,13 +17,10 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// ## Parameters:
 /// - [message]: Custom error message when validation fails.
-class PrimeValidator extends Validator<int> {
+class PrimeValidator extends ValidatorWithMessage<int> {
   /// Creates a `PrimeValidator` to check if an integer is a prime number.
   PrimeValidator({required super.message});
 
-  /// Validates whether the given [value] is a prime number.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant int value) {
     if (value < 2) return message;

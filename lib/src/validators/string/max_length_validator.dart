@@ -1,44 +1,47 @@
 import 'package:validart/src/validators/validator.dart';
 
-/// A validator that ensures a string does not exceed a maximum length.
+/// A validator that ensures a string or list does not exceed a specified maximum length.
 ///
-/// The `MaxLengthValidator` checks if the input string contains at most the specified number
-/// of characters. This is useful for validating input fields with character limits, such as
-/// usernames, descriptions, or form fields.
+/// This validator checks whether the provided value has a length greater than the
+/// specified `maxLength`. If it does, a validation error message is returned.
 ///
-/// ## Example usage:
+/// ## Example Usage:
 /// ```dart
-/// final validator = MaxLengthValidator(10, message: 'Must be at most 10 characters long');
+/// final validator = MaxLengthValidator<String>(10, message: 'Too long');
 ///
 /// print(validator.validate('Short')); // null (valid)
-/// print(validator.validate('This is too long')); // 'Must be at most 10 characters long' (invalid)
+/// print(validator.validate('This is too long')); // 'Too long' (invalid)
 /// ```
 ///
-/// ## Parameters:
-/// - [maxLength]: The maximum number of characters allowed.
-/// - [message]: The error message returned if the validation fails.
+/// ## Supported Types:
+/// - `String`
+/// - `List<T>`
 ///
-/// ## Behavior:
-/// - If the input value is `null`, validation passes.
-/// - If the input length is greater than `maxLength`, validation fails.
-/// - If the input length is less than or equal to `maxLength`, validation passes (`null` is returned).
-class MaxLengthValidator extends Validator<String> {
-  /// The maximum number of characters allowed for validation.
+/// ## Parameters:
+/// - [maxLength] The maximum allowed length.
+/// - [message] *(required)* The error message returned when validation fails.
+///
+/// ## Throws:
+/// - `ArgumentError` if the value is not a `String` or `List<T>`.
+class MaxLengthValidator<T> extends ValidatorWithMessage<T> {
+  /// The maximum allowed length for the value.
   final int maxLength;
 
-  /// Creates a `MaxLengthValidator` with the given [maxLength] and [message].
+  /// Creates a `MaxLengthValidator` instance with a defined max length.
+  ///
+  /// - [maxLength]: The maximum number of characters (for strings) or items (for lists).
+  /// - [message]: The error message returned when validation fails.
   MaxLengthValidator(this.maxLength, {required super.message});
 
-  /// Validates whether the given [value] does not exceed the maximum length.
-  ///
-  /// - If the value is `null`, validation passes.
-  /// - If the value's length is greater than [maxLength], validation fails.
-  /// - Otherwise, validation passes.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(covariant String value) {
-    if (value.length > maxLength) return message;
+  String? validate(covariant T value) {
+    if (!(value is String || value is List)) {
+      throw ArgumentError(
+        'MaxLengthValidator only supports String and List types.',
+      );
+    }
+
+    if ((value as dynamic).length > maxLength) return message;
 
     return null;
   }

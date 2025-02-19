@@ -14,13 +14,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(8)); // 'The number must be odd' (invalid)
 /// print(validator.validate(null)); // 'The number must be odd' (invalid)
 /// ```
-class OddValidator extends Validator<int> {
+class OddValidator extends ValidatorWithMessage<int> {
   /// Creates an `OddValidator` with a required error message.
   OddValidator({required super.message});
 
-  /// Validates whether the given [value] is an odd number.
-  ///
-  /// Returns `null` if the value is odd, otherwise returns the validation message.
   @override
   String? validate(covariant int value) {
     if (value % 2 == 0) return message;

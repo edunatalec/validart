@@ -25,14 +25,10 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// ## Parameters:
 /// - [message]: Custom error message when validation fails.
-class PasswordValidator extends Validator<String> {
+class PasswordValidator extends ValidatorWithMessage<String> {
   /// Creates a `PasswordValidator` with a custom error message.
   PasswordValidator({required super.message});
 
-  /// Validates whether the given [value] meets the password complexity requirements.
-  ///
-  /// - If the password satisfies all rules, returns `null` (valid).
-  /// - Otherwise, returns the error message.
   @override
   String? validate(covariant String value) {
     final List<bool Function()> conditions = [
@@ -43,7 +39,7 @@ class PasswordValidator extends Validator<String> {
       () => !RegExp(r'[a-z]').hasMatch(value),
       () => !RegExp(r'\d').hasMatch(value),
       () => !RegExp(r'[\W_]').hasMatch(value),
-      () => RegExp(r'\s').hasMatch(value) // No spaces allowed
+      () => RegExp(r'\s').hasMatch(value)
     ];
 
     final every = conditions.every((condition) => !condition());

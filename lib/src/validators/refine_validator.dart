@@ -15,7 +15,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('email@example.com')); // true
 /// print(validator.validate('invalidemail.com')); // false
 /// ```
-class RefineValidator<T> extends Validator<T> {
+class RefineValidator<T> extends ValidatorWithMessage<T> {
   /// A custom function that determines whether the value is valid.
   ///
   /// If the function returns `true`, the value is considered valid.

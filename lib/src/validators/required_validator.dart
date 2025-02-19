@@ -11,7 +11,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(null)); // 'This field is required' (invalid)
 /// print(validator.validate({})); // 'This field is required' (invalid)
 /// ```
-class RequiredValidator<T> extends Validator<T> {
+class RequiredValidator<T> extends ValidatorWithMessage<T> {
   /// Creates a [RequiredValidator] with a custom error message.
   RequiredValidator({required super.message});
 
@@ -20,6 +20,7 @@ class RequiredValidator<T> extends Validator<T> {
     if (value == null) return message;
     if (value is Map && value.isEmpty) return message;
     if (value is String && value.isEmpty) return message;
+    if (value is List && value.isEmpty) return message;
 
     return null;
   }

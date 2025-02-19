@@ -25,20 +25,13 @@ import 'package:validart/src/validators/validator.dart';
 /// - If the input value is `null`, validation fails.
 /// - If the input does not match the specified regex pattern, validation fails.
 /// - If the input matches the pattern, validation passes (`null` is returned).
-class PatternValidator extends Validator<String> {
+class PatternValidator extends ValidatorWithMessage<String> {
   /// The regex pattern used for validation.
   final String pattern;
 
   /// Creates a `PatternValidator` with the given [pattern] and [message].
   PatternValidator(this.pattern, {required super.message});
 
-  /// Validates whether the given [value] matches the expected pattern.
-  ///
-  /// - If the value is `null`, validation fails.
-  /// - If the value matches the regex pattern, validation passes.
-  /// - Otherwise, the provided error message is returned.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     if (RegExp(pattern).hasMatch(value)) return null;

@@ -6,30 +6,39 @@ import 'package:validart/src/validators/refine_validator.dart';
 /// Example usage:
 /// ```dart
 /// final validator = v.string().refine(
-///   (value) => value != null && value.contains('@'),
+///   (value) => value.contains('@'),
 ///   message: 'Must contain "@"',
 /// );
 ///
 /// print(validator.validate('hello@example.com')); // true
 /// print(validator.validate('helloexample.com')); // false
 /// ```
-class VRefine<T> extends VType<T> {
-  /// Adds a custom refinement rule.
+abstract class VRefine<T> extends VType<T> {
+  /// Applies a custom validation rule using a refine function.
   ///
-  /// The `validator` function takes the input value and returns `true` if valid
-  /// or `false` otherwise. The `message` parameter specifies the error message
-  /// when the validation fails.
+  /// This method allows defining a custom validation logic by providing a
+  /// function that checks whether a given value meets the specified criteria.
+  /// If the value does not satisfy the condition, the validation fails and returns
+  /// the specified error message.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
-  /// final validator = v.int().refine(
-  ///   (value) => value != null && value.isEven,
-  ///   message: 'The number must be even',
+  /// final validator = v.string().refine(
+  ///   (value) => value.contains('@'),
+  ///   message: 'Must contain @ symbol',
   /// );
   ///
-  /// print(validator.validate(4)); // true
-  /// print(validator.validate(5)); // false
+  /// print(validator.validate('example@email.com')); // null (valid)
+  /// print(validator.validate('example.com')); // 'Must contain @ symbol' (invalid)
   /// ```
+  ///
+  /// ### Parameters
+  /// - [validator]: A function that takes a value of type `T` and returns `true`
+  ///   if it passes validation or `false` otherwise.
+  /// - [message]: The error message returned if validation fails.
+  ///
+  /// ### Returns
+  /// The current `VRefine<T>` instance with the refine validation applied.
   VRefine<T> refine(bool Function(T data) validator, {String? message}) {
     add(RefineValidator<T>(validator, message: message!));
     return this;

@@ -1,4 +1,5 @@
 import 'package:validart/src/messages/map_message.dart';
+import 'package:validart/src/types/array.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/validators/refine_map_validator.dart';
 import 'package:validart/src/validators/required_validator.dart';
@@ -36,25 +37,50 @@ class VMap extends VType<Map<String, dynamic>> {
   /// Retrieves the object schema.
   Map<String, VType> get object => _object;
 
+  /// Creates a validator for an array (list) of `Map<String, dynamic>` values.
+  ///
+  /// This method ensures that each item in the list is validated using the
+  /// current `VMap` instance. The array itself can also have additional
+  /// constraints, such as `minLength`, `maxLength`, `contains`, and `unique`.
+  ///
+  /// ## Example Usage:
+  /// ```dart
+  /// final validator = v.map().array();
+  ///
+  /// print(validator.validate([
+  ///   {'name': 'Alice', 'age': 25},
+  ///   {'name': 'Bob', 'age': 30}
+  /// ])); // true
+  ///
+  /// print(validator.validate([
+  ///   {'name': 'Alice', 'age': 'invalid'}, // Invalid: 'age' should be an int
+  /// ])); // false
+  /// ```
+  ///
+  /// You can also specify additional constraints:
+  /// ```dart
+  /// final validator = v.map().array().min(2).max(5);
+  ///
+  /// print(validator.validate([
+  ///   {'name': 'Alice', 'age': 25},
+  ///   {'name': 'Bob', 'age': 30}
+  /// ])); // true
+  ///
+  /// print(validator.validate([{'name': 'Alice', 'age': 25}])); // false (min 2 required)
+  /// ```
+  ///
+  /// @param [message] Optional custom error message for the array validation.
+  /// @returns A `VArray<Map<String, dynamic>>` instance.
+  VArray<Map<String, dynamic>> array({String? message}) {
+    return VArray<Map<String, dynamic>>(this, _message.array, message: message);
+  }
+
   /// Adds a validator to the `VMap` instance.
   ///
   /// Allows chaining multiple validation rules.
   @override
   VMap add(Validator<Map<String, dynamic>> validator) {
     super.add(validator);
-    return this;
-  }
-
-  /// Marks the object as optional, allowing it to be omitted.
-  ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.map({'name': v.string()}).optional();
-  /// print(validator.validate(null)); // true
-  /// ```
-  @override
-  VMap optional() {
-    super.optional();
     return this;
   }
 
@@ -68,6 +94,19 @@ class VMap extends VType<Map<String, dynamic>> {
   @override
   VMap nullable() {
     super.nullable();
+    return this;
+  }
+
+  /// Marks the object as optional, allowing it to be omitted.
+  ///
+  /// Example:
+  /// ```dart
+  /// final validator = v.map({'name': v.string()}).optional();
+  /// print(validator.validate(null)); // true
+  /// ```
+  @override
+  VMap optional() {
+    super.optional();
     return this;
   }
 

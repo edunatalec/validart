@@ -13,7 +13,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(DateTime(2025, 6, 15))); // null (valid)
 /// print(validator.validate(DateTime(2024, 12, 31))); // 'The date must be between...' (invalid)
 /// ```
-class BetweenDatesValidator extends Validator<DateTime> {
+class BetweenDatesValidator extends ValidatorWithMessage<DateTime> {
   /// The minimum allowed date (inclusive).
   final DateTime min;
 
@@ -27,10 +27,6 @@ class BetweenDatesValidator extends Validator<DateTime> {
     required super.message,
   });
 
-  /// Validates if the given [value] is within the specified date range.
-  ///
-  /// - Returns `null` if the date is **between** `min` and `max` (inclusive).
-  /// - Otherwise, returns the error message.
   @override
   String? validate(covariant DateTime value) {
     return (value.isAfter(min.subtract(const Duration(days: 1))) &&

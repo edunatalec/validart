@@ -1,44 +1,47 @@
 import 'package:validart/src/validators/validator.dart';
 
-/// A validator that checks whether a string meets a minimum length requirement.
+/// A validator that ensures a value has a minimum length.
 ///
-/// The `MinLengthValidator` ensures that the input string has at least the specified number
-/// of characters. This is useful for validating user input fields such as passwords,
-/// usernames, or any other text input that requires a minimum length.
+/// This validator checks whether the provided value (either a `String` or a `List`)
+/// meets the specified minimum length requirement.
 ///
-/// ## Example usage:
+/// ## Example Usage:
 /// ```dart
-/// final validator = MinLengthValidator(5, message: 'Must be at least 5 characters long');
+/// final validator = MinLengthValidator<String>(5, message: 'Too short');
 ///
 /// print(validator.validate('Hello')); // null (valid)
-/// print(validator.validate('Hi')); // 'Must be at least 5 characters long' (invalid)
+/// print(validator.validate('Hi')); // 'Too short' (invalid)
+///
+/// final listValidator = MinLengthValidator<List<int>>(3, message: 'List is too short');
+///
+/// print(listValidator.validate([1, 2, 3])); // null (valid)
+/// print(listValidator.validate([1])); // 'List is too short' (invalid)
 /// ```
 ///
-/// ## Parameters:
-/// - [minLength]: The minimum number of characters required.
-/// - [message]: The error message returned if the validation fails.
+/// ## Type Parameter:
+/// - `T`: The type of the value being validated (must be `String` or `List`).
 ///
-/// ## Behavior:
-/// - If the input value is `null`, validation fails.
-/// - If the input length is less than `minLength`, validation fails.
-/// - If the input length meets or exceeds `minLength`, validation passes (`null` is returned).
-class MinLengthValidator extends Validator<String> {
-  /// The minimum number of characters required for validation.
+/// ## Constructor:
+/// - [minLength]: The minimum allowed length.
+/// - [message]: The error message returned if validation fails.
+class MinLengthValidator<T> extends ValidatorWithMessage<T> {
+  /// The minimum required length for validation to pass.
   final int minLength;
 
-  /// Creates a `MinLengthValidator` with the given [minLength] and [message].
+  /// Creates an instance of `MinLengthValidator` with a given minimum length.
+  ///
+  /// Throws an `ArgumentError` if the value is neither a `String` nor a `List`.
   MinLengthValidator(this.minLength, {required super.message});
 
-  /// Validates whether the given [value] meets the minimum length requirement.
-  ///
-  /// - If the value is `null`, validation fails.
-  /// - If the value's length is less than [minLength], validation fails.
-  /// - Otherwise, validation passes.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
-  String? validate(covariant String value) {
-    if (value.length < minLength) return message;
+  String? validate(covariant T value) {
+    if (!(value is String || value is List)) {
+      throw ArgumentError(
+        'MinLengthValidator can only be used with String or List.',
+      );
+    }
+
+    if ((value as dynamic).length < minLength) return message;
 
     return null;
   }

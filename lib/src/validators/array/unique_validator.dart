@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if all elements in a list are unique.
@@ -19,17 +21,15 @@ import 'package:validart/src/validators/validator.dart';
 /// ## Behavior:
 /// - If the list contains duplicate values, validation fails.
 /// - If the list is empty or has only unique values, validation passes.
-class UniqueValidator<T> extends Validator<List<T>> {
+class UniqueValidator<T> extends ValidatorWithMessage<List<T>> {
   /// Creates a `UniqueValidator` with a custom error message.
   UniqueValidator({required super.message});
 
-  /// Validates whether all elements in the list are unique.
-  ///
-  /// - If the list is empty or contains only unique values, returns `null` (valid).
-  /// - Otherwise, returns the error message.
   @override
   String? validate(covariant List<T> value) {
-    final uniqueValues = value.toSet();
+    final uniqueValues = value is List<Map>
+        ? value.map((element) => jsonEncode(element)).toSet()
+        : value.toSet();
 
     if (uniqueValues.length == value.length) return null;
 

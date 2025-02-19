@@ -15,14 +15,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(double.nan)); // 'The number must be finite' (invalid)
 /// print(validator.validate(null)); // 'The number must be finite' (invalid)
 /// ```
-class FiniteValidator extends Validator<double> {
+class FiniteValidator extends ValidatorWithMessage<double> {
   /// Creates a `FiniteValidator` with a required error message.
   FiniteValidator({required super.message});
 
-  /// Validates whether the given [value] is finite.
-  ///
-  /// Returns `null` if the value is neither `double.infinity` nor `double.nan`,
-  /// otherwise returns the validation message.
   @override
   String? validate(covariant double value) {
     if (value.isInfinite || value.isNaN) return message;

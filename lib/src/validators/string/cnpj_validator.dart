@@ -19,29 +19,18 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('invalid-cnpj'));       // 'Invalid CNPJ' (invalid)
 /// print(validator.validate('11111111111111'));     // 'Invalid CNPJ' (invalid)
 /// ```
-class CNPJValidator extends Validator<String> {
+class CNPJValidator extends ValidatorWithMessage<String> {
   /// Creates a `CNPJValidator` with a custom [message] for validation failures.
   CNPJValidator({required super.message});
 
-  /// Validates whether the given [value] is a valid Brazilian CNPJ.
-  ///
-  /// - It removes all non-numeric characters.
-  /// - It checks if the result has exactly 14 digits.
-  /// - It ensures the value is not a repeated sequence (e.g., "00000000000000").
-  /// - It verifies the two check digits.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
-    // Remove all non-numeric characters
     final cnpj = value.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Ensure it has exactly 14 digits and is not a repeated sequence
     if (cnpj.length != 14 || RegExp(r'^(.)\1*$').hasMatch(cnpj)) {
       return message;
     }
 
-    // Validate the CNPJ check digits
     if (!_validateCNPJ(cnpj)) return message;
 
     return null;
@@ -57,19 +46,16 @@ class CNPJValidator extends Validator<String> {
 
     int sum1 = 0, sum2 = 0;
 
-    // Calculate first check digit
     for (int i = 0; i < 12; i++) {
       sum1 += int.parse(cnpj[i]) * weights1[i];
     }
     final int checkDigit1 = (sum1 % 11 < 2) ? 0 : (11 - sum1 % 11);
 
-    // Calculate second check digit
     for (int i = 0; i < 13; i++) {
       sum2 += int.parse(cnpj[i]) * weights2[i];
     }
     final int checkDigit2 = (sum2 % 11 < 2) ? 0 : (11 - sum2 % 11);
 
-    // Compare calculated check digits with provided ones
     return cnpj[12] == checkDigit1.toString() &&
         cnpj[13] == checkDigit2.toString();
   }

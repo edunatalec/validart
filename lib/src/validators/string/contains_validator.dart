@@ -22,7 +22,7 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// print(caseInsensitiveValidator.validate('I LOVE DART!')); // null (valid)
 /// ```
-class ContainsValidator extends Validator<String> {
+class ContainsValidator extends ValidatorWithMessage<String> {
   /// The substring that should be present in the validated value.
   final String data;
 
@@ -41,13 +41,6 @@ class ContainsValidator extends Validator<String> {
     this.caseSensitivity = CaseSensitivity.sensitive,
   });
 
-  /// Validates whether the given [value] contains the expected substring.
-  ///
-  /// - If [caseSensitivity] is `CaseSensitivity.insensitive`, both the input
-  ///   and the expected substring are converted to lowercase before comparison.
-  /// - If the value is `null`, the validation fails.
-  ///
-  /// Returns `null` if the value is valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     final bool contains = caseSensitivity == CaseSensitivity.insensitive

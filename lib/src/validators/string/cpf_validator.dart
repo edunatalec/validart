@@ -22,29 +22,18 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('111.111.111-11')); // 'Invalid CPF' (invalid)
 /// print(validator.validate('12345678900'));    // 'Invalid CPF' (invalid)
 /// ```
-class CPFValidator extends Validator<String> {
+class CPFValidator extends ValidatorWithMessage<String> {
   /// Creates a `CPFValidator` instance with a custom error [message].
   CPFValidator({required super.message});
 
-  /// Validates whether the given [value] is a valid CPF number.
-  ///
-  /// - Removes non-numeric characters before validation.
-  /// - Checks if the length is exactly 11 digits.
-  /// - Rejects sequences of identical numbers (e.g., `111.111.111-11`).
-  /// - Performs the official CPF checksum validation.
-  ///
-  /// Returns `null` if the CPF is valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
-    // Remove non-numeric characters
     final cpf = value.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Check length and prevent repeated digits
     if (cpf.length != 11 || RegExp(r'^(.)\1*$').hasMatch(cpf)) {
       return message;
     }
 
-    // Validate CPF checksum
     if (!_validateCPF(cpf)) return message;
 
     return null;

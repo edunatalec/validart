@@ -12,7 +12,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(DateTime(2024, 12, 31))); // null (valid)
 /// print(validator.validate(DateTime(2025, 1, 2))); // 'The date must be before January 1, 2025' (invalid)
 /// ```
-class BeforeValidator extends Validator<DateTime> {
+class BeforeValidator extends ValidatorWithMessage<DateTime> {
   /// The maximum allowed date (exclusive).
   final DateTime date;
 
@@ -22,10 +22,6 @@ class BeforeValidator extends Validator<DateTime> {
     required super.message,
   });
 
-  /// Validates if the given [value] is strictly **before** the specified date.
-  ///
-  /// - Returns `null` if the date is **before** `date`.
-  /// - Otherwise, returns the error message.
   @override
   String? validate(covariant DateTime value) {
     return value.isBefore(date) ? null : message;

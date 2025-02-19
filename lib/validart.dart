@@ -16,7 +16,6 @@ export 'src/messages/num_message.dart';
 export 'src/messages/number_message.dart';
 export 'src/messages/string_message.dart';
 
-export 'src/types/any_every.dart';
 export 'src/types/array.dart';
 export 'src/types/bool.dart';
 export 'src/types/double.dart';
@@ -24,12 +23,22 @@ export 'src/types/int.dart';
 export 'src/types/map.dart';
 export 'src/types/num.dart';
 export 'src/types/number.dart';
+export 'src/types/primitive.dart';
 export 'src/types/refine.dart';
 export 'src/types/string.dart';
 export 'src/types/type.dart';
 
+export 'src/validators/array/contains_array_validator.dart';
+export 'src/validators/array/unique_validator.dart';
+
 export 'src/validators/bool/is_false_validator.dart';
 export 'src/validators/bool/is_true_validator.dart';
+
+export 'src/validators/date/after_validator.dart';
+export 'src/validators/date/before_validator.dart';
+export 'src/validators/date/between_dates_validator.dart';
+export 'src/validators/date/weekday_validator.dart';
+export 'src/validators/date/weekend_validator.dart';
 
 export 'src/validators/double/decimal_validator.dart';
 export 'src/validators/double/finite_validator.dart';
@@ -37,6 +46,7 @@ export 'src/validators/double/integer_validator.dart';
 
 export 'src/validators/int/even_validator.dart';
 export 'src/validators/int/odd_validator.dart';
+export 'src/validators/int/prime_validator.dart';
 
 export 'src/validators/num/between_validator.dart';
 export 'src/validators/num/max_validator.dart';
@@ -45,6 +55,9 @@ export 'src/validators/num/multiple_of_validator.dart';
 export 'src/validators/num/negative_validator.dart';
 export 'src/validators/num/positive_validator.dart';
 
+export 'src/validators/string/alpha_validator.dart';
+export 'src/validators/string/alphanumeric_validator.dart';
+export 'src/validators/string/card_validator.dart';
 export 'src/validators/string/cep_validator.dart';
 export 'src/validators/string/cnpj_validator.dart';
 export 'src/validators/string/contains_validator.dart';
@@ -54,10 +67,13 @@ export 'src/validators/string/email_validator.dart';
 export 'src/validators/string/ends_with_validator.dart';
 export 'src/validators/string/equals_validator.dart';
 export 'src/validators/string/ip_validator.dart';
+export 'src/validators/string/jwt_validator.dart';
 export 'src/validators/string/max_length_validator.dart';
 export 'src/validators/string/min_length_validator.dart';
+export 'src/validators/string/password_validator.dart';
 export 'src/validators/string/pattern_validator.dart';
 export 'src/validators/string/phone_validator.dart';
+export 'src/validators/string/slug_validator.dart';
 export 'src/validators/string/starts_with_validator.dart';
 export 'src/validators/string/time_validator.dart';
 export 'src/validators/string/url_validator.dart';

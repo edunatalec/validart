@@ -30,7 +30,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - [message]: The error message returned if validation fails.
 /// - [caseSensitivity]: Determines whether validation should be case-sensitive.
 ///   Defaults to `CaseSensitivity.sensitive`.
-class EndsWithValidator extends Validator<String> {
+class EndsWithValidator extends ValidatorWithMessage<String> {
   /// The required suffix that the string should end with.
   final String suffix;
 
@@ -46,13 +46,6 @@ class EndsWithValidator extends Validator<String> {
     this.caseSensitivity = CaseSensitivity.sensitive,
   });
 
-  /// Validates whether the given [value] ends with the expected suffix.
-  ///
-  /// - If [caseSensitivity] is `CaseSensitivity.insensitive`, both the input
-  ///   and the expected suffix are converted to lowercase before comparison.
-  /// - If the value is `null`, the validation fails.
-  ///
-  /// Returns `null` if valid, otherwise returns the error message.
   @override
   String? validate(covariant String value) {
     final bool endsWith = caseSensitivity == CaseSensitivity.insensitive

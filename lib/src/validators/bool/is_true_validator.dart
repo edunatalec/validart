@@ -14,13 +14,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(false)); // 'The value must be true' (invalid)
 /// print(validator.validate(null));  // 'The value must be true' (invalid)
 /// ```
-class IsTrueValidator extends Validator<bool> {
+class IsTrueValidator extends ValidatorWithMessage<bool> {
   /// Creates an `IsTrueValidator` with a required error message.
   IsTrueValidator({required super.message});
 
-  /// Validates whether the given [value] is `true`.
-  ///
-  /// Returns `null` if the value is `true`, otherwise returns the validation message.
   @override
   String? validate(value) {
     if (value == true) return null;

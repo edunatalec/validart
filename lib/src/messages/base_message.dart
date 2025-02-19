@@ -32,14 +32,14 @@ class BaseMessage {
   /// Creates a new instance of `BaseMessage` with optional custom error messages.
   ///
   /// If no message is provided, the default values are used.
-  const BaseMessage({
+  BaseMessage({
     String? any,
     ArrayMessage? array,
     String? every,
     String? refine,
     String? required,
   })  : any = any ?? 'Invalid value',
-        array = array ?? const ArrayMessage(),
+        array = array ?? ArrayMessage(),
         every = every ?? 'Invalid value',
         refine = refine ?? 'Invalid value',
         required = required ?? 'Required';

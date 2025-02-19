@@ -54,7 +54,7 @@ class Message {
   /// );
   /// ```
   Message({
-    BaseMessage base = const BaseMessage(),
+    BaseMessage? base,
     BoolMessage? bool,
     DateMessage? date,
     DoubleMessage? double,
@@ -62,13 +62,13 @@ class Message {
     MapMessage? map,
     NumMessage? num,
     StringMessage? string,
-  })  : bool = bool ?? const BoolMessage().mergeWithBase(base),
-        date = date ?? DateMessage().mergeWithBase(base),
-        double = double ?? DoubleMessage().mergeWithBase(base),
-        int = int ?? IntMessage().mergeWithBase(base),
-        map = map ?? const MapMessage().mergeWithBase(base),
-        num = num ?? NumMessage().mergeWithBase(base),
-        string = string ?? StringMessage().mergeWithBase(base);
+  })  : bool = bool ?? BoolMessage().mergeWithBase(base ?? BaseMessage()),
+        date = date ?? DateMessage().mergeWithBase(base ?? BaseMessage()),
+        double = double ?? DoubleMessage().mergeWithBase(base ?? BaseMessage()),
+        int = int ?? IntMessage().mergeWithBase(base ?? BaseMessage()),
+        map = map ?? MapMessage().mergeWithBase(base ?? BaseMessage()),
+        num = num ?? NumMessage().mergeWithBase(base ?? BaseMessage()),
+        string = string ?? StringMessage().mergeWithBase(base ?? BaseMessage());
 
   /// Creates a copy of this `Message` instance with the ability to override specific fields.
   ///

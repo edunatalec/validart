@@ -14,13 +14,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(3)); // 'The number must be even' (invalid)
 /// print(validator.validate(null)); // 'The number must be even' (invalid)
 /// ```
-class EvenValidator extends Validator<int> {
+class EvenValidator extends ValidatorWithMessage<int> {
   /// Creates an `EvenValidator` with a required error message.
   EvenValidator({required super.message});
 
-  /// Validates whether the given [value] is an even number.
-  ///
-  /// Returns `null` if the value is even, otherwise returns the validation message.
   @override
   String? validate(covariant int value) {
     if (value % 2 != 0) return message;

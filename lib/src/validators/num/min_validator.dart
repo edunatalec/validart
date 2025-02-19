@@ -15,16 +15,13 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(9));   // 'Value must be at least 10' (invalid)
 /// print(validator.validate(null)); // 'Value must be at least 10' (invalid)
 /// ```
-class MinValidator<T extends num> extends Validator<T> {
+class MinValidator<T extends num> extends ValidatorWithMessage<T> {
   /// The minimum allowed value.
   final T min;
 
   /// Creates a `MinValidator` with a minimum [min] value and an error [message].
   MinValidator(this.min, {required super.message});
 
-  /// Validates whether the given [value] is greater than or equal to [min].
-  ///
-  /// Returns `null` if the value is within the allowed range, otherwise returns the validation message.
   @override
   String? validate(covariant T value) {
     if (value < min) return message;

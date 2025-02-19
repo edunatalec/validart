@@ -14,13 +14,10 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(3.14)); // 'The number must be an integer' (invalid)
 /// print(validator.validate(null)); // 'The number must be an integer' (invalid)
 /// ```
-class IntegerValidator extends Validator<double> {
+class IntegerValidator extends ValidatorWithMessage<double> {
   /// Creates an `IntegerValidator` with a required error message.
   IntegerValidator({required super.message});
 
-  /// Validates whether the given [value] is an integer (has no decimal part).
-  ///
-  /// Returns `null` if the value is an integer, otherwise returns the validation message.
   @override
   String? validate(covariant double value) {
     if (value % 1 != 0) return message;

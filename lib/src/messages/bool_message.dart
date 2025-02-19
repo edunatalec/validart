@@ -19,7 +19,7 @@ class BoolMessage extends BaseMessage {
   /// Creates a new instance of `BoolMessage` with optional custom error messages.
   ///
   /// If no message is provided, default values are used.
-  const BoolMessage({
+  BoolMessage({
     super.any,
     super.array,
     super.every,
