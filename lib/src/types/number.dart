@@ -8,7 +8,7 @@ import 'package:validart/src/validators/num/positive_validator.dart';
 
 /// A base class for validating numerical values (`int`, `double`, and `num`).
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = v.num().min(5).max(20).positive();
 ///

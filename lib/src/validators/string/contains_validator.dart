@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `ContainsValidator` ensures that the provided string includes the expected
 /// substring, with an option to make the validation case-sensitive or insensitive.
 ///
-/// ## Example usage:
+/// ### Example
 ///
 /// ```dart
 /// final validator = ContainsValidator('dart', message: 'Must contain "dart"');

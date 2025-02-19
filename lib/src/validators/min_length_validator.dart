@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// This validator checks whether the provided value (either a `String` or a `List`)
 /// meets the specified minimum length requirement.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final validator = MinLengthValidator<String>(5, message: 'Too short');
 ///

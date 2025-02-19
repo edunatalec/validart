@@ -14,7 +14,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - Cannot contain all identical digits (e.g., `111.111.111-11` is invalid).
 /// - Must pass the CPF checksum verification.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = CPFValidator(message: 'Invalid CPF');
 ///

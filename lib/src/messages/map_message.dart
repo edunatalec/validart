@@ -6,7 +6,7 @@ import 'package:validart/src/messages/base_message.dart';
 /// Extends [BaseMessage] to include standard validation messages such as required,
 /// refine, any, every, and array validation.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final mapMessage = MapMessage(
 ///   required: 'A map is required',

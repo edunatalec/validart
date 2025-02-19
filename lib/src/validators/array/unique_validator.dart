@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// The `UniqueValidator` ensures that a given list does not contain duplicate values.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = UniqueValidator(message: 'The list contains duplicate values');
 ///

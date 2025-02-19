@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// This allows for flexible validation of various formats, such as custom identifiers,
 /// alphanumeric constraints, or other structured inputs.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = PatternValidator(
 ///   r'^[A-Za-z0-9]+$',

@@ -5,7 +5,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// The `TimeValidator` ensures that the input follows the standard 24-hour time format.
 /// It supports both `HH:mm` (hours and minutes) and `HH:mm:ss` (hours, minutes, and seconds).
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final timeValidator = TimeValidator(message: 'Invalid time format');
 ///

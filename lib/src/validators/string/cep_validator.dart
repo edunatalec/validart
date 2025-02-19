@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `CEPValidator` checks whether the provided value follows the Brazilian CEP format,
 /// which consists of exactly 8 digits (without special characters) and is not a repeated sequence of numbers.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = CEPValidator(message: 'Invalid CEP');
 ///

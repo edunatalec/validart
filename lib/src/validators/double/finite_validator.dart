@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `FiniteValidator` checks if the provided value is neither `double.infinity` nor `double.nan`.
 /// If the value is finite, validation passes (`null` is returned). Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = FiniteValidator(message: 'The number must be finite');
 ///

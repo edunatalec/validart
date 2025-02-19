@@ -3,7 +3,7 @@
 /// The `ArrayMessage` class provides predefined error messages for array-based
 /// validations, such as required arrays, uniqueness constraints, and containment checks.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final arrayMessage = ArrayMessage(
 ///   required: 'The array cannot be empty',

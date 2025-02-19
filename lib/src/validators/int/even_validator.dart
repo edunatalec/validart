@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `EvenValidator` checks if the provided value is an even number (i.e., divisible by 2 without a remainder).
 /// If the value is even, validation passes (`null` is returned). Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = EvenValidator(message: 'The number must be even');
 ///

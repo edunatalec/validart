@@ -20,8 +20,8 @@ import 'package:validart/src/validators/string/ends_with_validator.dart';
 import 'package:validart/src/validators/string/equals_validator.dart';
 import 'package:validart/src/validators/string/ip_validator.dart';
 import 'package:validart/src/validators/string/jwt_validator.dart';
-import 'package:validart/src/validators/string/max_length_validator.dart';
-import 'package:validart/src/validators/string/min_length_validator.dart';
+import 'package:validart/src/validators/max_length_validator.dart';
+import 'package:validart/src/validators/min_length_validator.dart';
 import 'package:validart/src/validators/string/password_validator.dart';
 import 'package:validart/src/validators/string/pattern_validator.dart';
 import 'package:validart/src/validators/string/phone_validator.dart';
@@ -34,7 +34,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// `VString` is a validation class for `String` values in Validart.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = v.string().email();
 /// print(validator.validate('test@example.com')); // true
@@ -43,61 +43,59 @@ import 'package:validart/src/validators/validator.dart';
 class VString extends VPrimitive<String> {
   final StringMessage _message;
 
-  /// Creates an instance of `VString` with the specified validation messages.
+  /// Creates an instance of `VString` for validating string values.
   ///
-  /// The `message` parameter allows overriding the default "required" validation message.
+  /// This constructor initializes the string validator and automatically applies a `RequiredValidator`
+  /// to ensure that the string is not empty unless explicitly marked as optional.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().min(5);
+  ///
+  /// print(validator.validate("hello")); // true
+  /// print(validator.validate("hi")); // 'String must be at least 5 characters long' (invalid)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [_message]: The validation messages used for error handling.
+  /// - [message]: *(optional)* A custom error message for required validation.
+  ///
+  /// ### Behavior
+  /// - By default, this validator ensures that the string is required (not empty or null).
+  /// - To allow empty or missing values, use `.optional()` or `.nullable()`.
   VString(this._message, {required String? message}) {
     add(RequiredValidator(message: message ?? _message.required));
   }
 
-  /// Ensures that the string contains only alphabetic characters (letters).
+  /// Ensures that the string contains only alphabetic characters (`A-Z`, `a-z`).
   ///
-  /// This method validates whether the given string consists only of letters
-  /// (A-Z, a-z) without any numbers, symbols, or spaces.
+  /// This method adds an `AlphaValidator` to check if the string consists solely of letters,
+  /// without any numbers, spaces, or special characters.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().alpha();
   ///
-  /// print(validator.validate("Hello")); // true
-  /// print(validator.validate("Hello123")); // false
-  /// print(validator.validate("Hello World")); // false
-  /// print(validator.validate(null)); // false
+  /// print(validator.validate("ValidString")); // true
+  /// print(validator.validate("1234")); // 'String must contain only alphabetic characters' (invalid)
+  /// print(validator.validate("Hello123")); // 'String must contain only alphabetic characters' (invalid)
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `alpha` validation applied.
   VString alpha({String? message}) {
     return add(AlphaValidator(message: message ?? _message.alpha));
   }
 
   /// Ensures that the string contains only alphanumeric characters (letters and numbers).
   ///
-  /// This method validates whether the given string consists only of letters (A-Z, a-z)
+  /// This method adds an `AlphanumericValidator` to check if the given string consists only of letters (A-Z, a-z)
   /// and numbers (0-9), without any symbols or spaces.
   ///
-  /// Example usage:
-  /// ```dart
-  /// final validator = v.string().alphanumeric();
-  ///
-  /// print(validator.validate("Hello123")); // true
-  /// print(validator.validate("Hello World")); // false
-  /// print(validator.validate("Hello@123")); // false
-  /// print(validator.validate(null)); // false
-  /// ```
-  ///
-  /// - [message] *(optional)* Custom error message.
-  VString alphanumeric({String? message}) {
-    return add(
-      AlphanumericValidator(message: message ?? _message.alphanumeric),
-    );
-  }
-
-  /// Ensures that the string is a valid credit card number.
-  ///
-  /// This method validates whether the given string follows the standard
-  /// credit card number format, checking for the correct length and structure.
-  ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().card();
   ///
@@ -107,17 +105,47 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `alphanumeric` validation applied.
+  VString alphanumeric({String? message}) {
+    return add(
+      AlphanumericValidator(message: message ?? _message.alphanumeric),
+    );
+  }
+
+  /// Ensures that the string is a valid credit card number.
+  ///
+  /// This method adds an `CardValidator` to check if the given string follows the standard
+  /// credit card number format, checking for the correct length and structure.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().card();
+  ///
+  /// print(validator.validate("4111111111111111")); // true (Valid Visa card)
+  /// print(validator.validate("1234567812345678")); // false
+  /// print(validator.validate("4111-1111-1111-1111")); // true (formatted correctly)
+  /// print(validator.validate(null)); // false
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `card` validation applied.
   VString card({String? message}) {
     return add(CardValidator(message: message ?? _message.card));
   }
 
   /// Ensures that the string is a valid Brazilian postal code (CEP).
   ///
-  /// This method validates whether the given string follows the correct CEP format,
+  /// This method adds an `CEPValidator` to check if the given string follows the correct CEP format,
   /// which is either `XXXXX-XXX` or `XXXXXXXX`, where `X` represents a digit.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().cep();
   ///
@@ -128,17 +156,21 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `cep` validation applied.
   VString cep({String? message}) {
     return add(CEPValidator(message: message ?? _message.cep));
   }
 
   /// Ensures that the string is a valid CNPJ (Cadastro Nacional da Pessoa Jurídica).
   ///
-  /// This method validates whether the given string is a properly formatted and valid CNPJ,
+  /// This method adds an `CEPValidator` to check if the given string is a properly formatted and valid CNPJ,
   /// which is the Brazilian national registry number for legal entities.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().cnpj();
   ///
@@ -149,34 +181,40 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `cnpj` validation applied.
   VString cnpj({String? message}) {
     return add(CNPJValidator(message: message ?? _message.cnpj));
   }
 
-  /// Ensures that the string contains a specific substring.
+  /// Ensures that the string contains the specified substring.
   ///
-  /// This method checks whether the given string includes the specified `data`.
-  /// By default, the comparison is case-sensitive, but it can be modified using
-  /// the `caseSensitivity` parameter.
+  /// This method adds a `ContainsValidator` to check if the given string includes the provided `data` as a substring.
+  /// By default, the validation is case-sensitive, but this behavior can be modified using the `caseSensitivity` parameter.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().contains("hello");
   ///
   /// print(validator.validate("hello world")); // true
-  /// print(validator.validate("HellO world")); // false (case-sensitive)
+  /// print(validator.validate("Hello World")); // false (case-sensitive)
   /// print(validator.validate("world")); // false
-  /// print(validator.validate(null)); // false
   ///
   /// // Case-insensitive comparison
   /// final validatorIgnoreCase = v.string().contains("hello", caseSensitivity: CaseSensitivity.insensitive);
-  /// print(validatorIgnoreCase.validate("HellO world")); // true
+  /// print(validatorIgnoreCase.validate("Hello World")); // true
   /// ```
   ///
-  /// - [data] The expected substring that must be present in the validated string.
-  /// - [message] *(optional)* Custom error message.
-  /// - [caseSensitivity] *(optional)* Determines whether the comparison is case-sensitive or case-insensitive. (default: `CaseSensitivity.sensitive`)
+  /// ### Parameters
+  /// - [data]: The expected substring that must be present in the string.
+  /// - [message] *(optional)*: A custom error message function that takes `data` as input.
+  /// - [caseSensitivity]: Defines whether the validation should be case-sensitive (default: `CaseSensitivity.sensitive`).
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `contains` validation applied.
   VString contains(
     String data, {
     String Function(String data)? message,
@@ -193,10 +231,10 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string is a valid CPF (Cadastro de Pessoas Físicas).
   ///
-  /// This method validates whether the provided string follows the CPF format,
+  /// This method adds an `CPFValidator` to check if the provided string follows the CPF format,
   /// which is a Brazilian individual taxpayer registry number.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().cpf();
   ///
@@ -207,17 +245,20 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `cpf` validation applied.
   VString cpf({String? message}) {
     return add(CPFValidator(message: message ?? _message.cpf));
   }
 
   /// Ensures that the string is a valid date format.
   ///
-  /// This method validates whether the given string conforms to a valid date format.
-  /// The exact format may depend on the implementation of the `DateValidator`.
+  /// This method adds an `DateValidator` to check if the given string conforms to a valid date format.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().date();
   ///
@@ -228,17 +269,21 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `date` validation applied.
   VString date({String? message}) {
     return add(DateValidator(message: message ?? _message.date));
   }
 
   /// Validates that the string is a properly formatted email address.
   ///
-  /// This method ensures that the string follows the standard email format.
+  /// This method adds an `EmailValidator` to check if the string follows the standard email format.
   /// It checks for the presence of an "@" symbol, a valid domain, and a top-level domain.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().email();
   ///
@@ -248,36 +293,40 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate('user@.com')); // false
   /// ```
   ///
-  /// - [message] *(optional)*: A custom error message to return if the validation fails.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString email({String? message}) {
     return add(EmailValidator(message: message ?? _message.email));
   }
 
   /// Ensures that the string ends with the specified suffix.
   ///
-  /// This method validates whether the given string ends with the provided `suffix`.
-  /// By default, the comparison is case-sensitive, but this can be modified using
-  /// the `caseSensitivity` parameter.
+  /// This method adds an `EndsWithValidator` to verify whether the given string concludes with the provided `sufix`.
+  /// By default, the validation is case-sensitive, but this behavior can be modified using the `caseSensitivity` parameter.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().endsWith("world");
   ///
-  /// print(validator.validate("Hello world")); // true
+  /// print(validator.validate("hello world")); // true
   /// print(validator.validate("Hello World")); // false (case-sensitive)
-  /// print(validator.validate("world hello")); // false
-  /// print(validator.validate(null)); // false
+  /// print(validator.validate("hello")); // false
   ///
   /// // Case-insensitive comparison
   /// final validatorIgnoreCase = v.string().endsWith("world", caseSensitivity: CaseSensitivity.insensitive);
   /// print(validatorIgnoreCase.validate("Hello World")); // true
   /// ```
   ///
-  /// [suffix] The expected ending substring.
+  /// ### Parameters
+  /// - [sufix]: The expected suffix that the string must end with.
+  /// - [message] *(optional)*: A custom error message function that takes `sufix` as input.
+  /// - [caseSensitivity]: Defines whether the validation should be case-sensitive (default: `CaseSensitivity.sensitive`).
   ///
-  /// [message] *(optional)* Custom error message.
-  ///
-  /// [caseSensitivity] *(optional)* Defines whether the comparison is case-sensitive (default) or insensitive.
+  /// ### Returns
+  /// The current `VString` instance with the `endsWith` validation applied.
   VString endsWith(
     String sufix, {
     String Function(String sufix)? message,
@@ -294,29 +343,29 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string is exactly equal to the specified value.
   ///
-  /// This method validates whether the given string matches the provided `data`
-  /// exactly. By default, the comparison is case-sensitive, but this can be modified
-  /// using the `caseSensitivity` parameter.
+  /// This method adds an `EqualsValidator` to check if the given string matches the provided `data` exactly.
+  /// By default, the validation is case-sensitive, but this behavior can be modified using the `caseSensitivity` parameter.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().equals("Hello");
+  /// final validator = v.string().equals("hello");
   ///
-  /// print(validator.validate("Hello")); // true (exact match)
-  /// print(validator.validate("hello")); // false (case-sensitive)
-  /// print(validator.validate("Hello ")); // false (extra space)
-  /// print(validator.validate(null)); // false
+  /// print(validator.validate("hello")); // true
+  /// print(validator.validate("Hello")); // false (case-sensitive)
+  /// print(validator.validate("hello world")); // false
   ///
   /// // Case-insensitive comparison
-  /// final validatorIgnoreCase = v.string().equals("Hello", caseSensitivity: CaseSensitivity.insensitive);
-  /// print(validatorIgnoreCase.validate("hello")); // true
+  /// final validatorIgnoreCase = v.string().equals("hello", caseSensitivity: CaseSensitivity.insensitive);
+  /// print(validatorIgnoreCase.validate("Hello")); // true
   /// ```
   ///
-  /// [data] The exact string value to compare against.
+  /// ### Parameters
+  /// - [data]: The exact string that must match the input.
+  /// - [message] *(optional)*: A custom error message function that takes `data` as input.
+  /// - [caseSensitivity]: Defines whether the validation should be case-sensitive (default: `CaseSensitivity.sensitive`).
   ///
-  /// [message] *(optional)* Custom error message.
-  ///
-  /// [caseSensitivity] *(optional)* Determines whether the comparison is case-sensitive (default) or insensitive.
+  /// ### Returns
+  /// The current `VString` instance with the `equals` validation applied.
   VString equals(
     String data, {
     String Function(String data)? message,
@@ -333,10 +382,10 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string is a valid IP address (IPv4 or IPv6).
   ///
-  /// This method validates whether the given string is formatted as a valid IP address.
+  /// This method adds an `IPValidator` to check if the given string is formatted as a valid IP address.
   /// It supports both IPv4 (e.g., `192.168.1.1`) and IPv6 (e.g., `2001:db8::ff00:42:8329`).
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().ip();
   ///
@@ -347,20 +396,24 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString ip({String? message}) {
     return add(IPValidator(message: message ?? _message.ip));
   }
 
   /// Ensures that the string is a valid JSON Web Token (JWT).
   ///
-  /// This method validates whether the given string follows the standard JWT format.
+  /// This method adds an `JwtValidator` to check if the given string follows the standard JWT format.
   /// A valid JWT consists of three base64-encoded sections separated by dots (`.`):
   /// - Header
   /// - Payload
   /// - Signature
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().jwt();
   ///
@@ -369,28 +422,34 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false
   /// ```
   ///
-  /// [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString jwt({String? message}) {
     return add(JwtValidator(message: message ?? _message.jwt));
   }
 
   /// Ensures that the string does not exceed the specified maximum length.
   ///
-  /// This method validates that the string contains at most `maxLength` characters.
-  /// If the string is longer than the specified length, validation will fail.
+  /// This method adds a `MaxLengthValidator` to verify that the given string has at most `maxLength` characters.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().max(10);
+  /// final validator = v.string().max(5);
   ///
-  /// print(validator.validate("short")); // true
-  /// print(validator.validate("this is too long")); // false
-  /// print(validator.validate("exactly10!")); // true
+  /// print(validator.validate("hello")); // true
+  /// print(validator.validate("world!")); // false (exceeds 5 characters)
+  /// print(validator.validate("hi")); // true
   /// ```
   ///
-  /// [maxLength] The maximum allowed length of the string.
+  /// ### Parameters
+  /// - [maxLength]: The maximum number of characters allowed in the string.
+  /// - [message] *(optional)*: A custom error message function that takes `maxLength` as input.
   ///
-  /// [message] *(optional)* Custom error message.
+  /// ### Returns
+  /// The current `VString` instance with the `max` validation applied.
   VString max(int maxLength, {String Function(int maxLength)? message}) {
     return add(
       MaxLengthValidator<String>(
@@ -402,21 +461,23 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string has at least the specified minimum length.
   ///
-  /// This method validates that the string contains at least `minLength` characters.
-  /// If the string is shorter than the specified length, validation will fail.
+  /// This method adds a `MinLengthValidator` to verify that the given string contains at least `minLength` characters.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().min(5);
+  /// final validator = v.string().min(3);
   ///
+  /// print(validator.validate("hi")); // false (less than 3 characters)
+  /// print(validator.validate("hey")); // true
   /// print(validator.validate("hello")); // true
-  /// print(validator.validate("hi")); // false
-  /// print(validator.validate("abcdefg")); // true
   /// ```
   ///
-  /// - [minLength] The minimum required length of the string.
+  /// ### Parameters
+  /// - [minLength]: The minimum number of characters required in the string.
+  /// - [message] *(optional)*: A custom error message function that takes `minLength` as input.
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Returns
+  /// The current `VString` instance with the `min` validation applied.
   VString min(int minLength, {String Function(int minLength)? message}) {
     return add(
       MinLengthValidator<String>(
@@ -428,11 +489,11 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string meets password security requirements.
   ///
-  /// This method validates that a given string meets common password strength
+  /// This method adds an `PasswordValidator` to check if the given string meets common password strength
   /// criteria, such as a minimum length, inclusion of uppercase and lowercase letters,
   /// numbers, special characters, and the absence of spaces.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().password();
   ///
@@ -443,39 +504,50 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate("NoSpecialChar1")); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString password({String? message}) {
     return add(PasswordValidator(message: message ?? _message.password));
   }
 
-  /// Ensures that the string matches a given regular expression pattern.
+  /// Ensures that the string matches the specified regular expression pattern.
   ///
-  /// This method allows validation of a string against a custom regex pattern,
-  /// ensuring it conforms to a specific format.
+  /// This method adds a `PatternValidator` to verify that the given string conforms to the provided `pattern`.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().pattern(r'^\d{3}-\d{3}-\d{4}$');
+  /// final validator = v.string().pattern(r'^[a-zA-Z]+$');
   ///
-  /// print(validator.validate("123-456-7890")); // true
-  /// print(validator.validate("1234567890")); // false
-  /// print(validator.validate("abc-456-7890")); // false
+  /// print(validator.validate("hello")); // true (only letters)
+  /// print(validator.validate("Hello123")); // false (contains numbers)
+  /// print(validator.validate("!@#")); // false (contains special characters)
+  ///
+  /// // Custom error message
+  /// final validatorWithMessage = v.string().pattern(r'^[0-9]+$', message: "Only numbers are allowed.");
+  /// print(validatorWithMessage.validate("123")); // true
+  /// print(validatorWithMessage.validate("abc")); // false (returns "Only numbers are allowed.")
   /// ```
   ///
-  /// - [pattern] A regular expression string defining the expected format.
+  /// ### Parameters
+  /// - [pattern]: A regular expression string defining the allowed format.
+  /// - [message] *(optional)*: A custom error message displayed when the validation fails.
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Returns
+  /// The current `VString` instance with the `pattern` validation applied.
   VString pattern(String pattern, {String? message}) {
     return add(PatternValidator(pattern, message: message ?? _message.pattern));
   }
 
   /// Ensures that the string is a valid slug.
   ///
-  /// A slug is a URL-friendly identifier that typically consists of lowercase letters,
+  /// This method adds an `SlugValidator` to check if the provided string is a URL-friendly identifier that typically consists of lowercase letters,
   /// numbers, hyphens (`-`), and underscores (`_`). It is commonly used in SEO-friendly
   /// URLs and database identifiers.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().slug();
   ///
@@ -484,43 +556,40 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate("slug@123")); // false
   /// ```
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString slug({String? message}) {
     return add(SlugValidator(message: message ?? _message.uuid));
   }
 
-  /// Ensures that the string starts with a specific prefix.
+  /// Ensures that the string starts with the specified prefix.
   ///
-  /// This method validates whether the given string begins with the specified `prefix`.
-  /// It supports case-sensitive or case-insensitive validation.
+  /// This method adds a `StartsWithValidator` to verify whether the given string begins with the provided `prefix`.
+  /// By default, the validation is case-sensitive, but this behavior can be modified using the `caseSensitivity` parameter.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().startsWith("Hello");
-  ///
-  /// print(validator.validate("Hello World")); // true
-  /// print(validator.validate("hello world")); // false (case-sensitive)
-  /// print(validator.validate("World Hello")); // false
-  /// ```
-  ///
-  /// ### Case-Insensitive Example:
-  /// ```dart
-  /// final validator = v.string().startsWith(
-  ///   "Hello",
-  ///   caseSensitivity: CaseSensitivity.insensitive,
-  /// );
+  /// final validator = v.string().startsWith("hello");
   ///
   /// print(validator.validate("hello world")); // true
-  /// print(validator.validate("HELLO WORLD")); // true
+  /// print(validator.validate("Hello World")); // false (case-sensitive)
   /// print(validator.validate("world hello")); // false
+  ///
+  /// // Case-insensitive comparison
+  /// final validatorIgnoreCase = v.string().startsWith("hello", caseSensitivity: CaseSensitivity.insensitive);
+  /// print(validatorIgnoreCase.validate("Hello World")); // true
   /// ```
   ///
-  /// - [prefix] The prefix that the string must start with.
+  /// ### Parameters
+  /// - [prefix]: The expected prefix that the string must start with.
+  /// - [message] *(optional)*: A custom error message function that takes `prefix` as input.
+  /// - [caseSensitivity]: Defines whether the validation should be case-sensitive (default: `CaseSensitivity.sensitive`).
   ///
-  /// - [message] *(optional)* Custom error message. If provided as a function,
-  /// it receives the `prefix` as a parameter.
-  ///
-  /// - [caseSensitivity] Defines whether the validation should be case-sensitive or case-insensitive (default: `CaseSensitivity.sensitive`)
+  /// ### Returns
+  /// The current `VString` instance with the `startsWith` validation applied.
   VString startsWith(
     String prefix, {
     String Function(String prefix)? message,
@@ -535,43 +604,28 @@ class VString extends VPrimitive<String> {
     );
   }
 
-  /// Ensures that the string follows a valid phone number format for a specified country.
+  /// Ensures that the string is a valid phone number based on the specified format.
   ///
-  /// This method validates whether the given string represents a valid phone number
-  /// according to the selected `PhoneType`. It supports different configurations such as:
-  /// - Required or optional area codes.
-  /// - Required, optional, or no country codes.
+  /// This method adds a `PhoneValidator` to verify whether the given string matches a valid phone number format,
+  /// considering the `type`, `areaCode`, and `countryCode` options.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().phone(PhoneType.brazil);
   ///
-  /// print(validator.validate("(11) 98765-4321")); // true (valid Brazilian phone)
-  /// print(validator.validate("98765-4321")); // false (area code required)
-  /// print(validator.validate("invalid-phone")); // false
+  /// print(validator.validate("(11) 98765-4321")); // true (valid mobile number)
+  /// print(validator.validate("12345")); // false (too short)
+  /// print(validator.validate("abcd1234")); // false (contains letters)
   /// ```
   ///
-  /// ### Custom Configurations:
-  /// ```dart
-  /// // Validates a U.S. phone number with area code required and no country code.
-  /// final validator = v.string().phone(
-  ///   PhoneType.usa,
-  ///   areaCode: AreaCodeFormat.required,
-  ///   countryCode: CountryCodeFormat.none,
-  /// );
+  /// ### Parameters
+  /// - [type]: The type of phone number to validate (e.g., mobile, landline).
+  /// - [message] *(optional)*: A custom error message displayed when validation fails.
+  /// - [areaCode]: Defines whether the area code is required, optional, or not allowed (default: `AreaCodeFormat.required`).
+  /// - [countryCode]: Defines whether the country code is required, optional, or not allowed (default: `CountryCodeFormat.none`).
   ///
-  /// print(validator.validate("(123) 456-7890")); // true
-  /// print(validator.validate("123-456-7890")); // true
-  /// print(validator.validate("456-7890")); // false (area code missing)
-  /// ```
-  ///
-  /// - [type] The `PhoneType` specifying the country format for validation.
-  ///
-  /// - [message] *(optional)* Custom error message.
-  ///
-  /// - [areaCode] Defines whether the area code is required, optional, or not allowed. (default: `AreaCodeFormat.required`)
-  ///
-  /// - [countryCode] Defines whether the country code is required, optional, or not allowed. (default: `CountryCodeFormat.none`)
+  /// ### Returns
+  /// The current `VString` instance with the `phone` validation applied.
   VString phone(
     PhoneType type, {
     String? message,
@@ -590,10 +644,10 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string follows a valid time format.
   ///
-  /// This method validates whether the given string represents a valid time format,
+  /// This method adds an `TimeValidator` to check if the given string represents a valid time format,
   /// typically in `HH:mm` or `HH:mm:ss` format, ensuring correct hour and minute values.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().time();
   ///
@@ -605,17 +659,21 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false (required by default)
   /// ```
   ///
-  /// [message] Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString time({String? message}) {
     return add(TimeValidator(message: message ?? _message.time));
   }
 
   /// Ensures that the string is a valid URL.
   ///
-  /// This method validates whether the given string follows a valid URL format,
+  /// This method adds an `TimeValidator` to check if the given string follows a valid URL format,
   /// including both HTTP and HTTPS protocols, as well as domain names.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().url();
   ///
@@ -626,33 +684,38 @@ class VString extends VPrimitive<String> {
   /// print(validator.validate(null)); // false (required by default)
   /// ```
   ///
-  /// - [message] Custom error message.
+  /// ### Parameters
+  /// - [message]: *(optional)* A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `email` validation applied.
   VString url({String? message}) {
     return add(UrlValidator(message: message ?? _message.url));
   }
 
   /// Ensures that the string is a valid UUID (Universally Unique Identifier).
   ///
-  /// This method validates whether the given string conforms to the specified UUID version.
-  /// By default, it validates against UUID v4, but other versions can be specified.
+  /// This method adds a `UUIDValidator` to check if the given string conforms to a valid UUID format.
+  /// By default, it validates against UUID version 4, but a different version can be specified using the `version` parameter.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().uuid();
   ///
   /// print(validator.validate("550e8400-e29b-41d4-a716-446655440000")); // true (valid UUID v4)
-  /// print(validator.validate("550e8400-e29b-31d4-a716-446655440000")); // false (not a valid UUID v4)
   /// print(validator.validate("invalid-uuid")); // false
-  /// print(validator.validate(null)); // false (required by default)
   ///
-  /// // Specifying a UUID version
-  /// final uuidV1Validator = v.string().uuid(version: UUIDVersion.v1);
-  /// print(uuidV1Validator.validate("550e8400-e29b-11d4-a716-446655440000")); // true (valid UUID v1)
+  /// // Validating a specific UUID version
+  /// final validatorV1 = v.string().uuid(version: UUIDVersion.v1);
+  /// print(validatorV1.validate("6ba7b810-9dad-11d1-80b4-00c04fd430c8")); // true (valid UUID v1)
   /// ```
   ///
-  /// - [version] *(optional)* The UUID version to validate against (default: `UUIDVersion.v4`).
+  /// ### Parameters
+  /// - [version] *(optional)*: The UUID version to validate against (default: `UUIDVersion.v4`).
+  /// - [message] *(optional)*: A custom error message displayed when validation fails.
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Returns
+  /// The current `VString` instance with the `uuid` validation applied.
   VString uuid({UUIDVersion? version, String? message}) {
     return add(
       UUIDValidator(
@@ -664,162 +727,171 @@ class VString extends VPrimitive<String> {
 
   /// Adds a custom validator to the `VString` instance.
   ///
-  /// This method allows for the addition of a custom validation rule to the string validator,
-  /// enabling more flexible and specific validation logic.
+  /// This method allows adding additional validation rules for string values,
+  /// enabling more flexible and specific constraints.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().add(MyCustomValidator());
+  /// final validator = v.string().add(MyCustomStringValidator());
   ///
-  /// print(validator.validate("custom value")); // Depends on MyCustomValidator logic
+  /// print(validator.validate("custom input")); // Validation depends on custom logic
   /// ```
   ///
-  /// - [validator] The custom validator to be applied.
+  /// ### Parameters
+  /// - [validator]: A custom validator that extends `Validator<String>`.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the added validator.
   @override
   VString add(Validator<String> validator) {
     super.add(validator);
     return this;
   }
 
-  /// Ensures that the string passes at least one of the specified validation rules.
+  /// Ensures that the string matches **at least one** of the provided `VString` validators.
   ///
-  /// This method allows combining multiple `VString` validators. The input value
-  /// must satisfy at least one validation rule provided in the `types` list.
+  /// This method checks if the string satisfies at least one of the specified validation rules.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().any([
-  ///   v.string().equals("hello"),
-  ///   v.string().equals("world"),
+  ///   v.string().max(5),
+  ///   v.string().pattern(r'^[a-z]+$')
   /// ]);
   ///
-  /// print(validator.validate("hello")); // true (matches the first rule)
-  /// print(validator.validate("world")); // true (matches the second rule)
-  /// print(validator.validate("hello world")); // false (does not match any rule)
-  /// print(validator.validate("random text")); // false (does not match any rule)
-  /// print(validator.validate(null)); // false (required by default)
+  /// print(validator.validate("hello")); // true (passes "max" validation)
+  /// print(validator.validate("abcdef")); // true (passes "pattern" validation)
+  /// print(validator.validate("123456")); // false (matches neither condition)
   /// ```
   ///
-  /// - [types] A list of `VString` validators. The input must satisfy at least one of them.
+  /// ### Parameters
+  /// - [types]: A list of `VString` validators to check against.
+  /// - [message] *(optional)*: A custom validation message if the value does not match any validator.
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Returns
+  /// The current `VString` instance with the `any` validation applied.
   @override
   VString any(covariant List<VString> types, {String? message}) {
     super.any(types, message: message ?? _message.any);
     return this;
   }
 
-  /// Converts the current string validator into an array validator.
+  /// Creates an array validator (`VArray<String>`) for validating lists of string values.
   ///
-  /// This method wraps the current string validation rules into a `VArray<String>`,
-  /// allowing validation of lists of strings. Each item in the array will be validated
-  /// against the current string validation rules.
+  /// This method enables validation of arrays where each element is a `String`,
+  /// applying the same validation rules defined for the individual string validator.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().min(3).max(10).array();
+  /// final validator = v.string().array();
   ///
-  /// print(validator.validate(["hello", "world"])); // true
-  /// print(validator.validate(["hi", "longwordexceeds"])); // false
+  /// print(validator.validate(["hello", "world"])); // true (valid)
+  ///
+  /// print(validator.validate(["hello", 123])); // false (invalid)
   /// ```
   ///
-  /// - [message] *(optional)* Optional custom error message for the array validation.
+  /// ### Parameters
+  /// - [message] *(optional)*: A custom validation message for array validation errors.
+  ///
+  /// ### Returns
+  /// A `VArray<String>` instance for validating lists of string values.
   @override
   VArray<String> array({String? message}) {
     return VArray<String>(this, _message.array, message: message);
   }
 
-  /// Ensures that the string passes all the specified validation rules.
+  /// Ensures that the string matches **all** of the provided `VString` validators.
   ///
-  /// This method allows combining multiple `VString` validators. The input value
-  /// must satisfy every validation rule provided in the `types` list.
+  /// This method checks if the string satisfies every specified validation rule.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().every([
-  ///   v.string().min(5),
-  ///   v.string().max(10),
-  ///   v.string().contains("test"),
+  ///   v.string().min(3),
+  ///   v.string().max(10)
   /// ]);
   ///
-  /// print(validator.validate("test123")); // true (meets all conditions)
-  /// print(validator.validate("test12")); // true
-  /// print(validator.validate("short")); // false (does not meet min length)
-  /// print(validator.validate("this is a long test")); // false (exceeds max length)
-  /// print(validator.validate("randomword")); // false (does not contain "test")
-  /// print(validator.validate(null)); // false (required by default)
+  /// print(validator.validate("hello")); // true (passes both conditions)
+  /// print(validator.validate("hi")); // false (fails "min" validation)
+  /// print(validator.validate("this is too long")); // false (fails "max" validation)
   /// ```
   ///
-  /// - [types] A list of `VString` validators that the input must satisfy.
+  /// ### Parameters
+  /// - [types]: A list of `VString` validators to check against.
+  /// - [message] *(optional)*: A custom validation message if the value does not match all validators.
   ///
-  /// - [message] *(optional)* Custom error message.
+  /// ### Returns
+  /// The current `VString` instance with the `every` validation applied.
   @override
   VString every(covariant List<VString> types, {String? message}) {
     super.every(types, message: message ?? _message.every);
     return this;
   }
 
-  /// Marks the string validator as nullable.
+  /// Marks the string as nullable, allowing `null` as a valid value.
   ///
-  /// When a validator is marked as nullable, it allows `null` values to pass validation
-  /// without triggering an error. Other validation rules will still be applied if a non-null
-  /// value is provided.
+  /// When this method is applied, the validation will pass if the value is `null`,
+  /// otherwise, all other validation rules will be checked.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().min(3).nullable();
+  /// final validator = v.string().nullable();
   ///
-  /// print(validator.validate(null)); // true (null is allowed)
-  /// print(validator.validate("hi")); // false (does not meet min length requirement)
-  /// print(validator.validate("hello")); // true
+  /// print(validator.validate(null)); // true (valid)
+  /// print(validator.validate("hello")); // true (valid)
   /// ```
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `nullable` flag enabled.
   @override
   VString nullable() {
     super.nullable();
     return this;
   }
 
-  /// Marks the string validator as optional.
+  /// Marks the string as optional, meaning it does not require a value.
   ///
-  /// When a validator is marked as optional, it allows `null` or empty values (`""`)
-  /// to pass validation without triggering an error. Other validation rules will still
-  /// be applied if a non-empty value is provided.
+  /// When this method is applied, an empty string will pass validation, while
+  /// other validation rules will still apply if a value is provided.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
-  /// final validator = v.string().min(3).optional();
+  /// final validator = v.string().optional();
   ///
-  /// print(validator.validate(null)); // true (null is allowed)
-  /// print(validator.validate("")); // true (empty string is allowed)
-  /// print(validator.validate("hi")); // false (does not meet min length requirement)
-  /// print(validator.validate("hello")); // true
+  /// print(validator.validate("")); // true (valid)
+  /// print(validator.validate("hello")); // true (valid)
   /// ```
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the `optional` flag enabled.
   @override
   VString optional() {
     super.optional();
     return this;
   }
 
-  /// Applies a custom validation rule using a refine function.
+  /// Applies a custom validation function to the `String` value.
   ///
-  /// This method allows defining a custom validation logic using the provided `validator` function.
-  /// The function receives the input string and should return `true` if the validation passes,
-  /// or `false` if it fails. If the validation fails, the optional `message` parameter can be used
-  /// to provide a custom error message.
+  /// This method allows defining a custom validation rule using a function
+  /// that evaluates the `String` value and returns `true` if valid.
   ///
-  /// Example usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.string().refine(
-  ///   (value) => value.length > 5,
-  ///   message: "The string must have more than 5 characters",
+  ///   (value) => value.contains("valid"),
+  ///   message: "String must contain 'valid'",
   /// );
   ///
-  /// print(validator.validate("Hello")); // false
-  /// print(validator.validate("Hello World")); // true
+  /// print(validator.validate("this is valid")); // true (valid)
+  /// print(validator.validate("invalid input")); // false (invalid)
   /// ```
   ///
-  /// - [validator] A function that returns `true` if the validation passes, or `false` otherwise.
-  /// - [message] *(optional)* Custom error message.
+  /// ### Parameters
+  /// - [validator]: A function that takes a `String` and returns `true` if valid.
+  /// - [message] *(optional)*: A custom validation message.
+  ///
+  /// ### Returns
+  /// The current `VString` instance with the custom validation applied.
   @override
   VString refine(bool Function(String data) validator, {String? message}) {
     super.refine(validator, message: message ?? _message.refine);

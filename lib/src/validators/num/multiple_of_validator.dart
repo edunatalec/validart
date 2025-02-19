@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// If the value is valid, the validation passes (`null` is returned).
 /// Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = MultipleOfValidator(5, message: 'Value must be a multiple of 5');
 ///

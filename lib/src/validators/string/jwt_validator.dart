@@ -7,7 +7,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// - Payload
 /// - Signature
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final jwtValidator = JwtValidator(message: 'Invalid JWT token');
 ///

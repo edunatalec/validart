@@ -12,7 +12,7 @@ import 'package:validart/src/validators/validator.dart';
 /// the input meets specific conditions such as being required, optional, nullable, or matching
 /// predefined constraints.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final v = Validart();
 ///

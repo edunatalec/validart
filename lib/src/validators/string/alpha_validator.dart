@@ -8,7 +8,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 ///
 /// No numbers, spaces, or special characters are allowed.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final alphaValidator = AlphaValidator(message: 'Only letters are allowed');
 ///

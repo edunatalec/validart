@@ -2,7 +2,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if a given `DateTime` falls on a weekday (Monday to Friday).
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = WeekdayValidator(message: 'The date must be a weekday');
 ///

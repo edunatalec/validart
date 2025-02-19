@@ -2,7 +2,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if a given `DateTime` falls within a specified date range.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = BetweenDatesValidator(
 ///   min: DateTime(2025, 1, 1),

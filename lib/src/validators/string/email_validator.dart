@@ -11,7 +11,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// - The domain must contain at least one dot (`.`).
 /// - Consecutive dots (`..`) are not allowed.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = EmailValidator(message: 'Invalid email');
 ///

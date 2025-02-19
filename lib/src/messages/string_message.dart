@@ -6,7 +6,7 @@ import 'package:validart/src/messages/base_message.dart';
 /// This class extends `BaseMessage` and provides validation messages
 /// specific to string-based validations, such as emails, URLs, UUIDs, and more.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final stringMessages = StringMessage(
 ///   min: (value) => 'At least $value characters required',

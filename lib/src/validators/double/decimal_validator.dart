@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// If the value has a fractional part, the validation passes (`null` is returned).
 /// Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = DecimalValidator(message: 'The number must be a decimal');
 ///

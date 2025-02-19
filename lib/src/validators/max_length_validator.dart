@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// This validator checks whether the provided value has a length greater than the
 /// specified `maxLength`. If it does, a validation error message is returned.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final validator = MaxLengthValidator<String>(10, message: 'Too long');
 ///

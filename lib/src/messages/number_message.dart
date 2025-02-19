@@ -5,7 +5,7 @@ import 'package:validart/src/messages/base_message.dart';
 /// This class extends `BaseMessage` and provides validation messages specific
 /// to numerical types, supporting generic types that extend `num`, such as `int` and `double`.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final numberMessages = NumberMessage<int>(
 ///   min: (value) => 'The number must be at least $value',

@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `EqualsValidator` ensures that the input string matches the expected value,
 /// with an optional case sensitivity setting.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = EqualsValidator(
 ///   'password123',

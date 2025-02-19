@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `OddValidator` checks if the provided value is an odd number (i.e., not divisible by 2 without a remainder).
 /// If the value is odd, validation passes (`null` is returned). Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = OddValidator(message: 'The number must be odd');
 ///

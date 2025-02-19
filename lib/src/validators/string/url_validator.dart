@@ -5,7 +5,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// The `UrlValidator` ensures that the input follows a standard URL format,
 /// supporting various protocols, domain structures, and query parameters.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final urlValidator = UrlValidator(message: 'Invalid URL');
 ///

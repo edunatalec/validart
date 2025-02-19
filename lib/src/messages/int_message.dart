@@ -7,7 +7,7 @@ import 'package:validart/src/messages/number_message.dart';
 /// Extends [NumberMessage] to include additional validation messages
 /// specific to `int` numbers, such as checking for odd, even, and prime values.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final intMessage = IntMessage(
 ///   odd: 'The number must be odd',

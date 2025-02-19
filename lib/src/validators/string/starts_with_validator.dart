@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `StartsWithValidator` ensures that the input string begins with the expected prefix,
 /// with support for case-sensitive and case-insensitive validation.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = StartsWithValidator(
 ///   'Hello',

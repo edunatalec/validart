@@ -4,8 +4,8 @@ import 'package:validart/src/types/type.dart';
 import 'package:validart/src/validators/array/contains_array_validator.dart';
 import 'package:validart/src/validators/array/unique_validator.dart';
 import 'package:validart/src/validators/required_validator.dart';
-import 'package:validart/src/validators/string/max_length_validator.dart';
-import 'package:validart/src/validators/string/min_length_validator.dart';
+import 'package:validart/src/validators/max_length_validator.dart';
+import 'package:validart/src/validators/min_length_validator.dart';
 import 'package:validart/src/validators/validator.dart';
 
 /// A validation class for lists (`List<T>`) in Validart.
@@ -16,7 +16,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - Unique elements constraint
 /// - Containment validation (ensuring specific elements exist)
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final validator = v.string().array().min(2).max(5).unique();
 ///
@@ -164,24 +164,92 @@ class VArray<T> extends VRefine<List<T>> {
     return add(UniqueValidator(message: message ?? _message.unique));
   }
 
+  /// Adds a new validator to the `VArray<T>` instance.
+  ///
+  /// This method allows chaining multiple array validation rules, ensuring
+  /// that the list meets all defined constraints.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().array().min(2).max(5);
+  ///
+  /// print(validator.validate(['apple', 'banana'])); // true
+  /// print(validator.validate(['apple'])); // false (too few elements)
+  /// print(validator.validate(['apple', 'banana', 'cherry', 'date', 'fig', 'grape'])); // false (too many elements)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [validator]: A `Validator<List<T>>` instance to be added.
+  ///
+  /// ### Returns
+  /// The current `VArray<T>` instance with the added validator.
   @override
   VArray<T> add(Validator<List<T>> validator) {
     super.add(validator);
     return this;
   }
 
+  /// Marks the array as nullable, allowing `null` as a valid input.
+  ///
+  /// When this method is applied, `null` values will pass validation, while
+  /// non-null values will still be subject to all other validation rules.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().array().nullable();
+  ///
+  /// print(validator.validate(null)); // true (null is allowed)
+  /// print(validator.validate([])); // false (empty array is still invalid)
+  /// print(validator.validate(['apple', 'banana'])); // true
+  /// ```
+  ///
+  /// ### Returns
+  /// The current `VArray<T>` instance with the `nullable` flag enabled.
   @override
   VArray<T> nullable() {
     super.nullable();
     return this;
   }
 
+  /// Marks the array as optional.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().array().optional();
+  ///
+  /// print(validator.validate([])); // true
+  /// print(validator.validate(null)); // false
+  /// print(validator.validate(['apple', 'banana'])); // true
+  /// ```
+  ///
+  /// ### Returns
+  /// The current `VArray<T>` instance with the `optional` flag enabled.
   @override
   VArray<T> optional() {
     super.optional();
     return this;
   }
 
+  /// Applies a custom validation function to the array.
+  ///
+  /// This method allows defining a custom validation logic for the array,
+  /// enabling checks beyond the built-in validators. The provided function
+  /// receives the array and should return `true` if valid.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().array().refine((list) => list.length % 2 == 0);
+  ///
+  /// print(validator.validate(['apple', 'banana'])); // true (even length)
+  /// print(validator.validate(['apple'])); // false (odd length)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [validator]: A function that receives the array and returns `true` if valid.
+  /// - [message] *(optional)*: A custom validation message if the rule fails.
+  ///
+  /// ### Returns
+  /// The current `VArray<T>` instance with the custom validation applied.
   @override
   VArray<T> refine(
     bool Function(List<T> data) validator, {
@@ -191,6 +259,32 @@ class VArray<T> extends VRefine<List<T>> {
     return this;
   }
 
+  /// Retrieves the error message for the given array.
+  ///
+  /// This method first applies all validators attached to the array itself.
+  /// If the array-level validation passes, it then checks each individual item
+  /// against the base type validator (`_type`). The first validation failure
+  /// encountered at either level will return an error message.
+  ///
+  /// ### Validation Order
+  /// 1. The array-level validators (e.g., `min()`, `max()`, `unique()`) are checked first.
+  /// 2. If the array passes, each item inside the array is validated individually.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.string().array().min(2).max(5);
+  ///
+  /// print(validator.getErrorMessage(['apple'])); // 'The array must have at least 2 items' (array validation fails)
+  /// print(validator.getErrorMessage(['apple', 'banana', 'cherry', 'date', 'fig', 'grape'])); // 'The array must have at most 5 items' (array validation fails)
+  /// print(validator.getErrorMessage(['apple', 'banana', 'cherry', 'date', 'fig'])); // null
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [value]: The array to be validated.
+  ///
+  /// ### Returns
+  /// - `null` if the array and all its items pass validation.
+  /// - An error message if the array fails any validation rule.
   @override
   String? getErrorMessage(List<T>? value) {
     if (value == null && isNullable) return null;

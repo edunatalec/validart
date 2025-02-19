@@ -8,7 +8,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `PhoneValidator` ensures that the input string matches a specific phone number format,
 /// considering country code and area code configurations.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = PhoneValidator(
 ///   PhoneType.brazil,

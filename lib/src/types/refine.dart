@@ -3,7 +3,7 @@ import 'package:validart/src/validators/refine_validator.dart';
 
 /// A base class that extends `VType<T>` and provides custom validation rules.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = v.string().refine(
 ///   (value) => value.contains('@'),

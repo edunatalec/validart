@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `BetweenValidator` checks if the provided value is between the specified [min] and [max] values (inclusive).
 /// If the value is within the range, validation passes (`null` is returned). Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = BetweenValidator(10, 20, message: 'Value must be between 10 and 20');
 ///

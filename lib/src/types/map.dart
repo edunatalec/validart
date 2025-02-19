@@ -7,7 +7,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validator for `Map<String, dynamic>` values, enabling object validation.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final v = Validart();
 ///
@@ -23,109 +23,84 @@ class VMap extends VType<Map<String, dynamic>> {
   /// Stores the object schema definition.
   final Map<String, VType> _object;
 
-  /// Stores the validation messages for `Map`-related errors.
+  /// Stores the validation messages for `Map` related errors.
   final MapMessage _message;
 
-  /// Creates an instance of `VMap` with a given schema and optional custom messages.
+  /// Creates an instance of `VMap` for validating key-value pairs.
   ///
-  /// Ensures the object is not empty by default.
+  /// This constructor initializes the map validator and ensures that the map contains at least one field.
+  /// By default, a `RequiredValidator` is applied to enforce that the map is not empty unless explicitly marked as optional.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.map({
+  ///   'name': v.string().min(3),
+  ///   'age': v.int().min(18),
+  /// });
+  ///
+  /// print(validator.validate({'name': 'John', 'age': 25})); // true
+  /// print(validator.validate({})); // 'Map is required' (invalid)
+  /// ```
+  ///
+  /// ### Parameters
+  /// - [_object]: A map where each key is a string and each value is a `VType`, representing the validation rules for each field.
+  /// - [_message]: The validation messages used for error handling.
+  /// - [message]: *(optional)* A custom error message for required validation.
+  ///
+  /// ### Behavior
+  /// - The map **must** contain at least one field; otherwise, an assertion error is thrown.
+  /// - By default, the map is required. To allow an empty or missing map, use `.optional()`.
   VMap(this._object, this._message, {String? message}) {
     assert(_object.isNotEmpty, 'Map must have at least one field.');
     add(RequiredValidator(message: message ?? _message.required));
   }
 
-  /// Retrieves the object schema.
+  /// Retrieves the object schema containing validation types for each key.
+  ///
+  /// This getter returns a map where each key represents a field name, and the value is a `VType`
+  /// instance defining the validation rules for that field.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final schema = v.object({
+  ///   'name': v.string().min(3),
+  ///   'age': v.number().min(18),
+  /// });
+  ///
+  /// print(schema.object);
+  /// // { "name": VString, "age": VNumber }
+  /// ```
+  ///
+  /// ### Returns
+  /// A `Map<String, VType>` containing the validation types associated with each field.
   Map<String, VType> get object => _object;
 
-  /// Creates a validator for an array (list) of `Map<String, dynamic>` values.
+  /// Creates an array validator (`VArray<Map<String, dynamic>>`) for validating lists of objects.
   ///
-  /// This method ensures that each item in the list is validated using the
-  /// current `VMap` instance. The array itself can also have additional
-  /// constraints, such as `minLength`, `maxLength`, `contains`, and `unique`.
+  /// This method enables validation of arrays where each element is a `Map<String, dynamic>`,
+  /// applying the same validation rules defined for the individual map validator.
   ///
-  /// ## Example Usage:
-  /// ```dart
-  /// final validator = v.map().array();
+  /// ### Parameters
+  /// - [message] *(optional)*: A custom validation message for array validation errors.
   ///
-  /// print(validator.validate([
-  ///   {'name': 'Alice', 'age': 25},
-  ///   {'name': 'Bob', 'age': 30}
-  /// ])); // true
-  ///
-  /// print(validator.validate([
-  ///   {'name': 'Alice', 'age': 'invalid'}, // Invalid: 'age' should be an int
-  /// ])); // false
-  /// ```
-  ///
-  /// You can also specify additional constraints:
-  /// ```dart
-  /// final validator = v.map().array().min(2).max(5);
-  ///
-  /// print(validator.validate([
-  ///   {'name': 'Alice', 'age': 25},
-  ///   {'name': 'Bob', 'age': 30}
-  /// ])); // true
-  ///
-  /// print(validator.validate([{'name': 'Alice', 'age': 25}])); // false (min 2 required)
-  /// ```
-  ///
-  /// @param [message] Optional custom error message for the array validation.
-  /// @returns A `VArray<Map<String, dynamic>>` instance.
+  /// ### Returns
+  /// A `VArray<Map<String, dynamic>>` instance for validating lists of objects.
   VArray<Map<String, dynamic>> array({String? message}) {
     return VArray<Map<String, dynamic>>(this, _message.array, message: message);
   }
 
-  /// Adds a validator to the `VMap` instance.
+  /// Applies a custom validation function to the map.
   ///
-  /// Allows chaining multiple validation rules.
-  @override
-  VMap add(Validator<Map<String, dynamic>> validator) {
-    super.add(validator);
-    return this;
-  }
-
-  /// Marks the object as nullable, allowing it to be `null`.
+  /// This method allows defining a custom validation rule using a function that evaluates
+  /// the map and returns `true` if valid. The validation is applied to a specific key path.
   ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.map({'name': v.string()}).nullable();
-  /// print(validator.validate(null)); // true
-  /// ```
-  @override
-  VMap nullable() {
-    super.nullable();
-    return this;
-  }
-
-  /// Marks the object as optional, allowing it to be omitted.
+  /// ### Parameters
+  /// - [validator]: A function that takes a `Map<String, dynamic>` and returns `true` if valid.
+  /// - [path]: The specific key path in the map where the validation should be applied.
+  /// - [message] *(optional)*: A custom error message if the validation fails.
   ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.map({'name': v.string()}).optional();
-  /// print(validator.validate(null)); // true
-  /// ```
-  @override
-  VMap optional() {
-    super.optional();
-    return this;
-  }
-
-  /// Applies a custom validation function to the object.
-  ///
-  /// Example (password confirmation):
-  /// ```dart
-  /// final validator = v.map({
-  ///   'password': v.string().min(8),
-  ///   'confirmPassword': v.string().min(8),
-  /// }).refine(
-  ///   (data) => data?['password'] == data?['confirmPassword'],
-  ///   path: 'confirmPassword',
-  ///   message: 'Passwords do not match',
-  /// );
-  ///
-  /// print(validator.validate({'password': 'secure123', 'confirmPassword': 'secure123'})); // true
-  /// print(validator.validate({'password': 'secure123', 'confirmPassword': 'wrongpass'})); // false
-  /// ```
+  /// ### Returns
+  /// The current `VMap` instance with the custom validation applied.
   VMap refine(
     bool Function(Map<String, dynamic> data) validator, {
     required String path,
@@ -140,25 +115,62 @@ class VMap extends VType<Map<String, dynamic>> {
     );
   }
 
-  /// Retrieves error messages if the validation fails.
+  /// Adds a custom validator to the `VMap` instance.
   ///
-  /// This method aggregates errors from individual field validations and custom refinements.
+  /// This method allows adding additional validation rules for map values,
+  /// enabling more flexible and specific constraints.
   ///
-  /// Example:
-  /// ```dart
-  /// final validator = v.map({
-  ///   'email': v.string().email(),
-  ///   'password': v.string().min(8),
-  /// });
+  /// ### Parameters
+  /// - [validator]: A custom validator that extends `Validator<Map<String, dynamic>>`.
   ///
-  /// final errors = validator.getErrorMessage({
-  ///   'email': 'invalid-email',
-  ///   'password': '123'
-  /// });
+  /// ### Returns
+  /// The current `VMap` instance with the added validator.
+  @override
+  VMap add(Validator<Map<String, dynamic>> validator) {
+    super.add(validator);
+    return this;
+  }
+
+  /// Marks the map as nullable, allowing `null` as a valid value.
   ///
-  /// print(errors);
-  /// // Output: {'email': 'Enter a valid email', 'password': 'At least 8 characters required'}
-  /// ```
+  /// When this method is applied, the validation will pass if the value is `null`,
+  /// otherwise, all other validation rules will be checked.
+  ///
+  /// ### Returns
+  /// The current `VMap` instance with the `nullable` flag enabled.
+  @override
+  VMap nullable() {
+    super.nullable();
+    return this;
+  }
+
+  /// Marks the map as optional, meaning it does not require a value.
+  ///
+  /// When this method is applied, an empty map will pass validation, while
+  /// other validation rules will still apply if a value is provided.
+  ///
+  /// ### Returns
+  /// The current `VMap` instance with the `optional` flag enabled.
+  @override
+  VMap optional() {
+    super.optional();
+    return this;
+  }
+
+  /// Retrieves the error message for the given map.
+  ///
+  /// This method first applies all validators attached to the map itself.
+  /// If the map-level validation passes, it then checks each individual entry
+  /// against its respective validation rules. The first validation failure
+  /// encountered at either level will be returned.
+  ///
+  /// ### Validation Order
+  /// 1. The map-level validators (e.g., `.required()`, `.refine()`) are checked first.
+  /// 2. If the map passes, each key-value pair inside the map is validated individually.
+  ///
+  /// ### Returns
+  /// - `null` if the map and all its entries pass validation.
+  /// - A `Map<String, dynamic>` containing validation error messages for failing fields.
   @override
   Map<String, dynamic>? getErrorMessage(Map<String, dynamic>? value) {
     if (value == null && isNullable) return null;

@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// The `ContainsArrayValidator` ensures that a given list includes a predefined set of elements.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = ContainsArrayValidator(
 ///   requiredElements: [1, 2, 3],

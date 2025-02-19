@@ -21,7 +21,7 @@ import 'package:validart/src/types/type.dart';
 /// This class enables custom validation rules and supports chaining for
 /// complex validation logic.
 ///
-/// Example usage:
+/// ### Example
 ///
 /// ```dart
 /// final v = Validart();
@@ -121,7 +121,7 @@ class Validart {
   /// date-related validation rules such as checking if a date is before or after
   /// a certain value, falls within a specific range, or occurs on a weekday or weekend.
   ///
-  /// ## Example Usage:
+  /// ### Example
   /// ```dart
   /// final validator = v.date().after(DateTime(2024, 1, 1));
   /// ```

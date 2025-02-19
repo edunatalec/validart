@@ -7,7 +7,7 @@ import 'package:validart/src/messages/number_message.dart';
 /// This class extends `NumberMessage<num>`, inheriting general validation messages
 /// for numerical types while allowing customization for `num`-specific error messages.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final numMessages = NumMessage(
 ///   min: (value) => 'The number must be at least $value',

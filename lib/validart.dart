@@ -68,8 +68,6 @@ export 'src/validators/string/ends_with_validator.dart';
 export 'src/validators/string/equals_validator.dart';
 export 'src/validators/string/ip_validator.dart';
 export 'src/validators/string/jwt_validator.dart';
-export 'src/validators/string/max_length_validator.dart';
-export 'src/validators/string/min_length_validator.dart';
 export 'src/validators/string/password_validator.dart';
 export 'src/validators/string/pattern_validator.dart';
 export 'src/validators/string/phone_validator.dart';
@@ -81,6 +79,8 @@ export 'src/validators/string/uuid_validator.dart';
 
 export 'src/validators/any_validator.dart';
 export 'src/validators/every_validator.dart';
+export 'src/validators/max_length_validator.dart';
+export 'src/validators/min_length_validator.dart';
 export 'src/validators/refine_map_validator.dart';
 export 'src/validators/refine_validator.dart';
 export 'src/validators/required_validator.dart';

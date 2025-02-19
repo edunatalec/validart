@@ -8,7 +8,7 @@ import 'package:validart/src/messages/number_message.dart';
 /// specific to `double` numbers, such as checking for finite values,
 /// decimal numbers, and integer constraints.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final doubleMessage = DoubleMessage(
 ///   finite: 'The number must be finite',

@@ -6,7 +6,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// The `UUIDValidator` ensures that the input string follows the correct UUID format
 /// based on the specified version (`v1`, `v3`, `v4`, or `v5`).
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final uuidV4Validator = UUIDValidator();
 ///

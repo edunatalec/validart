@@ -6,7 +6,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// This is useful for validating network-related inputs, such as IP configurations, API requests,
 /// or user-provided addresses.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = IPValidator(message: 'Invalid IP address');
 ///

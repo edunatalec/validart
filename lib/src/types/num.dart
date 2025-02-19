@@ -9,7 +9,7 @@ import 'package:validart/src/validators/validator.dart';
 /// `VNum` is used to validate both integers and floating-point numbers,
 /// allowing constraints like minimum/maximum values, positivity, negativity, and divisibility.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final v = Validart();
 ///
@@ -204,7 +204,7 @@ class VNum extends VNumber<num> {
   ///
   /// ### Example
   /// ```dart
-  /// final validator = v.num().add(MyCustomValidator());
+  /// final validator = v.num().add(MyCustomNumValidator());
   /// ```
   ///
   /// ### Parameters
@@ -297,6 +297,29 @@ class VNum extends VNumber<num> {
     return this;
   }
 
+  /// Marks the numeric value as nullable.
+  ///
+  /// This method allows `null` values to be considered valid, meaning the validator
+  /// will not return an error if the input is `null`. This is useful when dealing
+  /// with optional numerical fields that may not always have a value.
+  ///
+  /// ### Example
+  /// ```dart
+  /// final validator = v.num().nullable();
+  ///
+  /// print(validator.validate(10));  // true
+  /// print(validator.validate(0));   // true
+  /// print(validator.validate(null)); // true (null is now valid)
+  /// ```
+  ///
+  /// ### Returns
+  /// The current `VNum` instance with the `nullable` flag enabled.
+  @override
+  VNum nullable() {
+    super.nullable();
+    return this;
+  }
+
   /// Marks the numeric value as optional.
   ///
   /// Unlike other data types, marking a `num` as optional **does not** change its validation behavior,
@@ -319,29 +342,6 @@ class VNum extends VNumber<num> {
   @override
   VNum optional() {
     super.optional();
-    return this;
-  }
-
-  /// Marks the numeric value as nullable.
-  ///
-  /// This method allows `null` values to be considered valid, meaning the validator
-  /// will not return an error if the input is `null`. This is useful when dealing
-  /// with optional numerical fields that may not always have a value.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().nullable();
-  ///
-  /// print(validator.validate(10));  // true
-  /// print(validator.validate(0));   // true
-  /// print(validator.validate(null)); // true (null is now valid)
-  /// ```
-  ///
-  /// ### Returns
-  /// The current `VNum` instance with the `nullable` flag enabled.
-  @override
-  VNum nullable() {
-    super.nullable();
     return this;
   }
 

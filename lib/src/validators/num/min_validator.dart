@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// If the value is within the allowed range, validation passes (`null` is returned).
 /// Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = MinValidator(10, message: 'Value must be at least 10');
 ///

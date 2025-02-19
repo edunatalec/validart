@@ -7,7 +7,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - The length is between **13 and 19 digits**.
 /// - The number passes the **Luhn Algorithm**, which is used to validate card numbers.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final cardValidator = CardValidator(message: 'Invalid card number');
 ///

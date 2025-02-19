@@ -12,7 +12,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - `dd/MM/yyyy` (e.g., `16/02/2025`)
 /// - `MM/dd/yyyy` (e.g., `02/16/2025`)
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = DateValidator(message: 'Invalid date');
 ///

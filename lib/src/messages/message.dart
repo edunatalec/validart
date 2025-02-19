@@ -12,7 +12,7 @@ import 'package:validart/src/messages/string_message.dart';
 /// This class holds instances of different validation message types,
 /// allowing customization of validation error messages for various data types.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final customMessages = Message(
 ///   string: StringMessage(required: 'This field cannot be empty'),
@@ -72,7 +72,7 @@ class Message {
 
   /// Creates a copy of this `Message` instance with the ability to override specific fields.
   ///
-  /// ## Example usage:
+  /// ### Example
   /// ```dart
   /// final updatedMessages = defaultMessages.copyWith(
   ///   string: StringMessage(required: 'Custom required message'),

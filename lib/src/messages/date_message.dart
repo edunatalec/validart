@@ -7,7 +7,7 @@ import 'package:validart/src/messages/base_message.dart';
 /// validations, such as checking if a date is before or after another date,
 /// falls within a range, or occurs on a weekday or weekend.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final dateMessage = DateMessage(
 ///   after: 'The date must be after the given date',

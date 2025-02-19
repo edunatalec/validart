@@ -9,7 +9,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - The CNPJ is not a repeated sequence (e.g., "00000000000000").
 /// - The two check digits are correctly calculated.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = CNPJValidator(message: 'Invalid CNPJ');
 ///

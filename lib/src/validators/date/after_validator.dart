@@ -2,7 +2,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if a given `DateTime` is after a specific date.
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = AfterValidator(
 ///   date: DateTime(2025, 1, 1),

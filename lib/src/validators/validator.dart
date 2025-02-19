@@ -3,7 +3,7 @@
 /// This class serves as the foundation for all validators.
 /// It provides a `validate` method that must be implemented by subclasses.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// class CustomValidator extends Validator<String> {
 ///   @override
@@ -31,7 +31,7 @@ abstract class Validator<T> {
 /// This class extends `Validator<T>` by requiring a validation message,
 /// which is automatically included when validation fails.
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// class MinLengthValidator extends ValidatorWithMessage<String> {
 ///   final int minLength;

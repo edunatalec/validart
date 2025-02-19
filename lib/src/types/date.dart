@@ -16,7 +16,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - Date comparisons (`before`, `after`, `betweenDates`)
 /// - Day type validation (`weekday`, `weekend`)
 ///
-/// ## Example Usage:
+/// ### Example
 /// ```dart
 /// final validator = v.date().after(DateTime(2024, 1, 1));
 ///

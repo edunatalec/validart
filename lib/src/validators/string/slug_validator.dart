@@ -7,7 +7,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// - Numbers (`0-9`)
 /// - Hyphens (`-`)
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final slugValidator = SlugValidator(message: 'Invalid slug format');
 ///

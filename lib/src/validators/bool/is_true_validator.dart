@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// If the value is `true`, the validation passes (`null` is returned).
 /// Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = IsTrueValidator(message: 'The value must be true');
 ///

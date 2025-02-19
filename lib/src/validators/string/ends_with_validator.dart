@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `EndsWithValidator` ensures that the input string ends with the
 /// specified suffix, with an optional case sensitivity setting.
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = EndsWithValidator(
 ///   'dart',

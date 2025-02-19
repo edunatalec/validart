@@ -14,7 +14,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - ✅ At least **one special character** (`!@#\$%^&*(),.?":{}|<>` etc.)
 /// - ❌ **No spaces allowed**
 ///
-/// ## Example usage:
+/// ### Example
 /// ```dart
 /// final validator = PasswordValidator(message: 'A senha não atende aos critérios de segurança');
 ///

@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// The `IntegerValidator` checks if the provided value is a whole number (i.e., it has no decimal part).
 /// If the value is an integer, validation passes (`null` is returned). Otherwise, it returns the provided error [message].
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = IntegerValidator(message: 'The number must be an integer');
 ///

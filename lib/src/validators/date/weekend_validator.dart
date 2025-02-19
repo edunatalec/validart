@@ -2,7 +2,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validator that checks if a given `DateTime` falls on a weekend (Saturday or Sunday).
 ///
-/// Example usage:
+/// ### Example
 /// ```dart
 /// final validator = WeekendValidator(message: 'The date must be a weekend');
 ///
