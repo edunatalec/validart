@@ -286,7 +286,7 @@ class VArray<T> extends VRefine<List<T>> {
   /// - `null` if the array and all its items pass validation.
   /// - An error message if the array fails any validation rule.
   @override
-  String? getErrorMessage(List<T>? value) {
+  getErrorMessage(List<T>? value) {
     if (value == null && isNullable) return null;
 
     for (final validator in validators) {
