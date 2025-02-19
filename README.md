@@ -5,7 +5,7 @@
 
 **Validart** is a flexible and type-safe validation library for Dart, inspired by [Zod](https://zod.dev).
 
-Built for **chaining**, **custom rules**, and **nullable values**. Validart includes validators for **emails, phone numbers, numbers, and more**, making validation in Dart simple and scalable.
+Built for **chaining**, **custom rules**, and **nullable values**. Validart includes validators for **emails, phone numbers, numbers, dates, and more**, making validation in Dart simple and scalable.
 
 ## Installation
 
@@ -27,7 +27,7 @@ This will add a line like this to your project's `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  validart: ^0.0.1
+  validart: ^0.0.3
 ```
 
 Import Validart in your Dart file:
@@ -60,30 +60,29 @@ print(validator.getErrorMessage('invalid-email'));
 
 ### String
 
+Strings are one of the most commonly validated types. In Validart, you can chain multiple validation rules to ensure that a string meets specific criteria.
+
 ```dart
 final validator = v.string().min(5).max(20).email();
 
 print(validator.validate('test')); // false (too short)
 print(validator.validate('user@example.com')); // true
-print(validator.getErrorMessage('invalid-email'));
-// "Enter a valid email"
+print(validator.validate('example@com')); // false (invalid email format)
 ```
 
 #### Available String Validations
 
-- `.min(length)` - Minimum length requirement
-- `.max(length)` - Maximum length requirement
-- `.email()` - Validates an email format
-- `.uuid()` - Validates a UUID
-- `.url()` - Validates a URL
-- `.phone(PhoneType.brazil)` - Validates phone numbers based on country
-- `.cpf()`, `.cnpj()`, `.cep()` - Validates Brazilian CPF, CNPJ, and CEP
-- `.contains(value)`, `.equals(value)`
-- `.pattern(regex)`, `.startsWith(value)`, `.endsWith(value)`
-- `.refine((data) => condition)`
-- `.nullable()`, `.optional()`
+- `.min(length)`, `.max(length)` - Ensures the string length is within the specified range.
+- `.email()`, `.uuid()`, `.url()`, `.date()` - Validates against common string formats.
+- `.phone(PhoneType.brazil)` - Ensures the string is a valid phone number.
+- `.cpf()`, `.cnpj()`, `.cep()` - Validates Brazilian CPF, CNPJ, and CEP numbers.
+- `.contains(value)`, `.equals(value)`, `.pattern(regex)`, `.startsWith(value)`, `.endsWith(value)` - Validates string structure and content.
+- `.alpha()`, `.alphanumeric()`, `.slug()`, `.password()`, `.card()`, `.jwt()` - Ensures the string matches specific types.
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Provides additional flexibility.
 
 ### int
+
+Integers are whole numbers, and Validart provides a robust set of validation methods to ensure your numbers meet specific criteria.
 
 ```dart
 final validator = v.int().min(10).max(100).odd();
@@ -95,36 +94,35 @@ print(validator.validate(100)); // false (not odd)
 
 #### Available int Validations
 
-- `.min(value)`, `.max(value)`
-- `.positive()`, `.negative()`
-- `.odd()`, `.even()`
-- `.multipleOf(value)`
-- `.between(min, max)`
-- `.refine((data) => condition)`
-- `.nullable()`, `.optional()`
+- `.min(value)`, `.max(value)` - Restricts the integer within a range.
+- `.positive()`, `.negative()` - Ensures the integer is positive or negative.
+- `.odd()`, `.even()` - Checks if the integer is odd or even.
+- `.multipleOf(value)`, `.between(min, max)` - Enforces divisibility and range.
+- `.prime()` - Checks if the integer is a prime number.
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Allows additional constraints and flexibility.
 
 ### double
+
+Doubles represent floating-point numbers. They are useful for values that require decimal precision, such as prices or scientific measurements.
 
 ```dart
 final validator = v.double().positive().decimal();
 
 print(validator.validate(5.5));  // true
 print(validator.validate(-2.3)); // false (not positive)
+print(validator.validate(3)); // true (even though it's an int, it's valid as a double)
 ```
 
 #### Available double Validations
 
-- `.min(value)`, `.max(value)`
-- `.positive()`, `.negative()`
-- `.finite()`, `.decimal()`, `.integer()`
-- `.multipleOf(value)`
-- `.between(min, max)`
-- `.refine((data) => condition)`
-- `.nullable()`, `.optional()`
+- `.min(value)`, `.max(value)`, `.positive()`, `.negative()` - Controls numerical ranges.
+- `.finite()`, `.decimal()`, `.integer()` - Ensures valid floating-point values.
+- `.multipleOf(value)`, `.between(min, max)` - Validates divisibility and range.
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Allows customization.
 
 ### num
 
-Supports both `int` and `double`.
+`num` supports both `int` and `double`, making it versatile for handling both types.
 
 ```dart
 final validator = v.num().between(1, 10);
@@ -135,12 +133,24 @@ print(validator.validate(11.2)); // false (out of range)
 
 #### Available num Validations
 
-- `.min(value)`, `.max(value)`
-- `.positive()`, `.negative()`
-- `.multipleOf(value)`
-- `.between(min, max)`
-- `.refine((data) => condition)`
-- `.nullable()`, `.optional()`
+- `.min(value)`, `.max(value)`, `.positive()`, `.negative()` - Defines numerical limits.
+- `.multipleOf(value)`, `.between(min, max)` - Checks range constraints.
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Ensures flexibility.
+
+### Date
+
+Date validation is essential for handling timestamps and scheduling events.
+
+```dart
+final validator = v.date();
+
+print(validator.validate(DateTime(2025, 5, 20))); // true
+print(validator.validate("2025-05-20")); // false (not a DateTime object)
+```
+
+#### Available Date Validations
+
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Provides additional flexibility.
 
 ### bool
 
@@ -153,10 +163,8 @@ print(validator.validate(false)); // false
 
 #### Available bool Validations
 
-- `.isTrue()` - Must be `true`
-- `.isFalse()` - Must be `false`
-- `.refine((data) => condition)`
-- `.nullable()`, `.optional()`
+- `.isTrue()`, `.isFalse()` - Enforces boolean constraints.
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Customization options.
 
 ### map
 
@@ -166,12 +174,7 @@ Validates objects with structured keys.
 final validator = v.map({
   'email': v.string().email(),
   'password': v.string().min(8).max(20),
-  'confirmPassword': v.string().min(8).max(20),
-}).refine(
-  (data) => data?['password'] == data?['confirmPassword'],
-  path: 'confirmPassword',
-  message: 'Passwords do not match',
-);
+});
 ```
 
 #### Available map Validations
@@ -204,23 +207,125 @@ print(validator.validate('test123')); // true (min length and contains 'test')
 print(validator.validate('12345'));   // false (does not contain 'test')
 ```
 
-## Arrays
+## Arrays in Validart
 
-Validart allows validating lists of values using **`.array()`**, ensuring that each element meets the defined validation rules.
+Validart allows validating **lists of values** using `.array()`. This is useful when you need to ensure that all elements in an array conform to specific validation rules.
+
+For example, you can validate an array of strings where each string must be an email:
 
 ```dart
-final validator = v.string().phone(
-  PhoneType.brazil,
-  areaCode: AreaCodeFormat.required,
-  countryCode: CountryCodeFormat.none,
-).array();
+final validator = v.string().email().array();
 
-print(validator.validate(['11 98765-4321'])); // true
-print(validator.validate(['11 98765-4321', '11 98765-4322'])); // true
-
-print(validator.validate(['98765-4321'])); // false
-print(validator.validate(['11 98765-4321', '98765-4321'])); // false
+print(validator.validate(['user@example.com', 'test@valid.com'])); // true
+print(validator.validate(['user@example.com', 'invalid-email'])); // false
 ```
+
+### **Available Array Validations**
+
+When working with `.array()`, you can apply additional validations such as:
+
+- `.unique()` - Ensures that all elements in the array are unique.
+- `.contains(value)` - Requires that the array contains certain values.
+- `.min(length)`, `.max(length)` - Restricts the number of elements in the array.
+- `.nullable()`, `.optional()` - Allows handling `null` values or empty arrays.
+- `.refine((data) => condition)` - Adds a custom validation function.
+
+### **Validating Unique Arrays**
+
+You can enforce uniqueness within an array using `.unique()`:
+
+```dart
+final validator = v.string().array().unique();
+
+print(validator.validate(['a', 'b', 'c'])); // true
+print(validator.validate(['a', 'b', 'a'])); // false (duplicate 'a')
+```
+
+### **Ensuring Certain Values are Present**
+
+Use `.contains([...])` to ensure specific values exist in the array:
+
+```dart
+final validator = v.string().array().contains(['admin', 'user']);
+
+print(validator.validate(['admin', 'user', 'guest'])); // true
+print(validator.validate(['admin', 'guest'])); // false (missing 'user')
+```
+
+### **Controlling Array Length**
+
+You can restrict the number of elements using `.min(length)` and `.max(length)`:
+
+```dart
+final validator = v.string().array().min(2).max(5);
+
+print(validator.validate(['one', 'two'])); // true
+print(validator.validate(['one'])); // false (less than 2 elements)
+print(validator.validate(['one', 'two', 'three', 'four', 'five', 'six'])); // false (more than 5 elements)
+```
+
+### **Nullable and Optional Arrays**
+
+- `.nullable()` allows the array itself to be `null`.
+- `.optional()` allows an empty array but does not accept `null`.
+
+```dart
+final nullableValidator = v.string().array().nullable();
+print(nullableValidator.validate(null)); // true
+print(nullableValidator.validate(['valid'])); // true
+
+final optionalValidator = v.string().array().optional();
+print(optionalValidator.validate([])); // true
+print(optionalValidator.validate(null)); // false
+```
+
+### **Custom Refinements on Arrays**
+
+You can apply custom logic using `.refine()`:
+
+```dart
+final validator = v.string().array().refine(
+  (list) => list.length > 2,
+  message: 'The array must contain more than 2 items.',
+);
+
+print(validator.validate(['a', 'b', 'c'])); // true
+print(validator.validate(['a', 'b'])); // false
+```
+
+---
+
+## **Validating Integer Arrays**
+
+Similarly, you can validate arrays of integers using `v.int().array()`, applying constraints such as:
+
+```dart
+final validator = v.int().array().min(2).max(5).unique();
+
+print(validator.validate([1, 2, 3])); // true
+print(validator.validate([1, 1, 2])); // false (duplicate 1)
+print(validator.validate([1])); // false (not enough elements)
+```
+
+You can also ensure all integers are within a specific range:
+
+```dart
+final validator = v.int().between(10, 50).array();
+
+print(validator.validate([15, 20, 30])); // true
+print(validator.validate([5, 60])); // false (out of range)
+```
+
+Using `.multipleOf()`, you can enforce divisibility:
+
+```dart
+final validator = v.int().multipleOf(5).array();
+
+print(validator.validate([5, 10, 15])); // true
+print(validator.validate([5, 7, 10])); // false (7 is not a multiple of 5)
+```
+
+This makes it easy to validate structured lists of integers while ensuring specific constraints.
 
 ## Customizing Validation Messages
 
