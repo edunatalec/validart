@@ -6,7 +6,7 @@ import 'package:validart/src/validators/validator.dart';
 /// This validator is useful when you want a value to match at least one of
 /// multiple possible validation rules.
 ///
-/// Example:
+/// ### Example
 /// ```dart
 /// final validator = v.string().any([
 ///   v.string().email(),

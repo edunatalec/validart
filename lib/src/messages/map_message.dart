@@ -34,7 +34,7 @@ class MapMessage extends BaseMessage {
   /// This allows inheriting common validation messages while keeping
   /// specific map-related messages intact.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
   /// final mapMessage = MapMessage().mergeWithBase(baseMessage);
@@ -55,7 +55,7 @@ class MapMessage extends BaseMessage {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = MapMessage();
   /// final customMessage = defaultMessage.copyWith(required: 'A map is required');

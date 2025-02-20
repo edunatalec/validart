@@ -17,7 +17,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('Invalid@!')); // 'Only letters and numbers are allowed' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [pattern]: The regular expression pattern used for validation.
 /// - [message]: The error message returned if the validation fails.
 ///

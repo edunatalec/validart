@@ -60,7 +60,7 @@ class IntMessage extends NumberMessage<int> {
   /// Merges the current `IntMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
   /// final intMessage = IntMessage().mergeWithBase(baseMessage);
@@ -82,7 +82,7 @@ class IntMessage extends NumberMessage<int> {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = IntMessage();
   /// final customMessage = defaultMessage.copyWith(odd: 'Must be an odd number');

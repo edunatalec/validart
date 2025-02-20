@@ -18,7 +18,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// print(alphaValidator.validate('Test@')); // 'Only letters are allowed' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 class AlphaValidator extends PatternValidator {
   /// Creates an `AlphaValidator` to ensure only letters are allowed.

@@ -15,7 +15,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(cardValidator.validate('1234567812345678')); // 'Invalid card number' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 class CardValidator extends ValidatorWithMessage<String> {
   /// Creates a `CardValidator` instance with a custom error message.

@@ -15,7 +15,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(primeValidator.validate(9)); // 'The number must be prime' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 class PrimeValidator extends ValidatorWithMessage<int> {
   /// Creates a `PrimeValidator` to check if an integer is a prime number.

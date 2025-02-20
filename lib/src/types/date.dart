@@ -11,11 +11,6 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validation class for `DateTime` values in Validart.
 ///
-/// The `VDate` class provides validation for date-based constraints, including:
-/// - Required validation
-/// - Date comparisons (`before`, `after`, `betweenDates`)
-/// - Day type validation (`weekday`, `weekend`)
-///
 /// ### Example
 /// ```dart
 /// final validator = v.date().after(DateTime(2024, 1, 1));

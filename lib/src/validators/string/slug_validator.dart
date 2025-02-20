@@ -16,7 +16,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// print(slugValidator.validate('slug_with_underscores')); // 'Invalid slug format' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 ///
 /// ## Slug Format:

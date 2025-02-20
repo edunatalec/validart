@@ -35,7 +35,7 @@ class NumMessage extends NumberMessage<num> {
   /// Merges the current `NumMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
   /// final numMessage = NumMessage().mergeWithBase(baseMessage);
@@ -57,7 +57,7 @@ class NumMessage extends NumberMessage<num> {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = NumMessage();
   /// final customMessage = defaultMessage.copyWith(positive: 'Must be positive');

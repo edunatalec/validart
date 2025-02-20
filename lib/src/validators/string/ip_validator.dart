@@ -24,7 +24,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// ✅ **IPv4:** Matches `XXX.XXX.XXX.XXX` where `XXX` is between 0-255.
 /// ✅ **IPv6:** Matches the full 8-group hexadecimal representation (`xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx`).
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: The error message returned if the validation fails.
 class IPValidator extends PatternValidator {
   /// Creates an `IPValidator` with the given [message].

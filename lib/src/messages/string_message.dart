@@ -158,7 +158,7 @@ class StringMessage extends BaseMessage {
   /// This allows inheriting common validation messages while keeping
   /// specific string-related messages intact.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
   /// final stringMessage = StringMessage().mergeWithBase(baseMessage);
@@ -180,7 +180,7 @@ class StringMessage extends BaseMessage {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = StringMessage();
   /// final customMessage = defaultMessage.copyWith(

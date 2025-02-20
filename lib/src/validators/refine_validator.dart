@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 /// This validator is useful for defining validation rules that are not covered
 /// by built-in validators.
 ///
-/// Example:
+/// ### Example
 /// ```dart
 /// final validator = v.string().refine(
 ///   (value) => value?.contains('@') ?? false,

@@ -25,7 +25,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(caseInsensitiveValidator.validate('Hello World')); // null (valid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [prefix]: The required prefix that the string must start with.
 /// - [message]: The error message if validation fails.
 /// - [caseSensitivity]: Defines whether the validation should be case-sensitive or not (default: `CaseSensitivity.sensitive`).

@@ -2,7 +2,7 @@ import 'package:validart/src/validators/validator.dart';
 
 /// A validator that ensures a value is provided.
 ///
-/// Example:
+/// ### Example
 /// ```dart
 /// final validator = RequiredValidator(message: 'This field is required');
 ///

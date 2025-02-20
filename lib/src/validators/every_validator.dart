@@ -5,7 +5,7 @@ import 'package:validart/src/validators/validator.dart';
 ///
 /// This validator is useful when a value needs to pass multiple validation rules simultaneously.
 ///
-/// Example:
+/// ### Example
 /// ```dart
 /// final validator = v.string().every([
 ///   v.string().min(5),

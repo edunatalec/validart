@@ -46,7 +46,7 @@ class Message {
   ///
   /// If no specific messages are provided, default messages will be used.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final messages = Message(
   ///   base: BaseMessage(required: 'This field is required'),

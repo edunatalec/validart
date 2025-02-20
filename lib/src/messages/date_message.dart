@@ -74,7 +74,7 @@ class DateMessage extends BaseMessage {
   /// Merges the current `DateMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
   /// final dateMessage = DateMessage().mergeWithBase(baseMessage);
@@ -96,7 +96,7 @@ class DateMessage extends BaseMessage {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = DateMessage();
   /// final customMessage = defaultMessage.copyWith(after: 'Date should be later than expected');

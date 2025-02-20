@@ -61,7 +61,7 @@ class DoubleMessage extends NumberMessage<double> {
   /// Merges the current `DoubleMessage` instance with a `BaseMessage`,
   /// replacing only the undefined values with those from the base.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
   /// final baseMessage = BaseMessage(required: 'This field is mandatory');
   /// final doubleMessage = DoubleMessage().mergeWithBase(baseMessage);
@@ -83,7 +83,7 @@ class DoubleMessage extends NumberMessage<double> {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = DoubleMessage();
   /// final customMessage = defaultMessage.copyWith(decimal: 'Must be a decimal number');

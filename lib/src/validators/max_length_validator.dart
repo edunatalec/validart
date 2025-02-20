@@ -17,7 +17,7 @@ import 'package:validart/src/validators/validator.dart';
 /// - `String`
 /// - `List<T>`
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [maxLength] The maximum allowed length.
 /// - [message] *(required)* The error message returned when validation fails.
 ///

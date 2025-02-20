@@ -14,7 +14,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('123,45')); // 'Must be a valid double' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: The error message if validation fails.
 ///
 /// ## Behavior:

@@ -22,7 +22,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('98765-4321')); // 'Invalid Brazilian phone number' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [type]: The type of phone number format to validate (e.g., `PhoneType.brazil`).
 /// - [message]: The error message if validation fails.
 /// - [areaCode]: Defines whether the area code is required, optional, or not allowed.

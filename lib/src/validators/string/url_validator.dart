@@ -15,7 +15,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// print(urlValidator.validate('invalid-url')); // 'Invalid URL' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 ///
 /// ## URL Formats Supported:

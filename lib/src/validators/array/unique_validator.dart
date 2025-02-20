@@ -15,7 +15,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate([true, false, true])); // 'The list contains duplicate values' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 ///
 /// ## Behavior:

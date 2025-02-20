@@ -78,7 +78,7 @@ class ArrayMessage {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// ## Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = ArrayMessage();
   /// final customMessage = defaultMessage.copyWith(required: 'List is required');

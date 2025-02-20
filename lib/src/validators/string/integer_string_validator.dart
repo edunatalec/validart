@@ -14,7 +14,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('abc')); // 'Must be a valid integer' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: The error message if validation fails.
 ///
 /// ## Behavior:

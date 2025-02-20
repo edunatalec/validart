@@ -18,7 +18,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate(['a', 'b', 'c'])); // 'The list must contain all required elements' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [requiredElements]: A list of elements that must be present.
 /// - [message]: Custom error message when validation fails.
 ///

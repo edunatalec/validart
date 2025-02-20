@@ -21,7 +21,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// - `HH:mm` → `23:59`, `00:00`, `12:30`
 /// - `HH:mm:ss` → `23:59:59`, `08:45:12`
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 ///
 /// **Note:** This validator ensures that:

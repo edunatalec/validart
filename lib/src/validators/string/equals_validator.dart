@@ -25,7 +25,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(caseInsensitiveValidator.validate('PASSWORD123')); // null (valid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [expectedValue]: The exact string value that the input should match.
 /// - [message]: The error message returned if validation fails.
 /// - [caseSensitivity]: Determines whether validation should be case-sensitive.

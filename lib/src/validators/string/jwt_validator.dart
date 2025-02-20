@@ -15,7 +15,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// print(jwtValidator.validate('invalid-token')); // 'Invalid JWT token' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 ///
 /// ## JWT Format:

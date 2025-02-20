@@ -25,7 +25,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(caseInsensitiveValidator.validate('hello Dart')); // null (valid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [suffix]: The required suffix that the string should end with.
 /// - [message]: The error message returned if validation fails.
 /// - [caseSensitivity]: Determines whether validation should be case-sensitive.

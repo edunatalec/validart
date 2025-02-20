@@ -5,7 +5,7 @@ import 'package:validart/src/validators/refine_validator.dart';
 /// This validator allows custom validation rules for a map structure
 /// and enables error messages to be associated with a specific key path.
 ///
-/// Example:
+/// ### Example
 /// ```dart
 /// final validator = v.map({
 ///   'email': v.string().email(),

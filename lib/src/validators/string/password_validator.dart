@@ -23,7 +23,7 @@ import 'package:validart/src/validators/validator.dart';
 /// print(validator.validate('12345678')); // 'A senha não atende aos critérios de segurança' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 class PasswordValidator extends ValidatorWithMessage<String> {
   /// Creates a `PasswordValidator` with a custom error message.

@@ -17,7 +17,7 @@ import 'package:validart/src/validators/string/pattern_validator.dart';
 /// print(alphanumericValidator.validate('with space')); // 'Only letters and numbers are allowed' (invalid)
 /// ```
 ///
-/// ## Parameters:
+/// ### Parameters
 /// - [message]: Custom error message when validation fails.
 class AlphanumericValidator extends PatternValidator {
   /// Creates an `AlphanumericValidator` to ensure only letters and numbers are allowed.

@@ -48,7 +48,7 @@ class BaseMessage {
   ///
   /// If a parameter is not provided, the existing value is retained.
   ///
-  /// Example:
+  /// ### Example
   /// ```dart
   /// final defaultMessage = BaseMessage();
   /// final customMessage = defaultMessage.copyWith(required: 'This field is mandatory');
