@@ -74,7 +74,7 @@ print(validator.validate('example@com')); // false (invalid email format)
 
 - `.min(length)`, `.max(length)` - Ensures the string length is within the specified range.
 - `.email()`, `.uuid()`, `.url()`, `.date()` - Validates against common string formats.
-- `.phone(PhoneType.brazil)` - Ensures the string is a valid phone number.
+- `.phone(type)` - Ensures the string is a valid phone number.
 - `.cpf()`, `.cnpj()`, `.cep()` - Validates Brazilian CPF, CNPJ, and CEP numbers.
 - `.contains(value)`, `.equals(value)`, `.pattern(regex)`, `.startsWith(value)`, `.endsWith(value)` - Validates string structure and content.
 - `.alpha()`, `.alphanumeric()`, `.slug()`, `.password()`, `.card()`, `.jwt()` - Ensures the string matches specific types.
@@ -115,7 +115,8 @@ print(validator.validate(3)); // true (even though it's an int, it's valid as a 
 
 #### Available double Validations
 
-- `.min(value)`, `.max(value)`, `.positive()`, `.negative()` - Controls numerical ranges.
+- `.min(value)`, `.max(value)` - Controls numerical ranges.
+- `.positive()`, `.negative()` - Ensures the integer is positive or negative.
 - `.finite()`, `.decimal()`, `.integer()` - Ensures valid floating-point values.
 - `.multipleOf(value)`, `.between(min, max)` - Validates divisibility and range.
 - `.refine((data) => condition)`, `.nullable()`, `.optional()` - Allows customization.
@@ -150,7 +151,9 @@ print(validator.validate("2025-05-20")); // false (not a DateTime object)
 
 #### Available Date Validations
 
-- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Provides additional flexibility.
+- `.before(date)`, `.after(date)`, `.betweenDates(min, max)` - Ensures that the date occurs before, after, or within a specific date range.
+- `.weekday()`, `.weekend()` - Validates whether the date falls on a weekday (Monday to Friday) or a weekend (Saturday or Sunday).
+- `.refine((data) => condition)`, `.nullable()`, `.optional()` - Provides additional flexibility by allowing custom validation logic, permitting `null` values, or making the field optional.
 
 ### bool
 
