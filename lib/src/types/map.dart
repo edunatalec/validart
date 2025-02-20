@@ -106,6 +106,11 @@ class VMap extends VType<Map<String, dynamic>> {
     required String path,
     String? message,
   }) {
+    assert(
+      _object.containsKey(path),
+      "The provided path '$path' does not exist in the validation object.",
+    );
+
     return add(
       RefineMapValidator(
         validator,

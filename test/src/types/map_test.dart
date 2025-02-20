@@ -146,4 +146,18 @@ void main() {
       expect(validator.object.length, 2);
     });
   });
+
+  group('refine - assert valid path', () {
+    test('should throw an assertion error if path does not exist', () {
+      expect(
+        () => v.map({
+          'name': v.string(),
+        }).refine(
+          (data) => data['email'] != null,
+          path: 'email',
+        ),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+  });
 }
