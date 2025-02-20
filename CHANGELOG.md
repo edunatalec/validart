@@ -1,3 +1,16 @@
+## [0.0.4] - 2025-02-20
+
+### Added
+
+- Implemented an **assertion** in `VMap.refine()` to ensure the provided `path` exists in the defined object schema.
+  - This prevents referencing non-existent fields, improving validation reliability.
+  - Added a **test case** to verify that an `AssertionError` is thrown when an invalid path is used.
+
+### Changed
+
+- Updated the **README** with more detailed documentation and examples.
+- Improved **API documentation** to ensure full coverage across all public elements.
+
 ## [0.0.3] - 2025-02-19
 
 ### Added
@@ -11,7 +24,7 @@
   - `integer()`: Ensures the string represents a valid integer.
   - `double()`: Ensures the string represents a valid double.
   - `slug()`: Ensures the string is a valid slug format (lowercase, hyphens, no spaces or special characters).
-  - `alpha()()`: Ensures the string contains only alphabetic characters.
+  - `alpha()`: Ensures the string contains only alphabetic characters.
   - `alphanumeric()`: Ensures the string contains only letters and numbers.
 - Expanded test suite, achieving **100% test coverage**.
 
