@@ -23,16 +23,12 @@ class CardValidator extends ValidatorWithMessage<String> {
 
   @override
   String? validate(covariant String value) {
-    // Remove spaces and hyphens
     final sanitized = value.replaceAll(RegExp(r'\D'), '');
 
-    // Check length (common range: 13 to 19 digits)
     if (sanitized.length < 13 || sanitized.length > 19) return message;
 
-    // Check if it's only digits
     if (!RegExp(r'^\d+$').hasMatch(sanitized)) return message;
 
-    // Check Luhn Algorithm
     if (!_isValidLuhn(sanitized)) return message;
 
     return null;

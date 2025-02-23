@@ -3,6 +3,7 @@ import 'package:validart/src/enums/case_sensitivity.dart';
 import 'package:validart/src/enums/country_code_format.dart';
 import 'package:validart/src/enums/phone_type.dart';
 import 'package:validart/src/enums/uuid_version.dart';
+import 'package:validart/src/enums/validation_mode.dart';
 import 'package:validart/src/messages/string_message.dart';
 import 'package:validart/src/types/primitive.dart';
 import 'package:validart/src/types/array.dart';
@@ -144,52 +145,108 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string is a valid Brazilian postal code (CEP).
   ///
-  /// This method adds an `CEPValidator` to check if the given string follows the correct CEP format,
-  /// which is either `XXXXX-XXX` or `XXXXXXXX`, where `X` represents a digit.
+  /// This method adds a `CEPValidator` to verify whether the given string follows the correct
+  /// **Brazilian postal code (CEP) format**, which can be:
+  /// - **Formatted:** `XXXXX-XXX` (e.g., `01001-000`)
+  /// - **Unformatted:** `XXXXXXXX` (e.g., `01001000`)
   ///
-  /// ### Example
+  /// ## Validation Rules:
+  /// - Must contain exactly **8 numeric digits**.
+  /// - Supports both **formatted** (`XXXXX-XXX`) and **unformatted** (`XXXXXXXX`) input.
+  /// - Cannot contain **only repeated digits** (e.g., `00000-000` is invalid).
+  ///
+  /// ## Example
   /// ```dart
   /// final validator = v.string().cep();
   ///
-  /// print(validator.validate("01001-000")); // true
-  /// print(validator.validate("01001000")); // true
-  /// print(validator.validate("00000-000")); // false
-  /// print(validator.validate("invalid-cep")); // false
-  /// print(validator.validate(null)); // false
+  /// print(validator.validate("01001-000")); // true (valid, formatted)
+  /// print(validator.validate("01001000"));  // true (valid, unformatted)
+  /// print(validator.validate("00000-000")); // false (invalid, repeated digits)
+  /// print(validator.validate("abcdefgh"));  // false (invalid, contains letters)
+  /// print(validator.validate("1234"));      // false (invalid, too short)
+  /// print(validator.validate(null));        // false (invalid, required by default)
+  /// ```
+  ///
+  /// ## Validation Mode
+  /// You can specify whether the CEP should be validated in **formatted** or **unformatted** mode.
+  ///
+  /// ```dart
+  /// final formattedValidator = v.string().cep(mode: ValidationMode.formatted);
+  ///
+  /// print(formattedValidator.validate("01001-000")); // true (valid)
+  /// print(formattedValidator.validate("01001000"));  // false (invalid, missing formatting)
+  ///
+  /// final unformattedValidator = v.string().cep(mode: ValidationMode.unformatted);
+  ///
+  /// print(unformattedValidator.validate("01001000")); // true (valid)
+  /// print(unformattedValidator.validate("01001-000")); // true (still valid)
   /// ```
   ///
   /// ### Parameters
   /// - [message]: *(optional)* A custom validation message.
+  /// - [mode]: *(optional)* Specifies whether the validation should require formatting.
   ///
   /// ### Returns
   /// The current `VString` instance with the `cep` validation applied.
-  VString cep({String? message}) {
-    return add(CEPValidator(message: message ?? _message.cep));
+  VString cep({
+    String? message,
+    ValidationMode mode = ValidationMode.unformatted,
+  }) {
+    return add(CEPValidator(message: message ?? _message.cep, mode: mode));
   }
 
   /// Ensures that the string is a valid CNPJ (Cadastro Nacional da Pessoa Jurídica).
   ///
-  /// This method adds an `CEPValidator` to check if the given string is a properly formatted and valid CNPJ,
+  /// This method adds a `CNPJValidator` to verify if the provided string conforms to the CNPJ format,
   /// which is the Brazilian national registry number for legal entities.
   ///
-  /// ### Example
+  /// ## CNPJ Format:
+  /// - The CNPJ consists of **14 numeric digits**.
+  /// - It can be formatted as `12.345.678/0001-95` or unformatted as `12345678000195`.
+  ///
+  /// ## Validation Rules:
+  /// - Must be exactly **14 digits** long.
+  /// - Cannot contain **all identical digits** (e.g., `00.000.000/0000-00` is invalid).
+  /// - Must pass the **official CNPJ checksum validation**.
+  /// - Supports both **formatted** and **unformatted** validation via `ValidationMode`.
+  ///
+  /// ## Example
   /// ```dart
   /// final validator = v.string().cnpj();
   ///
-  /// print(validator.validate("12.345.678/0001-95")); // true
-  /// print(validator.validate("12345678000195")); // true
-  /// print(validator.validate("00.000.000/0000-00")); // false
-  /// print(validator.validate("invalid-cnpj")); // false
-  /// print(validator.validate(null)); // false
+  /// print(validator.validate("12.345.678/0001-95")); // true (valid, formatted)
+  /// print(validator.validate("12345678000195"));     // true (valid, unformatted)
+  /// print(validator.validate("00.000.000/0000-00")); // false (invalid, repeated digits)
+  /// print(validator.validate("invalid-cnpj"));       // false (invalid, contains letters)
+  /// print(validator.validate(null));                 // false (invalid, required by default)
+  /// ```
+  ///
+  /// ## Validation Mode
+  /// You can specify whether the CNPJ should be validated in **formatted** or **unformatted** mode.
+  ///
+  /// ```dart
+  /// final formattedValidator = v.string().cnpj(mode: ValidationMode.formatted);
+  ///
+  /// print(formattedValidator.validate("12.345.678/0001-95")); // true (valid)
+  /// print(formattedValidator.validate("12345678000195"));     // false (invalid, missing formatting)
+  ///
+  /// final unformattedValidator = v.string().cnpj(mode: ValidationMode.unformatted);
+  ///
+  /// print(unformattedValidator.validate("12345678000195")); // true (valid)
+  /// print(unformattedValidator.validate("12.345.678/0001-95")); // true (still valid)
   /// ```
   ///
   /// ### Parameters
   /// - [message]: *(optional)* A custom validation message.
+  /// - [mode]: *(optional)* Specifies whether the validation should require formatting.
   ///
   /// ### Returns
   /// The current `VString` instance with the `cnpj` validation applied.
-  VString cnpj({String? message}) {
-    return add(CNPJValidator(message: message ?? _message.cnpj));
+  VString cnpj({
+    String? message,
+    ValidationMode mode = ValidationMode.unformatted,
+  }) {
+    return add(CNPJValidator(message: message ?? _message.cnpj, mode: mode));
   }
 
   /// Ensures that the string contains the specified substring.
@@ -233,27 +290,56 @@ class VString extends VPrimitive<String> {
 
   /// Ensures that the string is a valid CPF (Cadastro de Pessoas Físicas).
   ///
-  /// This method adds an `CPFValidator` to check if the provided string follows the CPF format,
+  /// This method adds a `CPFValidator` to verify if the provided string conforms to the CPF format,
   /// which is a Brazilian individual taxpayer registry number.
   ///
-  /// ### Example
+  /// ## CPF Format:
+  /// - The CPF consists of **11 numeric digits**.
+  /// - It can be formatted as `123.456.789-09` or unformatted as `12345678909`.
+  ///
+  /// ## Validation Rules:
+  /// - Must be exactly **11 digits** long.
+  /// - Cannot contain **all identical digits** (e.g., `111.111.111-11` is invalid).
+  /// - Must pass the **official CPF checksum validation**.
+  /// - Supports both **formatted** and **unformatted** validation via `ValidationMode`.
+  ///
+  /// ## Example
   /// ```dart
   /// final validator = v.string().cpf();
   ///
-  /// print(validator.validate("123.456.789-09")); // true
-  /// print(validator.validate("12345678909")); // true
-  /// print(validator.validate("000.000.000-00")); // false
-  /// print(validator.validate("invalid-cpf")); // false
-  /// print(validator.validate(null)); // false
+  /// print(validator.validate("123.456.789-09")); // true (valid CPF, formatted)
+  /// print(validator.validate("12345678909"));    // true (valid CPF, unformatted)
+  /// print(validator.validate("000.000.000-00")); // false (invalid, repeated digits)
+  /// print(validator.validate("invalid-cpf"));    // false (invalid, contains letters)
+  /// print(validator.validate(null));             // false (invalid, required by default)
+  /// ```
+  ///
+  /// ## Validation Mode
+  /// You can specify whether the CPF should be validated in **formatted** or **unformatted** mode.
+  ///
+  /// ```dart
+  /// final formattedValidator = v.string().cpf(mode: ValidationMode.formatted);
+  ///
+  /// print(formattedValidator.validate("123.456.789-09")); // true (valid)
+  /// print(formattedValidator.validate("12345678909"));    // false (invalid, missing formatting)
+  ///
+  /// final unformattedValidator = v.string().cpf(mode: ValidationMode.unformatted);
+  ///
+  /// print(unformattedValidator.validate("12345678909")); // true (valid)
+  /// print(unformattedValidator.validate("123.456.789-09")); // true (still valid)
   /// ```
   ///
   /// ### Parameters
   /// - [message]: *(optional)* A custom validation message.
+  /// - [mode]: *(optional)* Specifies whether the validation should require formatting.
   ///
   /// ### Returns
   /// The current `VString` instance with the `cpf` validation applied.
-  VString cpf({String? message}) {
-    return add(CPFValidator(message: message ?? _message.cpf));
+  VString cpf({
+    String? message,
+    ValidationMode mode = ValidationMode.unformatted,
+  }) {
+    return add(CPFValidator(message: message ?? _message.cpf, mode: mode));
   }
 
   /// Ensures that the string is a valid date format.
@@ -655,30 +741,53 @@ class VString extends VPrimitive<String> {
   /// Ensures that the string is a valid phone number based on the specified format.
   ///
   /// This method adds a `PhoneValidator` to verify whether the given string matches a valid phone number format,
-  /// considering the `type`, `areaCode`, and `countryCode` options.
+  /// considering different phone types (`type`), area codes (`areaCode`), and country codes (`countryCode`).
   ///
-  /// ### Example
+  /// ## Example
   /// ```dart
   /// final validator = v.string().phone(PhoneType.brazil);
   ///
   /// print(validator.validate("(11) 98765-4321")); // true (valid mobile number)
-  /// print(validator.validate("12345")); // false (too short)
-  /// print(validator.validate("abcd1234")); // false (contains letters)
+  /// print(validator.validate("11 98765-4321"));   // true (valid)
+  /// print(validator.validate("98765-4321"));      // false (missing area code)
+  /// print(validator.validate("12345"));           // false (too short)
+  /// print(validator.validate("abcd1234"));        // false (contains letters)
   /// ```
   ///
-  /// ### Parameters
+  /// ## Validation Mode
+  /// The `ValidationMode` parameter allows controlling whether the number should be formatted or not.
+  ///
+  /// - **`ValidationMode.formatted`** → Requires formatted numbers.
+  /// - **`ValidationMode.unformatted`** → Strips non-numeric characters before validation.
+  ///
+  /// ```dart
+  /// final formattedValidator = v.string().phone(PhoneType.brazil, mode: ValidationMode.formatted);
+  ///
+  /// print(formattedValidator.validate("(11) 98765-4321")); // true
+  /// print(formattedValidator.validate("11987654321")); // false (invalid format)
+  ///
+  /// final unformattedValidator = v.string().phone(PhoneType.brazil, mode: ValidationMode.unformatted);
+  ///
+  /// print(unformattedValidator.validate("11987654321")); // true (valid)
+  /// print(unformattedValidator.validate("(11) 98765-4321")); // true (still valid)
+  /// ```
+  ///
+  /// ## Parameters
   /// - [type]: The type of phone number to validate (e.g., mobile, landline).
   /// - [message] *(optional)*: A custom error message displayed when validation fails.
   /// - [areaCode]: Defines whether the area code is required, optional, or not allowed (default: `AreaCodeFormat.required`).
   /// - [countryCode]: Defines whether the country code is required, optional, or not allowed (default: `CountryCodeFormat.none`).
+  /// - [mode]: *(optional)* Specifies whether the validation should require formatted input (`ValidationMode.formatted`)
+  ///   or allow raw digits (`ValidationMode.unformatted`).
   ///
-  /// ### Returns
+  /// ## Returns
   /// The current `VString` instance with the `phone` validation applied.
   VString phone(
     PhoneType type, {
     String? message,
     AreaCodeFormat areaCode = AreaCodeFormat.required,
     CountryCodeFormat countryCode = CountryCodeFormat.none,
+    ValidationMode mode = ValidationMode.unformatted,
   }) {
     return add(
       PhoneValidator(
@@ -686,6 +795,7 @@ class VString extends VPrimitive<String> {
         message: message ?? _message.phone,
         areaCode: areaCode,
         countryCode: countryCode,
+        mode: mode,
       ),
     );
   }

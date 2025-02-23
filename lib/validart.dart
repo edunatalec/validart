@@ -3,6 +3,7 @@ export 'src/enums/case_sensitivity.dart';
 export 'src/enums/country_code_format.dart';
 export 'src/enums/phone_type.dart';
 export 'src/enums/uuid_version.dart';
+export 'src/enums/validation_mode.dart';
 
 export 'src/messages/array_message.dart';
 export 'src/messages/base_message.dart';
