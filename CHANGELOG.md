@@ -1,3 +1,19 @@
+## [0.1.0] - 2025-02-23
+
+### Added
+
+- **`ValidationMode`** support for:
+  - `.cep()`
+  - `.cnpj()`
+  - `.cpf()`
+  - `.phone()`
+- Now, it is possible to validate formatted strings (`ValidationMode.formatted`) or unformatted ones (`ValidationMode.unformatted`).
+- Improved documentation for CPF, CNPJ, CEP, and Phone, explaining how to use `ValidationMode`.
+
+### Changed
+
+- Updated API to support both formatted and unformatted validation for documents and phone numbers.
+
 ## [0.0.4] - 2025-02-20
 
 ### Added
