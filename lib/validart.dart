@@ -19,6 +19,7 @@ export 'src/messages/string_message.dart';
 
 export 'src/types/array.dart';
 export 'src/types/bool.dart';
+export 'src/types/date.dart';
 export 'src/types/double.dart';
 export 'src/types/int.dart';
 export 'src/types/map.dart';
