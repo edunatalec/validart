@@ -102,7 +102,7 @@ void main() {
   });
 
   group('cpf', () {
-    test('should validate CPF correctly', () {
+    test('should validate CPF correctly (unformatted)', () {
       final validator = v.string().cpf();
 
       expect(validator.validate('123.456.789-09'), true);
@@ -111,27 +111,62 @@ void main() {
       expect(validator.validate('invalid-cpf'), false);
       expect(validator.validate(null), false);
     });
+
+    test('should validate CPF correctly (formatted)', () {
+      final validator = v.string().cpf(mode: ValidationMode.formatted);
+
+      expect(validator.validate('123.456.789-09'), true);
+
+      expect(validator.validate('12345678909'), false);
+      expect(validator.validate('000.000.000-00'), false);
+      expect(validator.validate('invalid-cpf'), false);
+      expect(validator.validate(null), false);
+    });
   });
 
   group('cnpj', () {
-    test('should validate CNPJ correctly', () {
+    test('should validate CNPJ correctly (unformatted)', () {
       final validator = v.string().cnpj();
 
       expect(validator.validate('12.345.678/0001-95'), true);
       expect(validator.validate('12345678000195'), true);
       expect(validator.validate('00.000.000/0000-00'), false);
+      expect(validator.validate('00000000000000'), false);
+      expect(validator.validate('invalid-cnpj'), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should validate CNPJ correctly (formatted)', () {
+      final validator = v.string().cnpj(mode: ValidationMode.formatted);
+
+      expect(validator.validate('12.345.678/0001-95'), true);
+      expect(validator.validate('12345678000195'), false);
+      expect(validator.validate('00.000.000/0000-00'), false);
+      expect(validator.validate('00000000000000'), false);
       expect(validator.validate('invalid-cnpj'), false);
       expect(validator.validate(null), false);
     });
   });
 
   group('cep', () {
-    test('should validate CEP correctly', () {
+    test('should validate CEP correctly (unformatted)', () {
       final validator = v.string().cep();
 
       expect(validator.validate('01001-000'), true);
       expect(validator.validate('01001000'), true);
       expect(validator.validate('00000-000'), false);
+      expect(validator.validate('00000000'), false);
+      expect(validator.validate('invalid-cep'), false);
+      expect(validator.validate(null), false);
+    });
+
+    test('should validate CEP correctly (formatted)', () {
+      final validator = v.string().cep(mode: ValidationMode.formatted);
+
+      expect(validator.validate('01001-000'), true);
+      expect(validator.validate('01001000'), false);
+      expect(validator.validate('00000-000'), false);
+      expect(validator.validate('00000000'), false);
       expect(validator.validate('invalid-cep'), false);
       expect(validator.validate(null), false);
     });
@@ -163,12 +198,14 @@ void main() {
             PhoneType.brazil,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('11 98765-4321'), true);
       expect(validator.validate('(11) 98765-4321'), true);
-      expect(validator.validate('(11)98765-4321'), false);
 
+      expect(validator.validate('(11)98765-4321'), false);
+      expect(validator.validate('11987654321'), false);
       expect(validator.validate('98765-4321'), false);
       expect(validator.validate('9876-5432'), false);
       expect(validator.validate(' 9876-5432'), false);
@@ -180,6 +217,7 @@ void main() {
             PhoneType.usa,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('123-456-7890'), true);
@@ -196,6 +234,7 @@ void main() {
             PhoneType.argentina,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('11 1234-5678'), true);
@@ -211,6 +250,7 @@ void main() {
             PhoneType.germany,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('030 123456'), true);
@@ -226,6 +266,7 @@ void main() {
             PhoneType.china,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('021 1234 5678'), true);
@@ -241,6 +282,7 @@ void main() {
             PhoneType.japan,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('03-1234-5678'), true);
@@ -256,6 +298,7 @@ void main() {
             PhoneType.international,
             areaCode: AreaCodeFormat.required,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('123 456 789'), true);
@@ -272,11 +315,13 @@ void main() {
               PhoneType.brazil,
               areaCode: AreaCodeFormat.required,
               countryCode: CountryCodeFormat.none,
+              mode: ValidationMode.formatted,
             ),
         v.string().phone(
               PhoneType.usa,
               areaCode: AreaCodeFormat.required,
               countryCode: CountryCodeFormat.none,
+              mode: ValidationMode.formatted,
             ),
       ]);
 
@@ -304,6 +349,7 @@ void main() {
               PhoneType.brazil,
               countryCode: CountryCodeFormat.required,
               areaCode: AreaCodeFormat.required,
+              mode: ValidationMode.formatted,
             );
 
         expect(validator.validate('+55 11 98765-4321'), true);
@@ -315,12 +361,30 @@ void main() {
     );
 
     test(
+      'should validate Brazilian phone numbers with country code required (unformatted)',
+      () {
+        final validator = v.string().phone(
+              PhoneType.brazil,
+              countryCode: CountryCodeFormat.required,
+              areaCode: AreaCodeFormat.required,
+            );
+
+        expect(validator.validate('5511987654321'), true);
+
+        expect(validator.validate('551198765432'), false);
+        expect(validator.validate('11987654321'), false);
+        expect(validator.validate('1198765432'), false);
+      },
+    );
+
+    test(
       'should validate Brazilian phone numbers with optional country code',
       () {
         final validator = v.string().phone(
               PhoneType.brazil,
               countryCode: CountryCodeFormat.optional,
               areaCode: AreaCodeFormat.required,
+              mode: ValidationMode.formatted,
             );
 
         expect(validator.validate('+55 11 98765-4321'), true);
@@ -334,6 +398,7 @@ void main() {
             PhoneType.brazil,
             areaCode: AreaCodeFormat.none,
             countryCode: CountryCodeFormat.none,
+            mode: ValidationMode.formatted,
           );
 
       expect(validator.validate('98765-4321'), true);
@@ -351,6 +416,7 @@ void main() {
               PhoneType.brazil,
               countryCode: CountryCodeFormat.required,
               areaCode: AreaCodeFormat.none,
+              mode: ValidationMode.formatted,
             );
 
         expect(validator.validate('+55 98765-4321'), true);
@@ -368,6 +434,7 @@ void main() {
               PhoneType.brazil,
               countryCode: CountryCodeFormat.optional,
               areaCode: AreaCodeFormat.none,
+              mode: ValidationMode.formatted,
             );
 
         expect(validator.validate('+55 98765-4321'), true);
@@ -384,6 +451,7 @@ void main() {
               PhoneType.brazil,
               countryCode: CountryCodeFormat.optional,
               areaCode: AreaCodeFormat.optional,
+              mode: ValidationMode.formatted,
             );
 
         expect(validator.validate('98765-4321'), true);
