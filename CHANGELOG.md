@@ -1,3 +1,9 @@
+## [0.1.1] - 2025-02-23
+
+### Fixed
+
+- Added missing `VDate` export to the package exports.
+
 ## [0.1.0] - 2025-02-23
 
 ### Added
