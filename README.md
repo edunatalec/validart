@@ -27,7 +27,7 @@ This will add a line like this to your project's `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  validart: ^0.0.3
+  validart: <version>
 ```
 
 Import Validart in your Dart file:
