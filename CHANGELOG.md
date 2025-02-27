@@ -1,3 +1,9 @@
+## [0.1.2] - 2025-02-27
+
+### Fixed
+
+- Updated the installation instructions in the documentation to use a placeholder `<version>` for `validart`, ensuring clarity on versioning.
+
 ## [0.1.1] - 2025-02-23
 
 ### Fixed
