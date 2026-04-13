@@ -1,285 +1,344 @@
 import 'package:test/test.dart';
-import 'package:validart/validart.dart';
+import 'package:validart/src/types/type.dart';
 
 void main() {
-  final Validart v = Validart();
+  group('VArray', () {
+    // ── basic validation ──────────────────────────────────────────────────
+    group('basic validation', () {
+      test('should pass for valid list of strings', () {
+        final schema = VArray<String>(VString());
+        expect(schema.validate(['hello', 'world']), isTrue);
+      });
 
-  group('string', () {
-    group('required', () {
-      test('should validate required correctly', () {
-        final validator = v.string().array();
+      test('should pass for empty list', () {
+        final schema = VArray<String>(VString());
+        expect(schema.validate([]), isTrue);
+      });
 
-        expect(validator.validate(['valid']), true);
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
+      test('should pass for valid list of ints', () {
+        final schema = VArray<int>(VInt());
+        expect(schema.validate([1, 2, 3]), isTrue);
+      });
+
+      test('should return parsed list via parse', () {
+        final schema = VArray<String>(VString());
+        expect(schema.parse(['a', 'b']), ['a', 'b']);
       });
     });
 
+    // ── element validation ────────────────────────────────────────────────
+    group('element validation', () {
+      test('should fail when element is invalid', () {
+        final schema = VArray<String>(VString()..email());
+        expect(schema.validate(['not-an-email']), isFalse);
+      });
+
+      test('should include index in error path', () {
+        final schema = VArray<String>(VString()..email());
+        final errors = schema.errors(['valid@email.com', 'bad', 'also-bad']);
+        expect(errors, isNotNull);
+        expect(errors!.length, 2);
+        expect(errors[0].code, 'invalid_email');
+        expect(errors[0].path, [1]);
+        expect(errors[1].code, 'invalid_email');
+        expect(errors[1].path, [2]);
+      });
+
+      test('should validate all elements with min constraint', () {
+        final schema = VArray<String>(VString()..min(3));
+        final errors = schema.errors(['ab', 'abc', 'a']);
+        expect(errors, isNotNull);
+        expect(errors!.length, 2);
+        expect(errors[0].path, [0]);
+        expect(errors[1].path, [2]);
+      });
+
+      test('should pass when all elements satisfy schema', () {
+        final schema = VArray<String>(VString()..email());
+        expect(schema.validate(['a@b.com', 'c@d.com']), isTrue);
+      });
+    });
+
+    // ── min ───────────────────────────────────────────────────────────────
+    group('min', () {
+      test('should pass when array length >= min', () {
+        final schema = VArray<String>(VString())..min(2);
+        expect(schema.validate(['a', 'b']), isTrue);
+      });
+
+      test('should pass when array length > min', () {
+        final schema = VArray<String>(VString())..min(2);
+        expect(schema.validate(['a', 'b', 'c']), isTrue);
+      });
+
+      test('should fail when array length < min', () {
+        final schema = VArray<String>(VString())..min(3);
+        expect(schema.validate(['a']), isFalse);
+      });
+
+      test('should return error code too_small', () {
+        final schema = VArray<String>(VString())..min(2);
+        final errors = schema.errors(['a']);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'too_small');
+      });
+
+      test('should support custom message', () {
+        final schema = VArray<String>(VString())
+          ..min(2, message: (len) => 'Need $len items');
+        final errors = schema.errors(['a']);
+        expect(errors!.first.message, 'Need 2 items');
+      });
+    });
+
+    // ── max ───────────────────────────────────────────────────────────────
+    group('max', () {
+      test('should pass when array length <= max', () {
+        final schema = VArray<String>(VString())..max(3);
+        expect(schema.validate(['a', 'b', 'c']), isTrue);
+      });
+
+      test('should pass when array length < max', () {
+        final schema = VArray<String>(VString())..max(3);
+        expect(schema.validate(['a']), isTrue);
+      });
+
+      test('should fail when array length > max', () {
+        final schema = VArray<String>(VString())..max(2);
+        expect(schema.validate(['a', 'b', 'c']), isFalse);
+      });
+
+      test('should return error code too_big', () {
+        final schema = VArray<String>(VString())..max(1);
+        final errors = schema.errors(['a', 'b']);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'too_big');
+      });
+
+      test('should support custom message', () {
+        final schema = VArray<String>(VString())
+          ..max(1, message: (len) => 'Max $len');
+        final errors = schema.errors(['a', 'b']);
+        expect(errors!.first.message, 'Max 1');
+      });
+    });
+
+    // ── unique ────────────────────────────────────────────────────────────
     group('unique', () {
-      test('should validate unique correctly', () {
-        final validator = v.string().array().unique();
+      test('should pass when all elements are unique', () {
+        final schema = VArray<String>(VString())..unique();
+        expect(schema.validate(['a', 'b', 'c']), isTrue);
+      });
 
-        expect(validator.validate(['a', 'b', 'c']), true);
-        expect(validator.validate(['a', 'b', 'a']), false);
-        expect(validator.validate([]), false);
+      test('should fail when there are duplicates', () {
+        final schema = VArray<String>(VString())..unique();
+        expect(schema.validate(['a', 'b', 'a']), isFalse);
+      });
+
+      test('should return error code unique', () {
+        final schema = VArray<String>(VString())..unique();
+        final errors = schema.errors(['x', 'x']);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'unique');
+      });
+
+      test('should support custom message', () {
+        final schema = VArray<String>(VString())..unique(message: 'No dupes');
+        final errors = schema.errors(['x', 'x']);
+        expect(errors!.first.message, 'No dupes');
+      });
+
+      test('should pass for empty list', () {
+        final schema = VArray<String>(VString())..unique();
+        expect(schema.validate([]), isTrue);
       });
     });
 
+    // ── contains ──────────────────────────────────────────────────────────
     group('contains', () {
-      test('should validate contains correctly', () {
-        final validator = v.string().array().contains(['a', 'b']);
+      test('should pass when array contains required values', () {
+        final schema = VArray<String>(VString())..contains(['a', 'b']);
+        expect(schema.validate(['a', 'b', 'c']), isTrue);
+      });
 
-        expect(validator.validate(['a', 'b', 'c']), true);
-        expect(validator.validate(['a', 'c']), false);
-        expect(validator.validate(['b', 'c']), false);
-        expect(validator.validate([]), false);
+      test('should fail when array is missing required values', () {
+        final schema = VArray<String>(VString())..contains(['a', 'b']);
+        expect(schema.validate(['a', 'c']), isFalse);
+      });
+
+      test('should return error code contains', () {
+        final schema = VArray<String>(VString())..contains(['x']);
+        final errors = schema.errors(['a', 'b']);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'contains');
+      });
+
+      test('should support custom message', () {
+        final schema = VArray<String>(VString())
+          ..contains(['x'], message: 'Must have x');
+        final errors = schema.errors(['a']);
+        expect(errors!.first.message, 'Must have x');
       });
     });
 
-    group('min length', () {
-      test('should enforce minimum array length', () {
-        final validator = v.string().array().min(2);
+    // ── type checking ─────────────────────────────────────────────────────
+    group('type checking', () {
+      test('should fail for non-list input', () {
+        final schema = VArray<String>(VString());
+        expect(schema.validate('not a list'), isFalse);
+      });
 
-        expect(validator.validate(['a', 'b']), true);
-        expect(validator.validate(['a']), false);
-        expect(validator.validate([]), false);
+      test('should return invalid_type error for non-list input', () {
+        final schema = VArray<String>(VString());
+        final errors = schema.errors('not a list');
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'invalid_type');
+      });
+
+      test('should fail for int input', () {
+        final schema = VArray<String>(VString());
+        expect(schema.validate(42), isFalse);
+      });
+
+      test('should fail for map input', () {
+        final schema = VArray<String>(VString());
+        expect(schema.validate({'key': 'value'}), isFalse);
       });
     });
 
-    group('max length', () {
-      test('should enforce maximum array length', () {
-        final validator = v.string().array().max(3);
+    // ── null handling ─────────────────────────────────────────────────────
+    group('null handling', () {
+      test('should fail for null by default', () {
+        final schema = VArray<String>(VString());
+        expect(schema.validate(null), isFalse);
+      });
 
-        expect(validator.validate(['a', 'b']), true);
-        expect(validator.validate(['a', 'b', 'c']), true);
-        expect(validator.validate(['a', 'b', 'c', 'd']), false);
+      test('should return required error for null', () {
+        final schema = VArray<String>(VString());
+        final errors = schema.errors(null);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'required');
+      });
+
+      test('nullable should allow null', () {
+        final schema = VArray<String>(VString())..nullable();
+        expect(schema.validate(null), isTrue);
+      });
+
+      test('nullable should parse null to null', () {
+        final schema = VArray<String>(VString())..nullable();
+        expect(schema.parse(null), isNull);
+      });
+
+      test('optional should allow null', () {
+        final schema = VArray<String>(VString())..optional();
+        expect(schema.validate(null), isTrue);
+      });
+
+      test('defaultValue should return default when null', () {
+        final schema = VArray<String>(VString())..defaultValue(['fallback']);
+        expect(schema.parse(null), ['fallback']);
       });
     });
 
-    group('nullable', () {
-      test('should validate nullable correctly', () {
-        final validator = v.string().array().nullable();
+    // ── method chaining ───────────────────────────────────────────────────
+    group('method chaining', () {
+      test('should chain min and unique', () {
+        final schema = VArray<String>(VString())
+          ..min(1)
+          ..unique();
+        expect(schema.validate(['a', 'b']), isTrue);
+        expect(schema.validate([]), isFalse);
+        expect(schema.validate(['a', 'a']), isFalse);
+      });
 
-        expect(validator.validate(null), true);
-        expect(validator.validate(['valid']), true);
-        expect(validator.validate([]), false);
+      test('should create array from VString().array()', () {
+        final schema = VString()..email();
+        final arraySchema = schema.array();
+        expect(arraySchema.validate(['a@b.com']), isTrue);
+        expect(arraySchema.validate(['bad']), isFalse);
+      });
+
+      test('should chain array() with min and unique', () {
+        final stringSchema = VString()..email();
+        final schema = stringSchema.array()
+          ..min(1)
+          ..unique();
+        expect(schema.validate(['a@b.com', 'c@d.com']), isTrue);
+        expect(schema.validate([]), isFalse);
+      });
+
+      test('should combine min and max', () {
+        final schema = VArray<String>(VString())
+          ..min(1)
+          ..max(3);
+        expect(schema.validate(['a', 'b']), isTrue);
+        expect(schema.validate([]), isFalse);
+        expect(schema.validate(['a', 'b', 'c', 'd']), isFalse);
+      });
+
+      test('should collect multiple errors', () {
+        final schema = VArray<String>(VString())
+          ..min(5)
+          ..unique();
+        final errors = schema.errors(['a', 'a']);
+        expect(errors, isNotNull);
+        expect(errors!.length, 2);
+        expect(errors[0].code, 'too_small');
+        expect(errors[1].code, 'unique');
       });
     });
 
-    group('optional', () {
-      test('should validate optional correctly', () {
-        final validator = v.string().array().optional();
+    // ── nested arrays ─────────────────────────────────────────────────────
+    group('nested arrays', () {
+      test('should validate array of arrays', () {
+        final schema = VArray<List<String>>(VArray<String>(VString()));
+        expect(
+          schema.validate([
+            ['a', 'b'],
+            ['c', 'd'],
+          ]),
+          isTrue,
+        );
+      });
 
-        expect(validator.validate(null), false);
-        expect(validator.validate([]), true);
-        expect(validator.validate(['valid']), true);
+      test('should fail for invalid nested element', () {
+        final schema = VArray<List<String>>(
+          VArray<String>(VString()..email()),
+        );
+        expect(
+          schema.validate([
+            ['a@b.com'],
+            ['bad'],
+          ]),
+          isFalse,
+        );
+      });
+
+      test('should include nested index in error path', () {
+        final schema = VArray<List<String>>(
+          VArray<String>(VString()..email()),
+        );
+        final errors = schema.errors([
+          ['a@b.com'],
+          ['bad'],
+        ]);
+        expect(errors, isNotNull);
+        expect(errors!.first.path, [1, 0]);
       });
     });
 
+    // ── refine ────────────────────────────────────────────────────────────
     group('refine', () {
-      test('should validate refine function correctly', () {
-        final validator = v.string().array().refine(
-              (list) => list.length > 2,
-              message: 'The array must contain more than 2 items.',
-            );
-
-        expect(validator.validate(['a', 'b', 'c']), true);
-        expect(validator.validate(['a', 'b']), false);
-        expect(validator.validate([]), false);
-      });
-    });
-  });
-
-  group('map', () {
-    group('required', () {
-      test('should validate required map array correctly', () {
-        final validator = v.map({
-          'name': v.string().min(3),
-        }).array();
-
-        expect(
-          validator.validate([
-            {'name': 'John'},
-            {'name': 'Erick'},
-          ]),
-          true,
-        );
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
-      });
-    });
-
-    group('unique', () {
-      test('should validate unique maps correctly', () {
-        final validator = v
-            .map({
-              'name': v.string().min(3),
-            })
-            .array()
-            .unique();
-
-        expect(
-          validator.validate([
-            {'name': 'John'},
-            {'name': 'Erick'}
-          ]),
-          true,
-        );
-        expect(
-          validator.validate([
-            {'name': 'John'},
-            {'name': 'John'}
-          ]),
-          false,
-        );
-      });
-    });
-
-    group('contains', () {
-      test('should validate contains maps correctly', () {
-        final validator = v
-            .map({
-              'name': v.string().min(3),
-            })
-            .array()
-            .contains([
-              {'name': 'Erick'}
-            ]);
-
-        expect(
-          validator.validate([
-            {'name': 'John'},
-            {'name': 'Erick'}
-          ]),
-          true,
-        );
-        expect(
-          validator.validate([
-            {'name': 'John'},
-            {'name': 'Leo'}
-          ]),
-          false,
-        );
-      });
-    });
-
-    group('nullable', () {
-      test('should validate nullable maps correctly', () {
-        final validator = v.map({'name': v.string().min(3)}).array().nullable();
-
-        expect(validator.validate(null), true);
-        expect(
-          validator.validate([
-            {'name': 'John'}
-          ]),
-          true,
-        );
-        expect(validator.validate([]), false);
-      });
-    });
-
-    group('optional', () {
-      test('should validate optional maps correctly', () {
-        final validator = v.map({'name': v.string().min(3)}).array().optional();
-
-        expect(validator.validate([]), true);
-        expect(
-          validator.validate([
-            {'name': 'John'}
-          ]),
-          true,
-        );
-        expect(validator.validate(null), false);
-      });
-    });
-
-    group('refine', () {
-      test('should validate refine function for maps correctly', () {
-        final validator = v.map({'key': v.string()}).array().refine(
-              (list) => list.length > 1,
-              message: 'The array must contain more than 1 item.',
-            );
-
-        expect(
-          validator.validate([
-            {'key': 'value1'},
-            {'key': 'value2'}
-          ]),
-          true,
-        );
-        expect(
-          validator.validate([
-            {'key': 'value1'}
-          ]),
-          false,
-        );
-      });
-    });
-  });
-
-  group('bool', () {
-    group('required', () {
-      test('should validate required correctly', () {
-        final validator = v.bool().array();
-
-        expect(validator.validate([false, true, false]), true);
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
-      });
-    });
-  });
-
-  group('double', () {
-    group('required', () {
-      test('should validate required correctly', () {
-        final validator = v.double().array();
-
-        expect(validator.validate([1.1, 1.2, 100.1]), true);
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
-      });
-    });
-  });
-
-  group('int', () {
-    group('required', () {
-      test('should validate required correctly', () {
-        final validator = v.int().array();
-
-        expect(validator.validate([1, 1, 100]), true);
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
-      });
-    });
-  });
-
-  group('num', () {
-    group('required', () {
-      test('should validate required correctly', () {
-        final validator = v.num().array();
-
-        expect(validator.validate([1, 10, 100.1, 0.1111]), true);
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
-      });
-    });
-  });
-
-  group('date', () {
-    group('required', () {
-      test('should validate required correctly', () {
-        final validator = v.date().array();
-
-        expect(
-          validator.validate([
-            DateTime.now(),
-            DateTime(2025),
-            DateTime(2024),
-          ]),
-          true,
-        );
-        expect(validator.validate([]), false);
-        expect(validator.validate(null), false);
+      test('should add custom validation', () {
+        final schema = VArray<int>(VInt())
+          ..refine(
+            (v) => v.fold<int>(0, (a, b) => a + b) <= 10,
+            message: 'Sum must be <= 10',
+            code: 'max_sum',
+          );
+        expect(schema.validate([1, 2, 3]), isTrue);
+        expect(schema.validate([5, 6]), isFalse);
       });
     });
   });

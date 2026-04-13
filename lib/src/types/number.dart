@@ -1,164 +1,106 @@
-import 'package:validart/src/types/primitive.dart';
-import 'package:validart/src/validators/num/between_validator.dart';
-import 'package:validart/src/validators/num/max_validator.dart';
-import 'package:validart/src/validators/num/min_validator.dart';
-import 'package:validart/src/validators/num/multiple_of_validator.dart';
-import 'package:validart/src/validators/num/negative_validator.dart';
-import 'package:validart/src/validators/num/positive_validator.dart';
+part of 'type.dart';
 
-/// A base class for validating numerical values (`int`, `double`, and `num`).
-///
-/// ### Example
-/// ```dart
-/// final validator = v.num().min(5).max(20).positive();
-///
-/// print(validator.validate(10)); // true
-/// print(validator.validate(3));  // false (less than min)
-/// print(validator.validate(-5)); // false (not positive)
-/// ```
-abstract class VNumber<T extends num> extends VPrimitive<T> {
-  /// Ensures that the numeric value is greater than or equal to the specified minimum.
-  ///
-  /// This method adds a `MinValidator` to check if the value meets the minimum threshold.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().min(10);
-  ///
-  /// print(validator.validate(15)); // true (valid)
-  /// print(validator.validate(5));  // false (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [min]: The minimum allowed value.
-  /// - [message] *(optional)*: A custom validation message that can be dynamically generated.
-  ///
-  /// ### Returns
-  /// The current `VNumber<T>` instance with the `min` validation applied.
-  VNumber<T> min(T min, {String Function(T min)? message}) {
-    add(MinValidator(min, message: message!(min)));
+abstract class VNumber<T extends num> extends VType<T> {
+  VNumberMessages get _messages;
+
+  VNumber<T> min(T value, {String Function(T)? message}) {
+    final msg = message?.call(value) ?? _messages.min(value);
+    _addValidator('too_small', (v) => v >= value ? null : msg);
     return this;
   }
 
-  /// Ensures that the numeric value is less than or equal to the specified maximum.
-  ///
-  /// This method adds a `MaxValidator` to verify if the value does not exceed the maximum threshold.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().max(100);
-  ///
-  /// print(validator.validate(50));  // true (valid)
-  /// print(validator.validate(150)); // false (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [max]: The maximum allowed value.
-  /// - [message] *(optional)*: A custom validation message that can be dynamically generated.
-  ///
-  /// ### Returns
-  /// The current `VNumber<T>` instance with the `max` validation applied.
-  VNumber<T> max(T max, {String Function(T max)? message}) {
-    add(MaxValidator(max, message: message!(max)));
+  VNumber<T> max(T value, {String Function(T)? message}) {
+    final msg = message?.call(value) ?? _messages.max(value);
+    _addValidator('too_big', (v) => v <= value ? null : msg);
     return this;
   }
 
-  /// Ensures that the numeric value is positive (greater than `0`).
-  ///
-  /// This method adds a `PositiveValidator` to check whether the value is strictly greater than zero.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().positive();
-  ///
-  /// print(validator.validate(5));   // true (valid)
-  /// print(validator.validate(0));   // false (invalid)
-  /// print(validator.validate(-3));  // false (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [message] *(optional)*: A custom validation message.
-  ///
-  /// ### Returns
-  /// The current `VNumber<T>` instance with the `positive` validation applied.
   VNumber<T> positive({String? message}) {
-    add(PositiveValidator(message: message!));
+    final msg = message ?? _messages.positive;
+    _addValidator('positive', (v) => v > 0 ? null : msg);
     return this;
   }
 
-  /// Ensures that the numeric value is negative (less than `0`).
-  ///
-  /// This method applies a `NegativeValidator` to check whether the value is strictly less than zero.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().negative();
-  ///
-  /// print(validator.validate(-5));  // true (valid)
-  /// print(validator.validate(0));   // false (invalid)
-  /// print(validator.validate(3));   // false (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [message] *(optional)*: A custom validation message.
-  ///
-  /// ### Returns
-  /// The current `VNumber<T>` instance with the `negative` validation applied.
   VNumber<T> negative({String? message}) {
-    add(NegativeValidator(message: message!));
+    final msg = message ?? _messages.negative;
+    _addValidator('negative', (v) => v < 0 ? null : msg);
     return this;
   }
 
-  /// Ensures that the numeric value is within the specified range `[min, max]`.
-  ///
-  /// This method applies a `BetweenValidator` to check whether the value is greater than or equal to `min`
-  /// and less than or equal to `max`.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().between(10, 50);
-  ///
-  /// print(validator.validate(25));  // true (valid)
-  /// print(validator.validate(10));  // true (valid)
-  /// print(validator.validate(50));  // true (valid)
-  /// print(validator.validate(5));   // false (invalid)
-  /// print(validator.validate(55));  // false (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [min]: The minimum allowed value.
-  /// - [max]: The maximum allowed value.
-  /// - [message] *(optional)*: A custom validation message.
-  ///
-  /// ### Returns
-  /// The current `VNumber<T>` instance with the `between` validation applied.
-  VNumber<T> between(T min, T max, {String Function(T min, T max)? message}) {
-    add(BetweenValidator(min, max, message: message!(min, max)));
+  VNumber<T> between(T min, T max, {String Function(T, T)? message}) {
+    final msg = message?.call(min, max) ?? _messages.between(min, max);
+    _addValidator('not_in_range', (v) => v >= min && v <= max ? null : msg);
     return this;
   }
 
-  /// Ensures that the numeric value is a multiple of the specified `factor`.
-  ///
-  /// This method applies a `MultipleOfValidator` to check whether the value is evenly divisible by `factor`.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.num().multipleOf(5);
-  ///
-  /// print(validator.validate(10));  // true (valid)
-  /// print(validator.validate(15));  // true (valid)
-  /// print(validator.validate(7));   // false (invalid)
-  /// print(validator.validate(11));  // false (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [factor]: The number that the value must be a multiple of.
-  /// - [message] *(optional)*: A custom validation message.
-  ///
-  /// ### Returns
-  /// The current `VNumber<T>` instance with the `multipleOf` validation applied.
   VNumber<T> multipleOf(T factor, {String Function(T)? message}) {
-    add(MultipleOfValidator(factor, message: message!(factor)));
+    final msg = message?.call(factor) ?? _messages.multipleOf(factor);
+    _addValidator('multiple_of', (v) => v % factor == 0 ? null : msg);
     return this;
   }
+}
+
+class VInt extends VNumber<int> {
+  @override
+  final VNumberMessages _messages;
+
+  VInt([VNumberMessages? messages])
+      : _messages = messages ?? const VNumberMessages();
+
+  VInt even({String? message}) {
+    final msg = message ?? _messages.even;
+    _addValidator('even', (v) => v % 2 == 0 ? null : msg);
+    return this;
+  }
+
+  VInt odd({String? message}) {
+    final msg = message ?? _messages.odd;
+    _addValidator('odd', (v) => v % 2 != 0 ? null : msg);
+    return this;
+  }
+
+  VInt prime({String? message}) {
+    final msg = message ?? _messages.prime;
+    _addValidator('prime', (v) {
+      if (v <= 1) return msg;
+      for (int i = 2; i <= math.sqrt(v).toInt(); i++) {
+        if (v % i == 0) return msg;
+      }
+      return null;
+    });
+    return this;
+  }
+
+  VArray<int> array() => VArray<int>(this);
+}
+
+class VDouble extends VNumber<double> {
+  @override
+  final VNumberMessages _messages;
+
+  VDouble([VNumberMessages? messages])
+      : _messages = messages ?? const VNumberMessages();
+
+  VDouble finite({String? message}) {
+    final msg = message ?? _messages.finite;
+    _addValidator(
+      'finite',
+      (v) => !v.isInfinite && !v.isNaN ? null : msg,
+    );
+    return this;
+  }
+
+  VDouble decimal({String? message}) {
+    final msg = message ?? _messages.decimal;
+    _addValidator('decimal', (v) => v % 1 != 0 ? null : msg);
+    return this;
+  }
+
+  VDouble integer({String? message}) {
+    final msg = message ?? _messages.integer;
+    _addValidator('integer', (v) => v % 1 == 0 ? null : msg);
+    return this;
+  }
+
+  VArray<double> array() => VArray<double>(this);
 }

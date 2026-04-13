@@ -1,149 +1,227 @@
 import 'package:test/test.dart';
-import 'package:validart/validart.dart';
+import 'package:validart/src/error.dart';
+import 'package:validart/src/types/type.dart';
 
 void main() {
-  final Validart v = Validart();
+  group('VDate', () {
+    group('after', () {
+      test('should pass when value is after date', () {
+        final schema = VDate()..after(DateTime(2024, 1, 1));
+        expect(schema.validate(DateTime(2024, 6, 15)), isTrue);
+      });
 
-  group('required', () {
-    test('should validate required correctly', () {
-      final validator = v.date();
+      test('should fail when value is before date', () {
+        final schema = VDate()..after(DateTime(2024, 1, 1));
+        expect(schema.validate(DateTime(2023, 12, 31)), isFalse);
+      });
 
-      expect(validator.validate(DateTime(2025, 1, 1)), true);
-      expect(validator.validate(null), false);
+      test('should fail when value is equal to date', () {
+        final schema = VDate()..after(DateTime(2024, 1, 1));
+        expect(schema.validate(DateTime(2024, 1, 1)), isFalse);
+      });
+
+      test('should return error with code too_small', () {
+        final schema = VDate()..after(DateTime(2024, 1, 1));
+        final errs = schema.errors(DateTime(2023, 6, 1));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'too_small');
+      });
+
+      test('should use custom message', () {
+        final schema = VDate()
+          ..after(DateTime(2024, 1, 1), message: (d) => 'Too early');
+        final errs = schema.errors(DateTime(2023, 1, 1));
+        expect(errs!.first.message, 'Too early');
+      });
     });
-  });
 
-  group('after', () {
-    test('should validate after correctly', () {
-      final validator = v.date().after(DateTime(2025, 1, 1));
+    group('before', () {
+      test('should pass when value is before date', () {
+        final schema = VDate()..before(DateTime(2024, 12, 31));
+        expect(schema.validate(DateTime(2024, 6, 15)), isTrue);
+      });
 
-      expect(validator.validate(DateTime(2025, 1, 2)), true);
-      expect(validator.validate(DateTime(2025, 1, 1)), false);
-      expect(validator.validate(DateTime(2024, 12, 31)), false);
+      test('should fail when value is after date', () {
+        final schema = VDate()..before(DateTime(2024, 12, 31));
+        expect(schema.validate(DateTime(2025, 1, 1)), isFalse);
+      });
+
+      test('should fail when value is equal to date', () {
+        final schema = VDate()..before(DateTime(2024, 12, 31));
+        expect(schema.validate(DateTime(2024, 12, 31)), isFalse);
+      });
+
+      test('should return error with code too_big', () {
+        final schema = VDate()..before(DateTime(2024, 12, 31));
+        final errs = schema.errors(DateTime(2025, 1, 1));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'too_big');
+      });
+
+      test('should use custom message', () {
+        final schema = VDate()
+          ..before(DateTime(2024, 12, 31), message: (d) => 'Too late');
+        final errs = schema.errors(DateTime(2025, 1, 1));
+        expect(errs!.first.message, 'Too late');
+      });
     });
-  });
 
-  group('before', () {
-    test('should validate before correctly', () {
-      final validator = v.date().before(DateTime(2025, 1, 1));
+    group('between', () {
+      final min = DateTime(2024, 1, 1);
+      final max = DateTime(2024, 12, 31);
 
-      expect(validator.validate(DateTime(2024, 12, 31)), true);
-      expect(validator.validate(DateTime(2025, 1, 1)), false);
-      expect(validator.validate(DateTime(2025, 1, 2)), false);
+      test('should pass when value is within range', () {
+        final schema = VDate()..between(min, max);
+        expect(schema.validate(DateTime(2024, 6, 15)), isTrue);
+      });
+
+      test('should pass when value equals min (inclusive)', () {
+        final schema = VDate()..between(min, max);
+        expect(schema.validate(DateTime(2024, 1, 1)), isTrue);
+      });
+
+      test('should pass when value equals max (inclusive)', () {
+        final schema = VDate()..between(min, max);
+        expect(schema.validate(DateTime(2024, 12, 31)), isTrue);
+      });
+
+      test('should fail when value is before min', () {
+        final schema = VDate()..between(min, max);
+        expect(schema.validate(DateTime(2023, 12, 31)), isFalse);
+      });
+
+      test('should fail when value is after max', () {
+        final schema = VDate()..between(min, max);
+        expect(schema.validate(DateTime(2025, 1, 1)), isFalse);
+      });
+
+      test('should return error with code not_in_range', () {
+        final schema = VDate()..between(min, max);
+        final errs = schema.errors(DateTime(2023, 1, 1));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'not_in_range');
+      });
+
+      test('should use custom message', () {
+        final schema = VDate()
+          ..between(min, max, message: (a, b) => 'Out of range');
+        final errs = schema.errors(DateTime(2023, 1, 1));
+        expect(errs!.first.message, 'Out of range');
+      });
     });
-  });
 
-  group('betweenDates', () {
-    test('should validate betweenDates correctly', () {
-      final validator = v.date().betweenDates(
-            DateTime(2025, 1, 1),
-            DateTime(2025, 12, 31),
-          );
+    group('weekday', () {
+      test('should pass for Monday through Friday', () {
+        final schema = VDate()..weekday();
+        // 2024-01-01 is Monday
+        expect(schema.validate(DateTime(2024, 1, 1)), isTrue);
+        // 2024-01-02 is Tuesday
+        expect(schema.validate(DateTime(2024, 1, 2)), isTrue);
+        // 2024-01-03 is Wednesday
+        expect(schema.validate(DateTime(2024, 1, 3)), isTrue);
+        // 2024-01-04 is Thursday
+        expect(schema.validate(DateTime(2024, 1, 4)), isTrue);
+        // 2024-01-05 is Friday
+        expect(schema.validate(DateTime(2024, 1, 5)), isTrue);
+      });
 
-      expect(validator.validate(DateTime(2025, 6, 15)), true);
-      expect(validator.validate(DateTime(2025, 1, 1)), true);
-      expect(validator.validate(DateTime(2025, 12, 31)), true);
-      expect(validator.validate(DateTime(2024, 12, 31)), false);
-      expect(validator.validate(DateTime(2026, 1, 1)), false);
+      test('should fail for Saturday and Sunday', () {
+        final schema = VDate()..weekday();
+        // 2024-01-06 is Saturday
+        expect(schema.validate(DateTime(2024, 1, 6)), isFalse);
+        // 2024-01-07 is Sunday
+        expect(schema.validate(DateTime(2024, 1, 7)), isFalse);
+      });
+
+      test('should return error with code weekday', () {
+        final schema = VDate()..weekday();
+        final errs = schema.errors(DateTime(2024, 1, 6));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'weekday');
+      });
+
+      test('should use custom message', () {
+        final schema = VDate()..weekday(message: 'Business days only');
+        final errs = schema.errors(DateTime(2024, 1, 6));
+        expect(errs!.first.message, 'Business days only');
+      });
     });
-  });
 
-  group('weekday', () {
-    test('should validate weekday correctly', () {
-      final validator = v.date().weekday();
+    group('weekend', () {
+      test('should pass for Saturday and Sunday', () {
+        final schema = VDate()..weekend();
+        // 2024-01-06 is Saturday
+        expect(schema.validate(DateTime(2024, 1, 6)), isTrue);
+        // 2024-01-07 is Sunday
+        expect(schema.validate(DateTime(2024, 1, 7)), isTrue);
+      });
 
-      expect(validator.validate(DateTime(2025, 2, 17)), true); // Monday
-      expect(validator.validate(DateTime(2025, 2, 18)), true); // Tuesday
-      expect(validator.validate(DateTime(2025, 2, 19)), true); // Wednesday
-      expect(validator.validate(DateTime(2025, 2, 20)), true); // Thursday
-      expect(validator.validate(DateTime(2025, 2, 21)), true); // Friday
-      expect(validator.validate(DateTime(2025, 2, 22)), false); // Saturday
-      expect(validator.validate(DateTime(2025, 2, 23)), false); // Sunday
+      test('should fail for Monday through Friday', () {
+        final schema = VDate()..weekend();
+        // 2024-01-01 is Monday
+        expect(schema.validate(DateTime(2024, 1, 1)), isFalse);
+        // 2024-01-05 is Friday
+        expect(schema.validate(DateTime(2024, 1, 5)), isFalse);
+      });
+
+      test('should return error with code weekend', () {
+        final schema = VDate()..weekend();
+        final errs = schema.errors(DateTime(2024, 1, 1));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'weekend');
+      });
+
+      test('should use custom message', () {
+        final schema = VDate()..weekend(message: 'Weekends only');
+        final errs = schema.errors(DateTime(2024, 1, 1));
+        expect(errs!.first.message, 'Weekends only');
+      });
     });
-  });
 
-  group('weekend', () {
-    test('should validate weekend correctly', () {
-      final validator = v.date().weekend();
+    group('validate', () {
+      test('should return true for valid DateTime', () {
+        final schema = VDate();
+        expect(schema.validate(DateTime(2024, 1, 1)), isTrue);
+      });
 
-      expect(validator.validate(DateTime(2025, 2, 22)), true); // Saturday
-      expect(validator.validate(DateTime(2025, 2, 23)), true); // Sunday
-      expect(validator.validate(DateTime(2025, 2, 24)), false); // Monday
+      test('should return false for null', () {
+        final schema = VDate();
+        expect(schema.validate(null), isFalse);
+      });
+
+      test('should return false for wrong type', () {
+        final schema = VDate();
+        expect(schema.validate('2024-01-01'), isFalse);
+        expect(schema.validate(123), isFalse);
+      });
     });
-  });
 
-  group('nullable', () {
-    test('should validate nullable correctly', () {
-      final validator = v.date().nullable();
+    group('parse', () {
+      test('should return value when valid', () {
+        final schema = VDate();
+        final date = DateTime(2024, 6, 15);
+        expect(schema.parse(date), date);
+      });
 
-      expect(validator.validate(DateTime(2025, 1, 1)), true);
-      expect(validator.validate(null), true);
+      test('should throw when null', () {
+        final schema = VDate();
+        expect(() => schema.parse(null), throwsA(isA<VException>()));
+      });
     });
-  });
 
-  group('optional', () {
-    test('should validate optional correctly', () {
-      final validator = v.date().optional();
-
-      expect(validator.validate(DateTime(2025, 1, 1)), true);
-      expect(validator.validate(null), false);
+    group('nullable', () {
+      test('should allow null when nullable', () {
+        final schema = VDate()..nullable();
+        expect(schema.validate(null), isTrue);
+        expect(schema.parse(null), isNull);
+      });
     });
-  });
 
-  group('every', () {
-    test('should pass only if all validators pass', () {
-      final validator = v.date().every([
-        v.date().after(DateTime(2025, 1, 1)),
-        v.date().before(DateTime(2025, 12, 31)),
-      ]);
-
-      expect(validator.validate(DateTime(2025, 6, 15)), true);
-      expect(validator.validate(DateTime(2026, 1, 1)), false);
-      expect(validator.validate(DateTime(2024, 12, 31)), false);
-    });
-  });
-
-  group('any', () {
-    test('should pass if at least one validator passes', () {
-      final validator = v.date().any([
-        v.date().after(DateTime(2025, 12, 31)),
-        v.date().before(DateTime(2025, 1, 1)),
-      ]);
-
-      expect(validator.validate(DateTime(2026, 1, 1)), true);
-      expect(validator.validate(DateTime(2024, 12, 31)), true);
-      expect(validator.validate(DateTime(2025, 6, 15)), false);
-    });
-  });
-
-  group('refine', () {
-    test('should validate refine function correctly', () {
-      final validator = v.date().refine(
-            (value) => value.isAfter(DateTime(2025, 1, 1)),
-            message: 'The date must be after 2025-01-01',
-          );
-
-      expect(validator.validate(DateTime(2025, 6, 15)), true);
-      expect(validator.validate(DateTime(2024, 12, 31)), false);
-    });
-  });
-
-  group('array', () {
-    test('should validate an array of dates correctly', () {
-      final validator = v.date().array();
-
-      expect(
-        validator.validate([
-          DateTime(2025, 1, 1),
-          DateTime(2025, 6, 15),
-          DateTime(2025, 12, 31)
-        ]),
-        true,
-      );
-      expect(
-        validator.validate([]),
-        false,
-      );
+    group('optional', () {
+      test('should allow null when optional', () {
+        final schema = VDate()..optional();
+        expect(schema.validate(null), isTrue);
+      });
     });
   });
 }

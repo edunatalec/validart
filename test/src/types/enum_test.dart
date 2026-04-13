@@ -1,0 +1,70 @@
+import 'package:test/test.dart';
+import 'package:validart/src/types/type.dart';
+
+enum Color { red, green, blue }
+
+enum Status { active, inactive }
+
+void main() {
+  group('VEnum', () {
+    test('should pass for valid enum value', () {
+      final schema = VEnum(Color.values);
+      expect(schema.validate(Color.red), isTrue);
+      expect(schema.validate(Color.green), isTrue);
+      expect(schema.validate(Color.blue), isTrue);
+    });
+
+    test('should fail for wrong enum type', () {
+      final schema = VEnum(Color.values);
+      expect(schema.validate(Status.active), isFalse);
+    });
+
+    test('should fail for non-enum value', () {
+      final schema = VEnum(Color.values);
+      expect(schema.validate('red'), isFalse);
+      expect(schema.validate(0), isFalse);
+    });
+
+    test('should fail for null by default', () {
+      final schema = VEnum(Color.values);
+      expect(schema.validate(null), isFalse);
+    });
+
+    test('should pass for null when nullable', () {
+      final schema = VEnum(Color.values)..nullable();
+      expect(schema.validate(null), isTrue);
+    });
+
+    test('should return correct error code', () {
+      final schema = VEnum(Color.values);
+      final errs = schema.errors('invalid');
+      expect(errs!.first.code, 'invalid_enum');
+    });
+
+    test('should include valid values in error message', () {
+      final schema = VEnum(Color.values);
+      final errs = schema.errors('invalid');
+      expect(errs!.first.message, contains('red'));
+      expect(errs.first.message, contains('green'));
+      expect(errs.first.message, contains('blue'));
+    });
+
+    test('should parse valid enum', () {
+      final schema = VEnum(Color.values);
+      expect(schema.parse(Color.blue), Color.blue);
+    });
+
+    test('should work with array', () {
+      final schema = VEnum(Color.values).array();
+      expect(schema.validate([Color.red, Color.blue]), isTrue);
+      expect(schema.validate([Color.red, 'invalid']), isFalse);
+    });
+
+    test('should support refine', () {
+      final schema = VEnum(Color.values)
+        ..refine((v) => v != Color.red, message: 'Red not allowed');
+      expect(schema.validate(Color.green), isTrue);
+      expect(schema.validate(Color.red), isFalse);
+    });
+  });
+}

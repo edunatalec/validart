@@ -1,146 +1,173 @@
-import 'package:validart/src/validators/required_validator.dart';
-import 'package:validart/src/validators/validator.dart';
+import 'dart:math' as math;
 
-/// `VType<T>` is an abstract base class for defining validation rules in Validart.
-///
-/// It serves as the foundation for all data types that require validation, such as:
-/// - `VString` for strings
-/// - `VInt` for integers
-/// - `VBool` for booleans
-/// - `VDouble` for floating-point numbers
-/// - `VNum` for numeric values
-/// - `VDate` for date values
-/// - `VArray<T>` for array values
-///
-/// This class provides a structured way to add validation rules, handle optional and nullable values,
-/// and retrieve error messages when validation fails.
+import 'package:validart/src/error.dart';
+import 'package:validart/src/messages/messages.dart';
+import 'package:validart/src/result.dart';
+
+part 'string.dart';
+part 'bool.dart';
+part 'number.dart';
+part 'date.dart';
+part 'array.dart';
+part 'map.dart';
+part 'object.dart';
+part 'enum.dart';
+part 'literal.dart';
+part 'union.dart';
+
+typedef Validator<T> = String? Function(T value);
+
 abstract class VType<T> {
-  /// Stores the list of validation rules applied to this type.
-  final List<Validator<T>> _validators = [];
-
-  /// Determines whether the value is optional.
-  ///
-  /// If `true`, the value is allowed to be omitted without triggering a validation error.
+  final List<_PipelineStep<T>> _steps = [];
   bool _isOptional = false;
-
-  /// Determines whether the value is nullable.
-  ///
-  /// If `true`, `null` values will be considered valid.
   bool _isNullable = false;
+  T? _defaultValue;
+  bool _hasDefault = false;
+  T Function(Object value)? coercer;
 
-  /// Returns the list of validators added to this type.
-  List<Validator<T>> get validators => _validators;
-
-  /// Indicates whether the value is optional.
-  bool get isOptional => _isOptional;
-
-  /// Indicates whether the value can be `null`.
-  bool get isNullable => _isNullable;
-
-  /// Adds a validator to the current type.
-  ///
-  /// This method allows adding custom validation rules dynamically.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.string().add(MyCustomValidator());
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [validator]: The validation rule to be added.
-  ///
-  /// ### Returns
-  /// The current `VType<T>` instance with the added validator.
-  VType<T> add(Validator<T> validator) {
-    _validators.add(validator);
+  VType<T> _addStep(_PipelineStep<T> step) {
+    _steps.add(step);
     return this;
   }
 
-  /// Marks the value as optional, meaning it can be omitted without causing validation failure.
-  ///
-  /// By default, values are required unless explicitly marked as optional.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.string().optional();
-  /// print(validator.validate(null)); // true (valid because it's optional)
-  /// ```
-  ///
-  /// ### Returns
-  /// The current `VType<T>` instance with the optional flag enabled.
+  VType<T> _addValidator(String code, Validator<T> check) {
+    return _addStep(_ValidationStep<T>(code: code, check: check));
+  }
+
+  T? parse(Object? value) {
+    final result = safeParse(value);
+
+    if (result case VFailure(:final errors)) {
+      throw VException(errors);
+    }
+
+    return (result as VSuccess<T?>).value;
+  }
+
+  VResult<T?> safeParse(Object? value) {
+    if (value == null) {
+      if (_isNullable) return VSuccess<T?>(null);
+      if (_hasDefault) return VSuccess<T?>(_defaultValue);
+      if (_isOptional) return VSuccess<T?>(null);
+
+      return VFailure<T?>([
+        const VError(code: 'required', message: 'Required'),
+      ]);
+    }
+
+    final T typed;
+
+    if (coercer != null) {
+      try {
+        typed = coercer!(value);
+      } catch (_) {
+        return VFailure<T?>([
+          VError(
+            code: 'invalid_type',
+            message: 'Expected ${T.toString()}, received ${value.runtimeType}',
+          ),
+        ]);
+      }
+    } else {
+      try {
+        typed = value as T;
+      } catch (_) {
+        return VFailure<T?>([
+          VError(
+            code: 'invalid_type',
+            message: 'Expected ${T.toString()}, received ${value.runtimeType}',
+          ),
+        ]);
+      }
+    }
+
+    return _runPipeline(typed);
+  }
+
+  VResult<T?> _runPipeline(T value) {
+    final errors = <VError>[];
+    T current = value;
+
+    for (final step in _steps) {
+      switch (step) {
+        case _ValidationStep<T>(:final code, :final check):
+          final error = check(current);
+          if (error != null) {
+            errors.add(VError(code: code, message: error));
+          }
+        case _TransformStep<T>(:final transform):
+          if (errors.isEmpty) {
+            current = transform(current);
+          }
+      }
+    }
+
+    if (errors.isNotEmpty) return VFailure<T?>(errors);
+
+    return VSuccess<T?>(current);
+  }
+
+  bool validate(Object? value) => safeParse(value).isValid;
+
+  List<VError>? errors(Object? value) {
+    final result = safeParse(value);
+
+    if (result case VFailure(:final errors)) return errors;
+
+    return null;
+  }
+
   VType<T> optional() {
     _isOptional = true;
     return this;
   }
 
-  /// Marks the value as nullable, allowing `null` as a valid input.
-  ///
-  /// Unlike `optional`, which allows a value to be omitted, `nullable` specifically permits `null` as a valid input.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.string().nullable();
-  /// print(validator.validate(null)); // true (valid because it's nullable)
-  /// ```
-  ///
-  /// ### Returns
-  /// The current `VType<T>` instance with the nullable flag enabled.
   VType<T> nullable() {
     _isNullable = true;
     return this;
   }
 
-  /// Retrieves the validation error message for a given value.
-  ///
-  /// If the value is valid, it returns `null`. Otherwise, it returns the corresponding validation error message.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.string().min(5);
-  /// print(validator.getErrorMessage('hello')); // null (valid)
-  /// print(validator.getErrorMessage('hi')); // 'Value must be at least 5 characters' (invalid)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [value]: The value to be validated.
-  ///
-  /// ### Returns
-  /// - `null` if the value passes all validation rules.
-  /// - A string containing the error message if validation fails.
-  getErrorMessage(T? value) {
-    if (value == null && isNullable) return null;
-
-    for (final validator in validators) {
-      final message = validator.validate(value);
-
-      if (message != null) {
-        if (validator is RequiredValidator && isOptional && value != null) {
-          return null;
-        }
-
-        return message;
-      }
-    }
-
-    return null;
+  VType<T> defaultValue(T value) {
+    _defaultValue = value;
+    _hasDefault = true;
+    return this;
   }
 
-  /// Validates the provided value based on the assigned validation rules.
-  ///
-  /// Returns `true` if the value meets all validation requirements, otherwise `false`.
-  ///
-  /// ### Example
-  /// ```dart
-  /// final validator = v.string().min(5);
-  /// print(validator.validate('hello')); // true (valid)
-  /// print(validator.validate('hi')); // false (invalid, too short)
-  /// ```
-  ///
-  /// ### Parameters
-  /// - [value]: The value to be validated.
-  ///
-  /// ### Returns
-  /// - `true` if the value is valid.
-  /// - `false` if the value fails validation.
-  bool validate(T? value) => getErrorMessage(value) == null;
+  VType<T> refine(
+    bool Function(T value) check, {
+    String? message,
+    String? code,
+  }) {
+    final msg = message ?? 'Invalid value';
+
+    return _addValidator(
+      code ?? 'custom',
+      (value) => check(value) ? null : msg,
+    );
+  }
+
+  VType<T> _transform(T Function(T value) fn) {
+    _addStep(_TransformStep<T>(transform: fn));
+    return this;
+  }
+}
+
+sealed class _PipelineStep<T> {
+  const _PipelineStep();
+}
+
+final class _ValidationStep<T> extends _PipelineStep<T> {
+  final String code;
+  final Validator<T> check;
+
+  const _ValidationStep({
+    required this.code,
+    required this.check,
+  });
+}
+
+final class _TransformStep<T> extends _PipelineStep<T> {
+  final T Function(T value) transform;
+
+  const _TransformStep({required this.transform});
 }

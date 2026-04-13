@@ -1,163 +1,424 @@
-import 'package:validart/validart.dart';
 import 'package:test/test.dart';
+import 'package:validart/src/types/type.dart';
 
 void main() {
-  final Validart v = Validart();
-
-  group('required', () {
-    test('should validate required correctly', () {
-      final validator = v.map({'key': v.string()});
-
-      expect(validator.validate({'key': 'value'}), true);
-      expect(validator.validate({}), false);
-      expect(validator.validate(null), false);
-    });
-  });
-
-  group('optional', () {
-    test('should validate optional correctly', () {
-      final validator = v.map({'key': v.string()}).optional();
-
-      expect(validator.validate({}), true);
-      expect(validator.validate(null), false);
-    });
-  });
-
-  group('nullable', () {
-    test('should validate nullable correctly', () {
-      final validator = v.map({'key': v.string()}).nullable();
-
-      expect(validator.validate(null), true);
-      expect(validator.validate({'key': 'value'}), true);
-      expect(validator.validate({}), false);
-    });
-  });
-
-  group('validate nested fields', () {
-    test('should validate nested fields correctly', () {
-      final validator = v.map({
-        'name': v.string().min(3),
-        'age': v.int().min(18),
+  group('VMap', () {
+    // ── basic validation ──────────────────────────────────────────────────
+    group('basic validation', () {
+      test('should pass for valid map', () {
+        final schema = VMap({
+          'name': VString()..min(1),
+          'age': VInt()..min(0),
+        });
+        expect(schema.validate({'name': 'Alice', 'age': 30}), isTrue);
       });
 
-      expect(validator.validate({'name': 'John', 'age': 25}), true);
-      expect(validator.validate({'name': 'Jo', 'age': 25}), false);
-      expect(validator.validate({'name': 'John', 'age': 16}), false);
-    });
-  });
-
-  group('refine - confirm password', () {
-    test('should validate password confirmation', () {
-      final validator = v.map({
-        'password': v.string().min(8),
-        'confirmPassword': v.string()
-      }).refine(
-        (data) => data['password'] == data['confirmPassword'],
-        path: 'confirmPassword',
-      );
-
-      expect(
-        validator.validate({
-          'password': 'password123',
-          'confirmPassword': 'password123',
-        }),
-        true,
-      );
-      expect(
-        validator.validate({
-          'password': 'password123',
-          'confirmPassword': 'pass123',
-        }),
-        false,
-      );
-    });
-  });
-
-  group('refine - custom validation', () {
-    test('should validate custom logic', () {
-      final validator = v.map({
-        'email': v.string().email(),
-        'password': v.string().min(8).max(20),
-        'confirmPassword': v.string().min(8).max(20),
-      }).refine(
-        (data) => data['password'] == data['confirmPassword'],
-        path: 'confirmPassword',
-        message: 'The passwords are not the same',
-      );
-
-      expect(
-        validator.validate({
-          'email': 'user@company.com',
-          'password': '12345678',
-          'confirmPassword': '12345678',
-        }),
-        true,
-      );
-      expect(
-        validator.validate({
-          'email': 'user@company.com',
-          'password': '12345678',
-          'confirmPassword': '123456789',
-        }),
-        false,
-      );
-    });
-  });
-
-  group('validate multiple errors', () {
-    test('should return multiple validation errors', () {
-      final validator = v.map({
-        'email': v.string().email(),
-        'age': v.int().min(18),
+      test('should fail when a field is invalid', () {
+        final schema = VMap({
+          'name': VString()..min(3),
+          'age': VInt()..min(0),
+        });
+        expect(schema.validate({'name': 'Al', 'age': 30}), isFalse);
       });
 
-      final result = validator.getErrorMessage({
-        'email': 'invalid-email',
-        'age': 16,
+      test('should fail when required field is missing', () {
+        final schema = VMap({
+          'name': VString()..min(1),
+          'age': VInt(),
+        });
+        expect(schema.validate({'name': 'Alice'}), isFalse);
       });
 
-      expect(result, {
-        'email': 'Enter a valid email',
-        'age': 'The number must be at least 18',
+      test('should return parsed map via parse', () {
+        final schema = VMap({
+          'name': VString(),
+        });
+        final result = schema.parse({'name': 'Alice'});
+        expect(result, {'name': 'Alice'});
       });
     });
-  });
 
-  group('validate missing required fields', () {
-    test('should return errors for missing required fields', () {
-      final validator = v.map({
-        'email': v.string().email(),
-        'age': v.int().min(18),
+    // ── field-level errors with paths ─────────────────────────────────────
+    group('field-level errors', () {
+      test('should include field name in error path', () {
+        final schema = VMap({
+          'name': VString()..min(3),
+        });
+        final errors = schema.errors({'name': 'Al'});
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'too_small');
+        expect(errors.first.path, ['name']);
       });
 
-      final result = validator.getErrorMessage({});
-
-      expect(result, {'email': 'Required', 'age': 'Required'});
-    });
-  });
-
-  group('object', () {
-    test('should maintain the same number of keys as the original map', () {
-      final validator = v.map({
-        'email': v.string().email(),
-        'age': v.int().min(18),
+      test('should return required error with path for missing field', () {
+        final schema = VMap({
+          'name': VString(),
+          'email': VString()..email(),
+        });
+        final errors = schema.errors({'name': 'Alice'});
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'required');
+        expect(errors.first.path, ['email']);
       });
 
-      expect(validator.object.length, 2);
+      test('should return multiple field errors', () {
+        final schema = VMap({
+          'name': VString()..min(3),
+          'age': VInt()..min(18),
+        });
+        final errors = schema.errors({'name': 'Al', 'age': 5});
+        expect(errors, isNotNull);
+        expect(errors!.length, 2);
+        expect(errors[0].path, ['name']);
+        expect(errors[1].path, ['age']);
+      });
     });
-  });
 
-  group('refine - assert valid path', () {
-    test('should throw an assertion error if path does not exist', () {
-      expect(
-        () => v.map({
-          'name': v.string(),
-        }).refine(
-          (data) => data['email'] != null,
-          path: 'email',
-        ),
-        throwsA(isA<AssertionError>()),
-      );
+    // ── nested maps with nested error paths ───────────────────────────────
+    group('nested maps', () {
+      test('should validate nested map', () {
+        final schema = VMap({
+          'address': VMap({
+            'zip': VString()..min(5),
+          }),
+        });
+        expect(
+          schema.validate({
+            'address': {'zip': '12345'},
+          }),
+          isTrue,
+        );
+      });
+
+      test('should produce nested error paths', () {
+        final schema = VMap({
+          'address': VMap({
+            'zip': VString()..min(5),
+          }),
+        });
+        final errors = schema.errors({
+          'address': {'zip': '123'},
+        });
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['address', 'zip']);
+      });
+
+      test('should produce deeply nested error paths', () {
+        final schema = VMap({
+          'user': VMap({
+            'profile': VMap({
+              'bio': VString()..min(10),
+            }),
+          }),
+        });
+        final errors = schema.errors({
+          'user': {
+            'profile': {'bio': 'short'},
+          },
+        });
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['user', 'profile', 'bio']);
+      });
+    });
+
+    // ── pick ──────────────────────────────────────────────────────────────
+    group('pick', () {
+      test('should return new VMap with only picked keys', () {
+        final schema = VMap({
+          'name': VString(),
+          'age': VInt(),
+          'email': VString()..email(),
+        });
+        final picked = schema.pick(['name', 'email']);
+        expect(picked.validate({'name': 'Alice', 'email': 'a@b.com'}), isTrue);
+      });
+
+      test('picked schema should not require omitted fields', () {
+        final schema = VMap({
+          'name': VString(),
+          'age': VInt(),
+        });
+        final picked = schema.pick(['name']);
+        expect(picked.validate({'name': 'Alice'}), isTrue);
+      });
+
+      test('should ignore non-existent keys', () {
+        final schema = VMap({
+          'name': VString(),
+        });
+        final picked = schema.pick(['name', 'nonexistent']);
+        expect(picked.schema.keys, contains('name'));
+        expect(picked.schema.keys, isNot(contains('nonexistent')));
+      });
+    });
+
+    // ── omit ──────────────────────────────────────────────────────────────
+    group('omit', () {
+      test('should return new VMap without omitted keys', () {
+        final schema = VMap({
+          'name': VString(),
+          'age': VInt(),
+          'email': VString()..email(),
+        });
+        final omitted = schema.omit(['age']);
+        expect(
+          omitted.validate({'name': 'Alice', 'email': 'a@b.com'}),
+          isTrue,
+        );
+      });
+
+      test('omitted schema should not validate removed fields', () {
+        final schema = VMap({
+          'name': VString(),
+          'age': VInt(),
+        });
+        final omitted = schema.omit(['age']);
+        expect(omitted.validate({'name': 'Alice'}), isTrue);
+      });
+    });
+
+    // ── extend ────────────────────────────────────────────────────────────
+    group('extend', () {
+      test('should add new fields to schema', () {
+        final schema = VMap({'name': VString()});
+        final extended = schema.extend({'age': VInt()});
+        expect(extended.validate({'name': 'Alice', 'age': 30}), isTrue);
+      });
+
+      test('extended schema should require new fields', () {
+        final schema = VMap({'name': VString()});
+        final extended = schema.extend({'age': VInt()});
+        expect(extended.validate({'name': 'Alice'}), isFalse);
+      });
+    });
+
+    // ── merge ─────────────────────────────────────────────────────────────
+    group('merge', () {
+      test('should merge two VMap schemas', () {
+        final schema1 = VMap({'name': VString()});
+        final schema2 = VMap({'age': VInt()});
+        final merged = schema1.merge(schema2);
+        expect(merged.validate({'name': 'Alice', 'age': 30}), isTrue);
+      });
+
+      test('merged schema should require fields from both', () {
+        final schema1 = VMap({'name': VString()});
+        final schema2 = VMap({'age': VInt()});
+        final merged = schema1.merge(schema2);
+        expect(merged.validate({'name': 'Alice'}), isFalse);
+      });
+
+      test('merge should override duplicate keys with other schema', () {
+        final schema1 = VMap({'name': VString()..min(1)});
+        final schema2 = VMap({'name': VString()..min(5)});
+        final merged = schema1.merge(schema2);
+        expect(merged.validate({'name': 'Al'}), isFalse);
+      });
+    });
+
+    // ── partial ───────────────────────────────────────────────────────────
+    group('partial', () {
+      test('should make all fields optional', () {
+        final schema = VMap({
+          'name': VString(),
+          'age': VInt(),
+        });
+        final partial = schema.partial();
+        expect(partial.validate(<String, dynamic>{}), isTrue);
+      });
+
+      test('partial should still validate provided fields', () {
+        final schema = VMap({
+          'name': VString()..min(3),
+          'age': VInt()..min(0),
+        });
+        final partial = schema.partial();
+        expect(partial.validate({'name': 'Al'}), isFalse);
+      });
+
+      test('partial should accept missing fields', () {
+        final schema = VMap({
+          'name': VString(),
+          'age': VInt(),
+        });
+        final partial = schema.partial();
+        expect(partial.validate({'name': 'Alice'}), isTrue);
+      });
+    });
+
+    // ── strict ────────────────────────────────────────────────────────────
+    group('strict', () {
+      test('should reject unknown keys', () {
+        final schema = VMap({'name': VString()})..strict();
+        expect(
+          schema.validate({'name': 'Alice', 'extra': 'value'}),
+          isFalse,
+        );
+      });
+
+      test('should return unrecognized_key error', () {
+        final schema = VMap({'name': VString()})..strict();
+        final errors = schema.errors({'name': 'Alice', 'extra': 'value'});
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'unrecognized_key');
+        expect(errors.first.path, ['extra']);
+      });
+
+      test('should pass when no unknown keys', () {
+        final schema = VMap({'name': VString()})..strict();
+        expect(schema.validate({'name': 'Alice'}), isTrue);
+      });
+
+      test('should report multiple unknown keys', () {
+        final schema = VMap({'name': VString()})..strict();
+        final errors = schema.errors({
+          'name': 'Alice',
+          'foo': 1,
+          'bar': 2,
+        });
+        expect(errors, isNotNull);
+        expect(errors!.length, 2);
+        expect(errors[0].code, 'unrecognized_key');
+        expect(errors[1].code, 'unrecognized_key');
+      });
+    });
+
+    // ── passthrough ───────────────────────────────────────────────────────
+    group('passthrough', () {
+      test('should pass through unknown keys', () {
+        final schema = VMap({'name': VString()})..passthrough();
+        final result = schema.parse({'name': 'Alice', 'extra': 'value'});
+        expect(result!['name'], 'Alice');
+        expect(result['extra'], 'value');
+      });
+
+      test('should still validate known fields', () {
+        final schema = VMap({'name': VString()..min(3)})..passthrough();
+        expect(
+          schema.validate({'name': 'Al', 'extra': 'value'}),
+          isFalse,
+        );
+      });
+
+      test('should include unknown keys in parsed output', () {
+        final schema = VMap({'name': VString()})..passthrough();
+        final result = schema.parse({
+          'name': 'Alice',
+          'age': 30,
+          'active': true,
+        });
+        expect(result!.keys, containsAll(['name', 'age', 'active']));
+      });
+    });
+
+    // ── refineField ───────────────────────────────────────────────────────
+    group('refineField', () {
+      test('should validate cross-field constraint', () {
+        final schema = VMap({
+          'password': VString()..min(6),
+          'confirm': VString()..min(6),
+        })
+          ..refineField(
+            (data) => data['password'] == data['confirm'],
+            path: 'confirm',
+            message: 'Passwords must match',
+          );
+        expect(
+          schema.validate({
+            'password': 'secret123',
+            'confirm': 'secret123',
+          }),
+          isTrue,
+        );
+      });
+
+      test('should fail cross-field constraint', () {
+        final schema = VMap({
+          'password': VString()..min(6),
+          'confirm': VString()..min(6),
+        })
+          ..refineField(
+            (data) => data['password'] == data['confirm'],
+            path: 'confirm',
+            message: 'Passwords must match',
+          );
+        expect(
+          schema.validate({
+            'password': 'secret123',
+            'confirm': 'different',
+          }),
+          isFalse,
+        );
+      });
+
+      test('should return custom error for failed cross-field', () {
+        final schema = VMap({
+          'password': VString()..min(6),
+          'confirm': VString()..min(6),
+        })
+          ..refineField(
+            (data) => data['password'] == data['confirm'],
+            path: 'confirm',
+            message: 'Passwords must match',
+          );
+        final errors = schema.errors({
+          'password': 'secret123',
+          'confirm': 'different',
+        });
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'custom');
+        expect(errors.first.message, 'Passwords must match');
+      });
+    });
+
+    // ── null handling ─────────────────────────────────────────────────────
+    group('null handling', () {
+      test('should fail for null by default', () {
+        final schema = VMap({'name': VString()});
+        expect(schema.validate(null), isFalse);
+      });
+
+      test('should return required error for null', () {
+        final schema = VMap({'name': VString()});
+        final errors = schema.errors(null);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'required');
+      });
+
+      test('nullable should allow null', () {
+        final schema = VMap({'name': VString()})..nullable();
+        expect(schema.validate(null), isTrue);
+      });
+
+      test('nullable should parse null to null', () {
+        final schema = VMap({'name': VString()})..nullable();
+        expect(schema.parse(null), isNull);
+      });
+
+      test('optional should allow null', () {
+        final schema = VMap({'name': VString()})..optional();
+        expect(schema.validate(null), isTrue);
+      });
+    });
+
+    // ── type checking ─────────────────────────────────────────────────────
+    group('type checking', () {
+      test('should fail for non-map input', () {
+        final schema = VMap({'name': VString()});
+        expect(schema.validate('not a map'), isFalse);
+      });
+
+      test('should return invalid_type error for non-map input', () {
+        final schema = VMap({'name': VString()});
+        final errors = schema.errors('not a map');
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'invalid_type');
+      });
+
+      test('should fail for list input', () {
+        final schema = VMap({'name': VString()});
+        expect(schema.validate([1, 2, 3]), isFalse);
+      });
     });
   });
 }
