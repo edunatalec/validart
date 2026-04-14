@@ -68,14 +68,17 @@ class VLocale {
 
   String translate(String code, [Map<String, dynamic> params = const {}]) {
     final template = _translations[code] ?? _defaults[code] ?? code;
+
     return _interpolate(template, params);
   }
 
   static String _interpolate(String template, Map<String, dynamic> params) {
-    var result = template;
+    String result = template;
+
     for (final entry in params.entries) {
       result = result.replaceAll('{${entry.key}}', entry.value.toString());
     }
+
     return result;
   }
 }

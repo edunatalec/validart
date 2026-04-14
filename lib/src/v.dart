@@ -37,6 +37,7 @@ class V {
 class VCoerce {
   VInt int() {
     final schema = VInt();
+
     schema.coercer = (value) {
       if (value is core.int) return value;
       if (value is core.double) return value.toInt();
@@ -44,11 +45,13 @@ class VCoerce {
       if (value is core.bool) return value ? 1 : 0;
       throw FormatException('Cannot coerce $value to int');
     };
+
     return schema;
   }
 
   VDouble double() {
     final schema = VDouble();
+
     schema.coercer = (value) {
       if (value is core.double) return value;
       if (value is core.int) return value.toDouble();
@@ -56,17 +59,20 @@ class VCoerce {
       if (value is core.bool) return value ? 1.0 : 0.0;
       throw FormatException('Cannot coerce $value to double');
     };
+
     return schema;
   }
 
   VString string() {
     final schema = VString();
     schema.coercer = (value) => value.toString();
+
     return schema;
   }
 
   VBool bool() {
     final schema = VBool();
+
     schema.coercer = (value) {
       if (value is core.bool) return value;
       if (value is String) {
@@ -76,16 +82,19 @@ class VCoerce {
       if (value is core.int) return value != 0;
       throw FormatException('Cannot coerce $value to bool');
     };
+
     return schema;
   }
 
   VDate date() {
     final schema = VDate();
+
     schema.coercer = (value) {
       if (value is DateTime) return value;
       if (value is String) return DateTime.parse(value);
       throw FormatException('Cannot coerce $value to DateTime');
     };
+
     return schema;
   }
 }

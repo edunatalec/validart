@@ -26,19 +26,23 @@ class VMap extends VType<Map<String, dynamic>> {
 
   VMap pick(List<String> keys) {
     final picked = <String, VType>{};
+
     for (final key in keys) {
       if (_schema.containsKey(key)) {
         picked[key] = _schema[key]!;
       }
     }
+
     return VMap(picked);
   }
 
   VMap omit(List<String> keys) {
     final omitted = Map<String, VType>.from(_schema);
+
     for (final key in keys) {
       omitted.remove(key);
     }
+
     return VMap(omitted);
   }
 
@@ -52,9 +56,11 @@ class VMap extends VType<Map<String, dynamic>> {
 
   VMap partial() {
     final partialSchema = <String, VType>{};
+
     for (final entry in _schema.entries) {
       partialSchema[entry.key] = entry.value..optional();
     }
+
     return VMap(partialSchema);
   }
 
