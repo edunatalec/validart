@@ -73,10 +73,11 @@ class VMap extends VType<Map<String, dynamic>> {
 
     final msg = message ?? 'Invalid value';
 
-    _addValidator(
-      'custom',
-      (value) => check(value) ? null : msg,
-    );
+    _add(_RefineValidator<Map<String, dynamic>>(
+      check: check,
+      message: msg,
+      validatorCode: 'custom',
+    ));
     return this;
   }
 

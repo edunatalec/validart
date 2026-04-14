@@ -13,14 +13,12 @@ class VBool extends VType<bool> {
   }
 
   VBool isTrue({String? message}) {
-    final msg = message ?? _messages.isTrue;
-    _addValidator('is_true', (value) => value == true ? null : msg);
+    _add(IsTrueValidator(message: message ?? _messages.isTrue));
     return this;
   }
 
   VBool isFalse({String? message}) {
-    final msg = message ?? _messages.isFalse;
-    _addValidator('is_false', (value) => value == false ? null : msg);
+    _add(IsFalseValidator(message: message ?? _messages.isFalse));
     return this;
   }
 

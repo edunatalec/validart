@@ -15,36 +15,31 @@ class VArray<T> extends VType<List<T>> {
   }
 
   VArray<T> min(int length, {String Function(int)? message}) {
-    final msg = message?.call(length) ?? _messages.min(length);
-    _addValidator(
-      'too_small',
-      (value) => value.length >= length ? null : msg,
-    );
+    _add(MinLengthListValidator(
+      min: length,
+      message: message?.call(length) ?? _messages.min(length),
+    ));
     return this;
   }
 
   VArray<T> max(int length, {String Function(int)? message}) {
-    final msg = message?.call(length) ?? _messages.max(length);
-    _addValidator(
-      'too_big',
-      (value) => value.length <= length ? null : msg,
-    );
+    _add(MaxLengthListValidator(
+      max: length,
+      message: message?.call(length) ?? _messages.max(length),
+    ));
     return this;
   }
 
   VArray<T> unique({String? message}) {
-    final msg = message ?? _messages.unique;
-    _addValidator('unique', (value) {
-      return value.toSet().length == value.length ? null : msg;
-    });
+    _add(UniqueValidator(message: message ?? _messages.unique));
     return this;
   }
 
   VArray<T> contains(List<T> required, {String? message}) {
-    final msg = message ?? _messages.contains;
-    _addValidator('contains', (value) {
-      return required.every((r) => value.contains(r)) ? null : msg;
-    });
+    _add(ContainsAllValidator(
+      required: required,
+      message: message ?? _messages.contains,
+    ));
     return this;
   }
 

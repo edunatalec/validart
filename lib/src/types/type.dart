@@ -1,8 +1,51 @@
-import 'dart:math' as math;
-
 import 'package:validart/src/error.dart';
 import 'package:validart/src/messages/messages.dart';
 import 'package:validart/src/result.dart';
+import 'package:validart/src/validators/array/contains_all_validator.dart';
+import 'package:validart/src/validators/array/max_length_list_validator.dart';
+import 'package:validart/src/validators/array/min_length_list_validator.dart';
+import 'package:validart/src/validators/array/unique_validator.dart';
+import 'package:validart/src/validators/bool/is_false_validator.dart';
+import 'package:validart/src/validators/bool/is_true_validator.dart';
+import 'package:validart/src/validators/date/after_validator.dart';
+import 'package:validart/src/validators/date/before_validator.dart';
+import 'package:validart/src/validators/date/between_dates_validator.dart';
+import 'package:validart/src/validators/date/weekday_validator.dart';
+import 'package:validart/src/validators/date/weekend_validator.dart';
+import 'package:validart/src/validators/number/between_validator.dart';
+import 'package:validart/src/validators/number/decimal_validator.dart';
+import 'package:validart/src/validators/number/even_validator.dart';
+import 'package:validart/src/validators/number/finite_validator.dart';
+import 'package:validart/src/validators/number/integer_double_validator.dart';
+import 'package:validart/src/validators/number/max_validator.dart';
+import 'package:validart/src/validators/number/min_validator.dart';
+import 'package:validart/src/validators/number/multiple_of_validator.dart';
+import 'package:validart/src/validators/number/negative_validator.dart';
+import 'package:validart/src/validators/number/odd_validator.dart';
+import 'package:validart/src/validators/number/positive_validator.dart';
+import 'package:validart/src/validators/number/prime_validator.dart';
+import 'package:validart/src/validators/string/alpha_validator.dart';
+import 'package:validart/src/validators/string/alphanumeric_validator.dart';
+import 'package:validart/src/validators/string/card_validator.dart';
+import 'package:validart/src/validators/string/contains_validator.dart';
+import 'package:validart/src/validators/string/date_string_validator.dart';
+import 'package:validart/src/validators/string/email_validator.dart';
+import 'package:validart/src/validators/string/ends_with_validator.dart';
+import 'package:validart/src/validators/string/equals_validator.dart';
+import 'package:validart/src/validators/string/ip_validator.dart';
+import 'package:validart/src/validators/string/jwt_validator.dart';
+import 'package:validart/src/validators/string/length_validator.dart';
+import 'package:validart/src/validators/string/max_length_validator.dart';
+import 'package:validart/src/validators/string/min_length_validator.dart';
+import 'package:validart/src/validators/string/password_validator.dart';
+import 'package:validart/src/validators/string/pattern_validator.dart';
+import 'package:validart/src/validators/string/phone_validator.dart';
+import 'package:validart/src/validators/string/slug_validator.dart';
+import 'package:validart/src/validators/string/starts_with_validator.dart';
+import 'package:validart/src/validators/string/time_validator.dart';
+import 'package:validart/src/validators/string/url_validator.dart';
+import 'package:validart/src/validators/string/uuid_validator.dart';
+import 'package:validart/src/validators/validator.dart';
 
 part 'string.dart';
 part 'bool.dart';
@@ -14,8 +57,6 @@ part 'object.dart';
 part 'enum.dart';
 part 'literal.dart';
 part 'union.dart';
-
-typedef Validator<T> = String? Function(T value);
 
 abstract class VType<T> {
   final List<_PipelineStep<T>> _steps = [];
@@ -40,11 +81,9 @@ abstract class VType<T> {
     return this;
   }
 
-  VType<T> _addValidator(String code, Validator<T> check) {
-    return _addStep(_ValidationStep<T>(code: code, check: check));
+  VType<T> _add(Validator<T> validator) {
+    return _addStep(_ValidatorStep<T>(validator));
   }
-
-  // Helpers para null check e type error — usados por todos os tipos.
 
   VResult<S?>? _nullCheck<S>(S? defaultVal, bool hasDefault, Object? value) {
     if (value != null) return null;
@@ -106,10 +145,10 @@ abstract class VType<T> {
 
     for (final step in _steps) {
       switch (step) {
-        case _ValidationStep<T>(:final code, :final check):
-          final error = check(current);
+        case _ValidatorStep<T>(:final validator):
+          final error = validator.validate(current);
           if (error != null) {
-            errors.add(VError(code: code, message: error));
+            errors.add(VError(code: validator.code, message: error));
           }
         case _TransformStep<T>(:final transform):
           if (errors.isEmpty) {
@@ -156,10 +195,11 @@ abstract class VType<T> {
   }) {
     final msg = message ?? 'Invalid value';
 
-    return _addValidator(
-      code ?? 'custom',
-      (value) => check(value) ? null : msg,
-    );
+    return _add(_RefineValidator<T>(
+      check: check,
+      message: msg,
+      validatorCode: code ?? 'custom',
+    ));
   }
 
   VType<T> _transform(T Function(T value) fn) {
@@ -168,18 +208,31 @@ abstract class VType<T> {
   }
 }
 
+class _RefineValidator<T> extends Validator<T> {
+  final bool Function(T value) check;
+  final String validatorCode;
+
+  const _RefineValidator({
+    required this.check,
+    required super.message,
+    required this.validatorCode,
+  });
+
+  @override
+  String get code => validatorCode;
+
+  @override
+  String? validate(T value) => check(value) ? null : message;
+}
+
 sealed class _PipelineStep<T> {
   const _PipelineStep();
 }
 
-final class _ValidationStep<T> extends _PipelineStep<T> {
-  final String code;
-  final Validator<T> check;
+final class _ValidatorStep<T> extends _PipelineStep<T> {
+  final Validator<T> validator;
 
-  const _ValidationStep({
-    required this.code,
-    required this.check,
-  });
+  const _ValidatorStep(this.validator);
 }
 
 final class _TransformStep<T> extends _PipelineStep<T> {
