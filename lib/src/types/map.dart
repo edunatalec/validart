@@ -5,8 +5,14 @@ class VMap extends VType<Map<String, dynamic>> {
   bool _isStrict = false;
   bool _isPassthrough = false;
 
-  VMap(this._schema) {
+  VMap(
+    this._schema, {
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
   }
 
   Map<String, VType> get schema => Map.unmodifiable(_schema);
@@ -76,24 +82,18 @@ class VMap extends VType<Map<String, dynamic>> {
 
   @override
   VResult<Map<String, dynamic>?> safeParse(Object? value) {
-    if (value == null) {
-      if (_isNullable) return const VSuccess<Map<String, dynamic>?>(null);
-      if (_hasDefault) return VSuccess<Map<String, dynamic>?>(_defaultValue);
-      if (_isOptional) return const VSuccess<Map<String, dynamic>?>(null);
-
-      return const VFailure<Map<String, dynamic>?>([
-        VError(code: 'required', message: 'Required'),
-      ]);
-    }
+    final nullResult = _nullCheck<Map<String, dynamic>>(
+      _defaultValue,
+      _hasDefault,
+      value,
+    );
+    if (nullResult != null) return nullResult;
 
     if (value is! Map<String, dynamic>) {
-      return VFailure<Map<String, dynamic>?>([
-        VError(
-          code: 'invalid_type',
-          message:
-              'Expected Map<String, dynamic>, received ${value.runtimeType}',
-        ),
-      ]);
+      return _typeError<Map<String, dynamic>>(
+        'Map<String, dynamic>',
+        value!,
+      );
     }
 
     final errors = <VError>[];
@@ -139,8 +139,6 @@ class VMap extends VType<Map<String, dynamic>> {
       return VFailure<Map<String, dynamic>?>(errors);
     }
 
-    final pipelineResult = _runPipeline(parsed);
-
-    return pipelineResult;
+    return _runPipeline(parsed);
   }
 }

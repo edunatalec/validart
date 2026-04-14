@@ -25,6 +25,16 @@ abstract class VType<T> {
   bool _hasDefault = false;
   T Function(Object value)? coercer;
 
+  String _requiredMessage = 'Required';
+  String Function(String, String) _invalidTypeMessage =
+      _defaultInvalidTypeMessage;
+
+  static String _defaultInvalidTypeMessage(
+    String expected,
+    String received,
+  ) =>
+      'Expected $expected, received $received';
+
   VType<T> _addStep(_PipelineStep<T> step) {
     _steps.add(step);
     return this;
@@ -32,6 +42,29 @@ abstract class VType<T> {
 
   VType<T> _addValidator(String code, Validator<T> check) {
     return _addStep(_ValidationStep<T>(code: code, check: check));
+  }
+
+  // Helpers para null check e type error — usados por todos os tipos.
+
+  VResult<S?>? _nullCheck<S>(S? defaultVal, bool hasDefault, Object? value) {
+    if (value != null) return null;
+
+    if (_isNullable) return VSuccess<S?>(null);
+    if (hasDefault) return VSuccess<S?>(defaultVal);
+    if (_isOptional) return VSuccess<S?>(null);
+
+    return VFailure<S?>([
+      VError(code: 'required', message: _requiredMessage),
+    ]);
+  }
+
+  VFailure<S?> _typeError<S>(String expected, Object value) {
+    return VFailure<S?>([
+      VError(
+        code: 'invalid_type',
+        message: _invalidTypeMessage(expected, value.runtimeType.toString()),
+      ),
+    ]);
   }
 
   T? parse(Object? value) {
@@ -45,39 +78,22 @@ abstract class VType<T> {
   }
 
   VResult<T?> safeParse(Object? value) {
-    if (value == null) {
-      if (_isNullable) return VSuccess<T?>(null);
-      if (_hasDefault) return VSuccess<T?>(_defaultValue);
-      if (_isOptional) return VSuccess<T?>(null);
-
-      return VFailure<T?>([
-        const VError(code: 'required', message: 'Required'),
-      ]);
-    }
+    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
 
     final T typed;
 
     if (coercer != null) {
       try {
-        typed = coercer!(value);
+        typed = coercer!(value!);
       } catch (_) {
-        return VFailure<T?>([
-          VError(
-            code: 'invalid_type',
-            message: 'Expected ${T.toString()}, received ${value.runtimeType}',
-          ),
-        ]);
+        return _typeError<T>(T.toString(), value!);
       }
     } else {
       try {
         typed = value as T;
       } catch (_) {
-        return VFailure<T?>([
-          VError(
-            code: 'invalid_type',
-            message: 'Expected ${T.toString()}, received ${value.runtimeType}',
-          ),
-        ]);
+        return _typeError<T>(T.toString(), value!);
       }
     }
 

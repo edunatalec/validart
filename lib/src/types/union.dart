@@ -3,21 +3,20 @@ part of 'type.dart';
 class VUnion extends VType<Object> {
   final List<VType> _options;
 
-  VUnion(this._options) {
+  VUnion(
+    this._options, {
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) {
     assert(_options.length >= 2, 'Union must have at least 2 options.');
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
   }
 
   @override
   VResult<Object?> safeParse(Object? value) {
-    if (value == null) {
-      if (_isNullable) return const VSuccess<Object?>(null);
-      if (_hasDefault) return VSuccess<Object?>(_defaultValue);
-      if (_isOptional) return const VSuccess<Object?>(null);
-
-      return const VFailure<Object?>([
-        VError(code: 'required', message: 'Required'),
-      ]);
-    }
+    final nullResult = _nullCheck<Object>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
 
     for (final option in _options) {
       final result = option.safeParse(value);

@@ -4,7 +4,9 @@ void main() {
   final v = Validart();
 
   // String validation
-  final nameSchema = v.string()..min(3)..max(50);
+  final nameSchema = v.string()
+    ..min(3)
+    ..max(50);
   print(nameSchema.validate('Alice')); // true
   print(nameSchema.validate('Al')); // false
 
@@ -14,7 +16,9 @@ void main() {
   print(emailSchema.validate('invalid')); // false
 
   // Integer validation
-  final ageSchema = v.int()..min(0)..max(150);
+  final ageSchema = v.int()
+    ..min(0)
+    ..max(150);
   print(ageSchema.validate(25)); // true
   print(ageSchema.validate(-1)); // false
 
@@ -22,15 +26,17 @@ void main() {
   final userSchema = v.map({
     'name': v.string()..min(1),
     'email': v.string()..email(),
-    'age': v.int()..min(0)..optional(),
+    'age': v.int()
+      ..min(0)
+      ..optional(),
   });
-  print(userSchema
-      .validate({'name': 'Alice', 'email': 'alice@ex.com'})); // true
+  print(
+      userSchema.validate({'name': 'Alice', 'email': 'alice@ex.com'})); // true
   print(userSchema.errors({'name': '', 'email': 'bad'})); // list of VError
 
   // Object validation (entities/classes)
   final folderSchema = v.object<Folder>(
-    (o) => o
+    configure: (o) => o
         .field('id', (f) => f.id, v.string()..uuid())
         .field('name', (f) => f.name, v.string()..min(1)),
   );
@@ -39,7 +45,9 @@ void main() {
   print(folderSchema.validate(folder)); // true
 
   // Array validation with indexed errors
-  final emailsSchema = v.string().email().array()..min(1)..unique();
+  final emailsSchema = v.string().email().array()
+    ..min(1)
+    ..unique();
   print(emailsSchema.validate(['a@b.com', 'c@d.com'])); // true
   final result = emailsSchema.safeParse(['a@b.com', 'bad', 'a@b.com']);
   if (result case VFailure(:final errors)) {
@@ -63,8 +71,7 @@ void main() {
 
   // Union validation
   final idSchema = v.union([v.string()..uuid(), v.int()..min(1)]);
-  print(idSchema
-      .validate('550e8400-e29b-41d4-a716-446655440000')); // true
+  print(idSchema.validate('550e8400-e29b-41d4-a716-446655440000')); // true
   print(idSchema.validate(42)); // true
 
   // Custom messages
@@ -92,7 +99,10 @@ void main() {
   })); // true
 
   // Parse with transforms
-  final trimmedEmail = v.string()..trim()..toLowerCase()..email();
+  final trimmedEmail = v.string()
+    ..trim()
+    ..toLowerCase()
+    ..email();
   print(trimmedEmail.parse('  ALICE@EXAMPLE.COM  ')); // 'alice@example.com'
 }
 

@@ -3,19 +3,19 @@ part of 'type.dart';
 class VEnum<T extends Enum> extends VType<T> {
   final List<T> _values;
 
-  VEnum(this._values);
+  VEnum(
+    this._values, {
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
   @override
   VResult<T?> safeParse(Object? value) {
-    if (value == null) {
-      if (_isNullable) return VSuccess<T?>(null);
-      if (_hasDefault) return VSuccess<T?>(_defaultValue);
-      if (_isOptional) return VSuccess<T?>(null);
-
-      return VFailure<T?>([
-        const VError(code: 'required', message: 'Required'),
-      ]);
-    }
+    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
 
     if (value is T && _values.contains(value)) {
       return _runPipeline(value);

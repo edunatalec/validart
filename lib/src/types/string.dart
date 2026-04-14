@@ -3,8 +3,14 @@ part of 'type.dart';
 class VString extends VType<String> {
   final VStringMessages _messages;
 
-  VString([VStringMessages? messages])
-      : _messages = messages ?? const VStringMessages();
+  VString({
+    VStringMessages? messages,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) : _messages = messages ?? const VStringMessages() {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
   VString min(int length, {String Function(int)? message}) {
     final msg = message?.call(length) ?? _messages.min(length);

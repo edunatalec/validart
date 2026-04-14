@@ -3,8 +3,14 @@ part of 'type.dart';
 class VDate extends VType<DateTime> {
   final VDateMessages _messages;
 
-  VDate([VDateMessages? messages])
-      : _messages = messages ?? const VDateMessages();
+  VDate({
+    VDateMessages? messages,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) : _messages = messages ?? const VDateMessages() {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
   VArray<DateTime> array() => VArray<DateTime>(this);
 

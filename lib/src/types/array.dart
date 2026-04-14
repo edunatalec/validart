@@ -4,8 +4,15 @@ class VArray<T> extends VType<List<T>> {
   final VType<T> _element;
   final VArrayMessages _messages;
 
-  VArray(this._element, [VArrayMessages? messages])
-      : _messages = messages ?? const VArrayMessages();
+  VArray(
+    this._element, {
+    VArrayMessages? messages,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) : _messages = messages ?? const VArrayMessages() {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
   VArray<T> min(int length, {String Function(int)? message}) {
     final msg = message?.call(length) ?? _messages.min(length);
@@ -43,24 +50,11 @@ class VArray<T> extends VType<List<T>> {
 
   @override
   VResult<List<T>?> safeParse(Object? value) {
-    if (value == null) {
-      if (_isNullable) return VSuccess<List<T>?>(null);
-      if (_hasDefault) return VSuccess<List<T>?>(_defaultValue);
-      if (_isOptional) return VSuccess<List<T>?>(null);
-
-      return VFailure<List<T>?>([
-        const VError(code: 'required', message: 'Required'),
-      ]);
-    }
+    final nullResult = _nullCheck<List<T>>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
 
     if (value is! List) {
-      return VFailure<List<T>?>([
-        VError(
-          code: 'invalid_type',
-          message:
-              'Expected List<${T.toString()}>, received ${value.runtimeType}',
-        ),
-      ]);
+      return _typeError<List<T>>('List<${T.toString()}>', value!);
     }
 
     final errors = <VError>[];

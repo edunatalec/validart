@@ -44,8 +44,14 @@ class VInt extends VNumber<int> {
   @override
   final VNumberMessages _messages;
 
-  VInt([VNumberMessages? messages])
-      : _messages = messages ?? const VNumberMessages();
+  VInt({
+    VNumberMessages? messages,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) : _messages = messages ?? const VNumberMessages() {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
   VInt even({String? message}) {
     final msg = message ?? _messages.even;
@@ -78,8 +84,14 @@ class VDouble extends VNumber<double> {
   @override
   final VNumberMessages _messages;
 
-  VDouble([VNumberMessages? messages])
-      : _messages = messages ?? const VNumberMessages();
+  VDouble({
+    VNumberMessages? messages,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) : _messages = messages ?? const VNumberMessages() {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
   VDouble finite({String? message}) {
     final msg = message ?? _messages.finite;

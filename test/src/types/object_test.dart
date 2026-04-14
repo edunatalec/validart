@@ -43,33 +43,36 @@ void main() {
     // ── field validation with path errors ─────────────────────────────────
     group('field validation', () {
       test('should validate fields and pass for valid data', () {
-        final schema = VObject<Folder>((o) => o
-            .field(
-              'id',
-              (f) => f.id,
-              VString()
-                ..uuid()
-                ..optional(),
-            )
-            .field('name', (f) => f.name, VString()..min(1)));
+        final schema = VObject<Folder>(
+            configure: (o) => o
+                .field(
+                  'id',
+                  (f) => f.id,
+                  VString()
+                    ..uuid()
+                    ..optional(),
+                )
+                .field('name', (f) => f.name, VString()..min(1)));
         expect(schema.validate(Folder(name: 'Documents')), isTrue);
       });
 
       test('should fail for invalid field', () {
-        final schema = VObject<Folder>((o) => o.field(
-              'name',
-              (f) => f.name,
-              VString()..min(5),
-            ));
+        final schema = VObject<Folder>(
+            configure: (o) => o.field(
+                  'name',
+                  (f) => f.name,
+                  VString()..min(5),
+                ));
         expect(schema.validate(Folder(name: 'Doc')), isFalse);
       });
 
       test('should include field name in error path', () {
-        final schema = VObject<Folder>((o) => o.field(
-              'name',
-              (f) => f.name,
-              VString()..min(5),
-            ));
+        final schema = VObject<Folder>(
+            configure: (o) => o.field(
+                  'name',
+                  (f) => f.name,
+                  VString()..min(5),
+                ));
         final errors = schema.errors(Folder(name: 'Doc'));
         expect(errors, isNotNull);
         expect(errors!.first.code, 'too_small');
@@ -77,11 +80,12 @@ void main() {
       });
 
       test('should validate uuid field', () {
-        final schema = VObject<Folder>((o) => o.field(
-              'id',
-              (f) => f.id,
-              VString()..uuid(),
-            ));
+        final schema = VObject<Folder>(
+            configure: (o) => o.field(
+                  'id',
+                  (f) => f.id,
+                  VString()..uuid(),
+                ));
         expect(
           schema.validate(Folder(
             id: '550e8400-e29b-41d4-a716-446655440000',
@@ -92,11 +96,12 @@ void main() {
       });
 
       test('should fail for invalid uuid field', () {
-        final schema = VObject<Folder>((o) => o.field(
-              'id',
-              (f) => f.id,
-              VString()..uuid(),
-            ));
+        final schema = VObject<Folder>(
+            configure: (o) => o.field(
+                  'id',
+                  (f) => f.id,
+                  VString()..uuid(),
+                ));
         final errors = schema.errors(Folder(id: 'not-a-uuid', name: 'Test'));
         expect(errors, isNotNull);
         expect(errors!.first.code, 'invalid_uuid');
@@ -104,9 +109,10 @@ void main() {
       });
 
       test('should collect multiple field errors', () {
-        final schema = VObject<Folder>((o) => o
-            .field('id', (f) => f.id, VString()..uuid())
-            .field('name', (f) => f.name, VString()..min(10)));
+        final schema = VObject<Folder>(
+            configure: (o) => o
+                .field('id', (f) => f.id, VString()..uuid())
+                .field('name', (f) => f.name, VString()..min(10)));
         final errors = schema.errors(Folder(id: 'bad', name: 'short'));
         expect(errors, isNotNull);
         expect(errors!.length, 2);
@@ -210,11 +216,12 @@ void main() {
     group('combined with VMap', () {
       test('should use VObject inside VMap schema', () {
         final schema = VMap({
-          'folder': VObject<Folder>((o) => o.field(
-                'name',
-                (f) => f.name,
-                VString()..min(1),
-              )),
+          'folder': VObject<Folder>(
+              configure: (o) => o.field(
+                    'name',
+                    (f) => f.name,
+                    VString()..min(1),
+                  )),
         });
         expect(
           schema.validate({'folder': Folder(name: 'Documents')}),
@@ -224,11 +231,12 @@ void main() {
 
       test('should fail when VObject field inside VMap is invalid', () {
         final schema = VMap({
-          'folder': VObject<Folder>((o) => o.field(
-                'name',
-                (f) => f.name,
-                VString()..min(10),
-              )),
+          'folder': VObject<Folder>(
+              configure: (o) => o.field(
+                    'name',
+                    (f) => f.name,
+                    VString()..min(10),
+                  )),
         });
         expect(
           schema.validate({'folder': Folder(name: 'Doc')}),
@@ -238,11 +246,12 @@ void main() {
 
       test('should produce nested path for VObject inside VMap', () {
         final schema = VMap({
-          'folder': VObject<Folder>((o) => o.field(
-                'name',
-                (f) => f.name,
-                VString()..min(10),
-              )),
+          'folder': VObject<Folder>(
+              configure: (o) => o.field(
+                    'name',
+                    (f) => f.name,
+                    VString()..min(10),
+                  )),
         });
         final errors = schema.errors({'folder': Folder(name: 'Doc')});
         expect(errors, isNotNull);

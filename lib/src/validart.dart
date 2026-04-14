@@ -12,31 +12,76 @@ class Validart {
     coerce = VCoerce(_messages);
   }
 
-  VString string() => VString(_messages.string);
+  VString string() => VString(
+        messages: _messages.string,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VBool bool() => VBool(_messages.bool);
+  VBool bool() => VBool(
+        messages: _messages.bool,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VInt int() => VInt(_messages.number);
+  VInt int() => VInt(
+        messages: _messages.number,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VDouble double() => VDouble(_messages.number);
+  VDouble double() => VDouble(
+        messages: _messages.number,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VDate date() => VDate(_messages.date);
+  VDate date() => VDate(
+        messages: _messages.date,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VMap map(Map<String, VType> schema) => VMap(schema);
+  VMap map(Map<String, VType> schema) => VMap(
+        schema,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VObject<T> object<T>([void Function(VObjectBuilder<T> o)? configure]) {
-    return VObject<T>(configure);
+  VObject<T> object<T>({void Function(VObjectBuilder<T> o)? configure}) {
+    return VObject<T>(
+      configure: configure,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
   }
 
   VArray<T> array<T>(VType<T> element) {
-    return VArray<T>(element, _messages.array);
+    return VArray<T>(
+      element,
+      messages: _messages.array,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
   }
 
-  VEnum<T> enm<T extends Enum>(List<T> values) => VEnum<T>(values);
+  VEnum<T> enm<T extends Enum>(List<T> values) => VEnum<T>(
+        values,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VLiteral<T> literal<T>(T value) => VLiteral<T>(value);
+  VLiteral<T> literal<T>(T value) => VLiteral<T>(
+        value,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 
-  VUnion union(List<VType> options) => VUnion(options);
+  VUnion union(List<VType> options) => VUnion(
+        options,
+        requiredMessage: _messages.required,
+        invalidTypeMessage: _messages.invalidType,
+      );
 }
 
 class VCoerce {
@@ -45,7 +90,11 @@ class VCoerce {
   VCoerce(this._messages);
 
   VInt int() {
-    final schema = VInt(_messages.number);
+    final schema = VInt(
+      messages: _messages.number,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
     schema.coercer = (value) {
       if (value is core.int) return value;
       if (value is core.double) return value.toInt();
@@ -57,7 +106,11 @@ class VCoerce {
   }
 
   VDouble double() {
-    final schema = VDouble(_messages.number);
+    final schema = VDouble(
+      messages: _messages.number,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
     schema.coercer = (value) {
       if (value is core.double) return value;
       if (value is core.int) return value.toDouble();
@@ -69,13 +122,21 @@ class VCoerce {
   }
 
   VString string() {
-    final schema = VString(_messages.string);
+    final schema = VString(
+      messages: _messages.string,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
     schema.coercer = (value) => value.toString();
     return schema;
   }
 
   VBool bool() {
-    final schema = VBool(_messages.bool);
+    final schema = VBool(
+      messages: _messages.bool,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
     schema.coercer = (value) {
       if (value is core.bool) return value;
       if (value is String) {
@@ -89,7 +150,11 @@ class VCoerce {
   }
 
   VDate date() {
-    final schema = VDate(_messages.date);
+    final schema = VDate(
+      messages: _messages.date,
+      requiredMessage: _messages.required,
+      invalidTypeMessage: _messages.invalidType,
+    );
     schema.coercer = (value) {
       if (value is DateTime) return value;
       if (value is String) return DateTime.parse(value);

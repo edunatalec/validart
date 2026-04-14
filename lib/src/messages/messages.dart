@@ -1,27 +1,26 @@
 class VMessages {
   final String required;
-  final String invalidType;
+  final String Function(String expected, String received) invalidType;
   final String invalidValue;
   final VStringMessages string;
   final VNumberMessages number;
   final VBoolMessages bool;
   final VDateMessages date;
-  final VMapMessages map;
-  final VObjectMessages object;
   final VArrayMessages array;
 
   const VMessages({
     this.required = 'Required',
-    this.invalidType = 'Invalid type',
+    this.invalidType = _defaultInvalidType,
     this.invalidValue = 'Invalid value',
     this.string = const VStringMessages(),
     this.number = const VNumberMessages(),
     this.bool = const VBoolMessages(),
     this.date = const VDateMessages(),
-    this.map = const VMapMessages(),
-    this.object = const VObjectMessages(),
     this.array = const VArrayMessages(),
   });
+
+  static String _defaultInvalidType(String expected, String received) =>
+      'Expected $expected, received $received';
 }
 
 class VStringMessages {
@@ -146,26 +145,6 @@ class VDateMessages {
   static String _defaultBefore(DateTime d) => 'Must be before $d';
   static String _defaultBetween(DateTime min, DateTime max) =>
       'Must be between $min and $max';
-}
-
-class VMapMessages {
-  final String required;
-  final String invalidType;
-
-  const VMapMessages({
-    this.required = 'Required',
-    this.invalidType = 'Invalid type',
-  });
-}
-
-class VObjectMessages {
-  final String required;
-  final String invalidType;
-
-  const VObjectMessages({
-    this.required = 'Required',
-    this.invalidType = 'Invalid type',
-  });
 }
 
 class VArrayMessages {

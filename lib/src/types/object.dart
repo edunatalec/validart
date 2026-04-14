@@ -34,39 +34,47 @@ class VObjectBuilder<T> {
 class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields;
 
-  VObject._(this._fields);
+  VObject._({
+    required List<_FieldEntry<T>> fields,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) : _fields = fields {
+    if (requiredMessage != null) _requiredMessage = requiredMessage;
+    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
+  }
 
-  factory VObject([void Function(VObjectBuilder<T> o)? configure]) {
-    if (configure == null) return VObject._([]);
+  factory VObject({
+    void Function(VObjectBuilder<T> o)? configure,
+    String? requiredMessage,
+    String Function(String, String)? invalidTypeMessage,
+  }) {
+    final List<_FieldEntry<T>> fields;
+    if (configure != null) {
+      final builder = VObjectBuilder<T>();
+      configure(builder);
+      fields = builder._build();
+    } else {
+      fields = [];
+    }
 
-    final builder = VObjectBuilder<T>();
-    configure(builder);
-    return VObject._(builder._build());
+    return VObject._(
+      fields: fields,
+      requiredMessage: requiredMessage,
+      invalidTypeMessage: invalidTypeMessage,
+    );
   }
 
   @override
   VResult<T?> safeParse(Object? value) {
-    if (value == null) {
-      if (_isNullable) return VSuccess<T?>(null);
-      if (_hasDefault) return VSuccess<T?>(_defaultValue);
-      if (_isOptional) return VSuccess<T?>(null);
-
-      return VFailure<T?>([
-        const VError(code: 'required', message: 'Required'),
-      ]);
-    }
+    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
 
     final T typed;
 
     try {
       typed = value as T;
     } catch (_) {
-      return VFailure<T?>([
-        VError(
-          code: 'invalid_type',
-          message: 'Expected ${T.toString()}, received ${value.runtimeType}',
-        ),
-      ]);
+      return _typeError<T>(T.toString(), value!);
     }
 
     final errors = <VError>[];

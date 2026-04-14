@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:validart/src/messages/messages.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/validart.dart';
 
 void main() {
   group('VMessages', () {
@@ -26,7 +27,7 @@ void main() {
   group('VString with custom messages', () {
     test('should use custom messages from constructor', () {
       final schema = VString(
-        const VStringMessages(email: 'Email inválido'),
+        messages: const VStringMessages(email: 'Email inválido'),
       )..email();
 
       final errs = schema.errors('bad');
@@ -35,7 +36,7 @@ void main() {
 
     test('should use per-validator message over global', () {
       final schema = VString(
-        const VStringMessages(email: 'Global email msg'),
+        messages: const VStringMessages(email: 'Global email msg'),
       )..email(message: 'Per-validator msg');
 
       final errs = schema.errors('bad');
@@ -52,7 +53,7 @@ void main() {
   group('VInt with custom messages', () {
     test('should use custom messages', () {
       final schema = VInt(
-        const VNumberMessages(positive: 'Deve ser positivo'),
+        messages: const VNumberMessages(positive: 'Deve ser positivo'),
       )..positive();
 
       final errs = schema.errors(-1);
@@ -63,7 +64,7 @@ void main() {
   group('VBool with custom messages', () {
     test('should use custom messages', () {
       final schema = VBool(
-        const VBoolMessages(isTrue: 'Deve ser verdadeiro'),
+        messages: const VBoolMessages(isTrue: 'Deve ser verdadeiro'),
       )..isTrue();
 
       final errs = schema.errors(false);
@@ -77,7 +78,7 @@ void main() {
       final future = now.add(const Duration(days: 1));
 
       final schema = VDate(
-        VDateMessages(after: (d) => 'Deve ser após $d'),
+        messages: VDateMessages(after: (d) => 'Deve ser após $d'),
       )..after(future);
 
       final errs = schema.errors(now);
@@ -89,11 +90,57 @@ void main() {
     test('should use custom messages', () {
       final schema = VArray<String>(
         VString(),
-        const VArrayMessages(unique: 'Valores devem ser únicos'),
+        messages: const VArrayMessages(unique: 'Valores devem ser únicos'),
       )..unique();
 
       final errs = schema.errors(['a', 'a']);
       expect(errs!.first.message, 'Valores devem ser únicos');
+    });
+  });
+
+  group('Global required message via Validart', () {
+    test('should propagate to string', () {
+      final v = Validart(
+        messages: const VMessages(required: 'Campo obrigatório'),
+      );
+      final errs = v.string().errors(null);
+      expect(errs!.first.message, 'Campo obrigatório');
+    });
+
+    test('should propagate to int', () {
+      final v = Validart(
+        messages: const VMessages(required: 'Campo obrigatório'),
+      );
+      final errs = v.int().errors(null);
+      expect(errs!.first.message, 'Campo obrigatório');
+    });
+
+    test('should propagate to map', () {
+      final v = Validart(
+        messages: const VMessages(required: 'Campo obrigatório'),
+      );
+      final errs = v.map({'name': v.string()}).errors(null);
+      expect(errs!.first.message, 'Campo obrigatório');
+    });
+
+    test('should propagate to object', () {
+      final v = Validart(
+        messages: const VMessages(required: 'Campo obrigatório'),
+      );
+      final errs = v.object<String>().errors(null);
+      expect(errs!.first.message, 'Campo obrigatório');
+    });
+
+    test('should propagate custom invalidType', () {
+      final v = Validart(
+        messages: VMessages(
+          invalidType: (expected, received) =>
+              'Esperado $expected, recebido $received',
+        ),
+      );
+      final errs = v.string().errors(123);
+      expect(errs!.first.message, contains('Esperado'));
+      expect(errs.first.message, contains('recebido'));
     });
   });
 }
