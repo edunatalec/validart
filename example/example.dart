@@ -104,6 +104,58 @@ void main() {
     ..toLowerCase()
     ..email();
   print(trimmedEmail.parse('  ALICE@EXAMPLE.COM  ')); // 'alice@example.com'
+
+  // Not empty
+  final notEmptySchema = V.string()..notEmpty();
+  print(notEmptySchema.validate('')); // false
+  print(notEmptySchema.validate(' ')); // true (whitespace is not empty)
+
+  // Password confirmation with equalFields
+  final registerSchema = V.map({
+    'password': V.string()..min(8),
+    'confirm': V.string(),
+  })
+    ..equalFields('confirm', 'password');
+  print(registerSchema.validate({
+    'password': '12345678',
+    'confirm': '12345678',
+  })); // true
+
+  // Conditional validation with when
+  final formSchema = V.map({
+    'type': V.string(),
+    'cnpj': V.string()..optional(),
+    'cpf': V.string()..optional(),
+  })
+    ..when('type', equals: 'company', then: {
+      'cnpj': V.string()..min(14),
+    })
+    ..when('type', equals: 'person', then: {
+      'cpf': V.string()..min(11),
+    });
+  print(formSchema
+      .validate({'type': 'company', 'cnpj': '12345678901234'})); // true
+  print(formSchema.validate({'type': 'person', 'cpf': '12345678901'})); // true
+
+  // Transform — change output type
+  final lengthSchema = V.string().transform<int>((s) => s.length);
+  print(lengthSchema.parse('hello')); // 5
+
+  // Preprocess — transform before type check
+  final preprocessSchema = V.string()
+    ..preprocess((v) => v?.toString().trim() ?? '');
+  print(preprocessSchema.parse(42)); // '42'
+
+  // Form errors as Map
+  final formResult = V.map({
+    'email': V.string()..email(),
+    'name': V.string()..min(3),
+  }).safeParse({'email': 'bad', 'name': 'Al'});
+
+  if (formResult case VFailure()) {
+    print(formResult.toMap());
+    // {email: Invalid email address, name: Must be at least 3 characters}
+  }
 }
 
 class Folder {
