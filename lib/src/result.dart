@@ -23,4 +23,15 @@ final class VFailure<T> extends VResult<T> {
 
   @override
   bool get isValid => false;
+
+  Map<String, String> toMap() {
+    final map = <String, String>{};
+    for (final error in errors) {
+      final key = error.pathString;
+      if (key.isNotEmpty && !map.containsKey(key)) {
+        map[key] = error.message;
+      }
+    }
+    return map;
+  }
 }

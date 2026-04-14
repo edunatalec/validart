@@ -9,6 +9,7 @@ class VLocale {
     'invalid_type': 'Expected {expected}, received {received}',
 
     // String
+    'not_empty': 'Must not be empty',
     'too_small': 'Must be at least {min} characters',
     'too_big': 'Must be at most {max} characters',
     'length': 'Must be exactly {length} characters',
@@ -61,6 +62,7 @@ class VLocale {
     'invalid_literal': 'Expected "{expected}", received "{received}"',
     'invalid_union': 'Value does not match any of the union types',
     'unrecognized_key': 'Unrecognized key "{key}"',
+    'fields_not_equal': '{field} must be equal to {other}',
     'custom': 'Invalid value',
   };
 

@@ -3,6 +3,7 @@ abstract class VCode {
   static const invalidType = 'invalid_type';
 
   // String
+  static const notEmpty = 'not_empty';
   static const tooSmall = 'too_small';
   static const tooBig = 'too_big';
   static const length = 'length';
@@ -54,5 +55,6 @@ abstract class VCode {
   static const invalidLiteral = 'invalid_literal';
   static const invalidUnion = 'invalid_union';
   static const unrecognizedKey = 'unrecognized_key';
+  static const fieldsNotEqual = 'fields_not_equal';
   static const custom = 'custom';
 }

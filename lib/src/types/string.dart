@@ -1,6 +1,11 @@
 part of 'type.dart';
 
 class VString extends VType<String> {
+  VString notEmpty({String? message}) {
+    add(const NotEmptyValidator(), message: message);
+    return this;
+  }
+
   VString min(int length, {String Function(int)? message}) {
     add(MinLengthValidator(min: length), message: message?.call(length));
     return this;

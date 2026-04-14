@@ -15,7 +15,8 @@ export 'src/types/type.dart'
         VObjectBuilder,
         VEnum,
         VLiteral,
-        VUnion;
+        VUnion,
+        VTransformed;
 export 'src/v.dart';
 export 'src/validators/validator.dart';
 export 'src/v_code.dart';

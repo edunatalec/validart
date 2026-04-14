@@ -7,6 +7,7 @@ import 'package:validart/src/validators/array/max_length_list_validator.dart';
 import 'package:validart/src/validators/array/min_length_list_validator.dart';
 import 'package:validart/src/validators/array/unique_validator.dart';
 import 'package:validart/src/validators/bool/is_false_validator.dart';
+import 'package:validart/src/validators/map/equal_fields_validator.dart';
 import 'package:validart/src/validators/bool/is_true_validator.dart';
 import 'package:validart/src/validators/date/after_validator.dart';
 import 'package:validart/src/validators/date/before_validator.dart';
@@ -38,6 +39,7 @@ import 'package:validart/src/validators/string/jwt_validator.dart';
 import 'package:validart/src/validators/string/length_validator.dart';
 import 'package:validart/src/validators/string/max_length_validator.dart';
 import 'package:validart/src/validators/string/min_length_validator.dart';
+import 'package:validart/src/validators/string/not_empty_validator.dart';
 import 'package:validart/src/validators/string/password_validator.dart';
 import 'package:validart/src/validators/string/pattern_validator.dart';
 import 'package:validart/src/validators/string/phone_validator.dart';
@@ -58,6 +60,7 @@ part 'object.dart';
 part 'enum.dart';
 part 'literal.dart';
 part 'union.dart';
+part 'transformed.dart';
 
 abstract class VType<T> {
   final List<_PipelineStep<T>> _steps = [];
@@ -66,6 +69,7 @@ abstract class VType<T> {
   T? _defaultValue;
   bool _hasDefault = false;
   T Function(Object value)? coercer;
+  Object? Function(Object?)? _preprocessor;
 
   VType<T> _addStep(_PipelineStep<T> step) {
     _steps.add(step);
@@ -111,22 +115,24 @@ abstract class VType<T> {
   }
 
   VResult<T?> safeParse(Object? value) {
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
+    final input = _preprocessor != null ? _preprocessor!(value) : value;
+
+    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, input);
     if (nullResult != null) return nullResult;
 
     final T typed;
 
     if (coercer != null) {
       try {
-        typed = coercer!(value!);
+        typed = coercer!(input!);
       } catch (_) {
-        return _typeError<T>(T.toString(), value!);
+        return _typeError<T>(T.toString(), input!);
       }
     } else {
       try {
-        typed = value as T;
+        typed = input as T;
       } catch (_) {
-        return _typeError<T>(T.toString(), value!);
+        return _typeError<T>(T.toString(), input!);
       }
     }
 
@@ -182,6 +188,14 @@ abstract class VType<T> {
     _hasDefault = true;
     return this;
   }
+
+  VType<T> preprocess(Object? Function(Object? value) fn) {
+    _preprocessor = fn;
+    return this;
+  }
+
+  VTransformed<T, O> transform<O>(O Function(T value) fn) =>
+      VTransformed<T, O>(this, fn);
 
   VType<T> refine(
     bool Function(T value) check, {

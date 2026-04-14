@@ -1,7 +1,20 @@
 part of 'type.dart';
 
+class _WhenRule {
+  final String field;
+  final Object? equals;
+  final Map<String, VType> then;
+
+  const _WhenRule({
+    required this.field,
+    required this.equals,
+    required this.then,
+  });
+}
+
 class VMap extends VType<Map<String, dynamic>> {
   final Map<String, VType> _schema;
+  final List<_WhenRule> _whenRules = [];
   bool _isStrict = false;
   bool _isPassthrough = false;
 
@@ -52,6 +65,34 @@ class VMap extends VType<Map<String, dynamic>> {
 
   VMap passthrough() {
     _isPassthrough = true;
+    return this;
+  }
+
+  VMap when(
+    String field, {
+    required Object? equals,
+    required Map<String, VType> then,
+  }) {
+    assert(
+      _schema.containsKey(field),
+      "The provided field '$field' does not exist in the schema.",
+    );
+    _whenRules.add(_WhenRule(field: field, equals: equals, then: then));
+    return this;
+  }
+
+  VArray<Map<String, dynamic>> array() => VArray<Map<String, dynamic>>(this);
+
+  VMap equalFields(String field, String other, {String? message}) {
+    assert(
+      _schema.containsKey(field),
+      "The provided field '$field' does not exist in the schema.",
+    );
+    assert(
+      _schema.containsKey(other),
+      "The provided field '$other' does not exist in the schema.",
+    );
+    add(EqualFieldsValidator(field: field, other: other), message: message);
     return this;
   }
 
@@ -119,6 +160,26 @@ class VMap extends VType<Map<String, dynamic>> {
               path: [entry.key, ...error.path],
             ));
           }
+      }
+    }
+
+    for (final rule in _whenRules) {
+      if (value[rule.field] == rule.equals) {
+        for (final entry in rule.then.entries) {
+          final fieldValue = value[entry.key];
+          final result = entry.value.safeParse(fieldValue);
+
+          switch (result) {
+            case VSuccess():
+              parsed[entry.key] = result.value;
+            case VFailure():
+              for (final error in result.errors) {
+                errors.add(error.copyWith(
+                  path: [entry.key, ...error.path],
+                ));
+              }
+          }
+        }
       }
     }
 
