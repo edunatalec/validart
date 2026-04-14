@@ -1,5 +1,4 @@
 export 'src/error.dart';
-export 'src/messages/messages.dart';
 export 'src/result.dart';
 export 'src/types/type.dart'
     show
@@ -17,4 +16,7 @@ export 'src/types/type.dart'
         VEnum,
         VLiteral,
         VUnion;
-export 'src/validart.dart';
+export 'src/v.dart';
+export 'src/validators/validator.dart';
+export 'src/v_code.dart';
+export 'src/v_locale.dart';

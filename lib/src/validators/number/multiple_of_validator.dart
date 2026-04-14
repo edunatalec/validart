@@ -1,13 +1,15 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class MultipleOfValidator<T extends num> extends Validator<T> {
   final T factor;
 
-  const MultipleOfValidator({required this.factor, required super.message});
+  const MultipleOfValidator({required this.factor});
 
   @override
-  String get code => 'multiple_of';
+  String get code => VCode.multipleOf;
 
   @override
-  String? validate(T value) => value % factor == 0 ? null : message;
+  Map<String, dynamic>? validate(T value) =>
+      value % factor == 0 ? null : {'factor': factor};
 }

@@ -1,14 +1,15 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class AlphaValidator extends Validator<String> {
-  const AlphaValidator({required super.message});
+  const AlphaValidator();
 
   @override
-  String get code => 'alpha';
+  String get code => VCode.alpha;
 
   @override
-  String? validate(String value) {
+  Map<String, dynamic>? validate(String value) {
     final regex = RegExp(r'^[a-zA-Z]+$');
-    return regex.hasMatch(value) ? null : message;
+    return regex.hasMatch(value) ? null : {};
   }
 }

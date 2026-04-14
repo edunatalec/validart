@@ -5,14 +5,8 @@ class VMap extends VType<Map<String, dynamic>> {
   bool _isStrict = false;
   bool _isPassthrough = false;
 
-  VMap(
-    this._schema, {
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) {
+  VMap(this._schema) {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
-    if (requiredMessage != null) _requiredMessage = requiredMessage;
-    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
   }
 
   Map<String, VType> get schema => Map.unmodifiable(_schema);
@@ -71,13 +65,13 @@ class VMap extends VType<Map<String, dynamic>> {
       "The provided path '$path' does not exist in the schema.",
     );
 
-    final msg = message ?? 'Invalid value';
-
-    _add(_RefineValidator<Map<String, dynamic>>(
-      check: check,
-      message: msg,
-      validatorCode: 'custom',
-    ));
+    add(
+      _RefineValidator<Map<String, dynamic>>(
+        check: check,
+        validatorCode: VCode.custom,
+      ),
+      message: message,
+    );
     return this;
   }
 
@@ -104,8 +98,8 @@ class VMap extends VType<Map<String, dynamic>> {
       for (final key in value.keys) {
         if (!_schema.containsKey(key)) {
           errors.add(VError(
-            code: 'unrecognized_key',
-            message: 'Unrecognized key "$key"',
+            code: VCode.unrecognizedKey,
+            message: V.t(VCode.unrecognizedKey, {'key': key}),
             path: [key],
           ));
         }

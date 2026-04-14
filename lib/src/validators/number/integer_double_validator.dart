@@ -1,11 +1,12 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class IntegerDoubleValidator extends Validator<double> {
-  const IntegerDoubleValidator({required super.message});
+  const IntegerDoubleValidator();
 
   @override
-  String get code => 'integer';
+  String get code => VCode.integer;
 
   @override
-  String? validate(double value) => value % 1 == 0 ? null : message;
+  Map<String, dynamic>? validate(double value) => value % 1 == 0 ? null : {};
 }

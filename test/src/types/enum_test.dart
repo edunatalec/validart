@@ -1,11 +1,15 @@
 import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_locale.dart';
 
 enum Color { red, green, blue }
 
 enum Status { active, inactive }
 
 void main() {
+  setUp(() => V.setLocale(const VLocale()));
+
   group('VEnum', () {
     test('should pass for valid enum value', () {
       final schema = VEnum(Color.values);

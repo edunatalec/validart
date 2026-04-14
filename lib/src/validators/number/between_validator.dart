@@ -1,3 +1,4 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class BetweenValidator<T extends num> extends Validator<T> {
@@ -7,12 +8,12 @@ class BetweenValidator<T extends num> extends Validator<T> {
   const BetweenValidator({
     required this.min,
     required this.max,
-    required super.message,
   });
 
   @override
-  String get code => 'not_in_range';
+  String get code => VCode.notInRange;
 
   @override
-  String? validate(T value) => value >= min && value <= max ? null : message;
+  Map<String, dynamic>? validate(T value) =>
+      value >= min && value <= max ? null : {'min': min, 'max': max};
 }

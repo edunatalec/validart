@@ -3,14 +3,8 @@ part of 'type.dart';
 class VUnion extends VType<Object> {
   final List<VType> _options;
 
-  VUnion(
-    this._options, {
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) {
+  VUnion(this._options) {
     assert(_options.length >= 2, 'Union must have at least 2 options.');
-    if (requiredMessage != null) _requiredMessage = requiredMessage;
-    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
   }
 
   @override
@@ -25,10 +19,10 @@ class VUnion extends VType<Object> {
       }
     }
 
-    return const VFailure<Object?>([
+    return VFailure<Object?>([
       VError(
-        code: 'invalid_union',
-        message: 'Value does not match any of the union types',
+        code: VCode.invalidUnion,
+        message: V.t(VCode.invalidUnion),
       ),
     ]);
   }

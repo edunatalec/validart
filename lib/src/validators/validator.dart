@@ -1,9 +1,7 @@
 abstract class Validator<T> {
-  final String message;
-
-  const Validator({required this.message});
+  const Validator();
 
   String get code;
 
-  String? validate(T value);
+  Map<String, dynamic>? validate(T value);
 }

@@ -1,11 +1,12 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class IsTrueValidator extends Validator<bool> {
-  const IsTrueValidator({required super.message});
+  const IsTrueValidator();
 
   @override
-  String get code => 'is_true';
+  String get code => VCode.isTrue;
 
   @override
-  String? validate(bool value) => value == true ? null : message;
+  Map<String, dynamic>? validate(bool value) => value == true ? null : {};
 }

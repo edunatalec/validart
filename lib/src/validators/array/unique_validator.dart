@@ -1,12 +1,13 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class UniqueValidator<T> extends Validator<List<T>> {
-  const UniqueValidator({required super.message});
+  const UniqueValidator();
 
   @override
-  String get code => 'unique';
+  String get code => VCode.unique;
 
   @override
-  String? validate(List<T> value) =>
-      value.toSet().length == value.length ? null : message;
+  Map<String, dynamic>? validate(List<T> value) =>
+      value.toSet().length == value.length ? null : {};
 }

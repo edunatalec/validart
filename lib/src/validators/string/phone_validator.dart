@@ -1,14 +1,15 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class PhoneValidator extends Validator<String> {
-  const PhoneValidator({required super.message});
+  const PhoneValidator();
 
   @override
-  String get code => 'invalid_phone';
+  String get code => VCode.invalidPhone;
 
   @override
-  String? validate(String value) {
+  Map<String, dynamic>? validate(String value) {
     final regex = RegExp(r'^\+?[1-9]\d{1,14}$');
-    return regex.hasMatch(value) ? null : message;
+    return regex.hasMatch(value) ? null : {};
   }
 }

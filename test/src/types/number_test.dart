@@ -1,8 +1,12 @@
 import 'package:test/test.dart';
 import 'package:validart/src/error.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_locale.dart';
 
 void main() {
+  setUp(() => V.setLocale(const VLocale()));
+
   group('VInt', () {
     group('min', () {
       test('should pass when value >= min', () {

@@ -3,14 +3,7 @@ part of 'type.dart';
 class VEnum<T extends Enum> extends VType<T> {
   final List<T> _values;
 
-  VEnum(
-    this._values, {
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) {
-    if (requiredMessage != null) _requiredMessage = requiredMessage;
-    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
-  }
+  VEnum(this._values);
 
   @override
   VResult<T?> safeParse(Object? value) {
@@ -23,9 +16,10 @@ class VEnum<T extends Enum> extends VType<T> {
 
     return VFailure<T?>([
       VError(
-        code: 'invalid_enum',
-        message:
-            'Invalid value. Expected one of: ${_values.map((v) => v.name).join(', ')}',
+        code: VCode.invalidEnum,
+        message: V.t(VCode.invalidEnum, {
+          'values': _values.map((v) => v.name).join(', '),
+        }),
       ),
     ]);
   }

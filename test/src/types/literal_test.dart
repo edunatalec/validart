@@ -1,7 +1,11 @@
 import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_locale.dart';
 
 void main() {
+  setUp(() => V.setLocale(const VLocale()));
+
   group('VLiteral', () {
     test('should pass for matching value', () {
       final schema = VLiteral('admin');

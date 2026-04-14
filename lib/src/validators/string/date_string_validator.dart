@@ -1,14 +1,15 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class DateStringValidator extends Validator<String> {
-  const DateStringValidator({required super.message});
+  const DateStringValidator();
 
   @override
-  String get code => 'invalid_date';
+  String get code => VCode.invalidDate;
 
   @override
-  String? validate(String value) {
+  Map<String, dynamic>? validate(String value) {
     final regex = RegExp(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$');
-    return regex.hasMatch(value) ? null : message;
+    return regex.hasMatch(value) ? null : {};
   }
 }

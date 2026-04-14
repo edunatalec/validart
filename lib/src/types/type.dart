@@ -1,6 +1,7 @@
 import 'package:validart/src/error.dart';
-import 'package:validart/src/messages/messages.dart';
 import 'package:validart/src/result.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/array/contains_all_validator.dart';
 import 'package:validart/src/validators/array/max_length_list_validator.dart';
 import 'package:validart/src/validators/array/min_length_list_validator.dart';
@@ -66,23 +67,13 @@ abstract class VType<T> {
   bool _hasDefault = false;
   T Function(Object value)? coercer;
 
-  String _requiredMessage = 'Required';
-  String Function(String, String) _invalidTypeMessage =
-      _defaultInvalidTypeMessage;
-
-  static String _defaultInvalidTypeMessage(
-    String expected,
-    String received,
-  ) =>
-      'Expected $expected, received $received';
-
   VType<T> _addStep(_PipelineStep<T> step) {
     _steps.add(step);
     return this;
   }
 
-  VType<T> _add(Validator<T> validator) {
-    return _addStep(_ValidatorStep<T>(validator));
+  VType<T> add(Validator<T> validator, {String? message}) {
+    return _addStep(_ValidatorStep<T>(validator, messageOverride: message));
   }
 
   VResult<S?>? _nullCheck<S>(S? defaultVal, bool hasDefault, Object? value) {
@@ -93,15 +84,18 @@ abstract class VType<T> {
     if (_isOptional) return VSuccess<S?>(null);
 
     return VFailure<S?>([
-      VError(code: 'required', message: _requiredMessage),
+      VError(code: VCode.required, message: V.t(VCode.required)),
     ]);
   }
 
   VFailure<S?> _typeError<S>(String expected, Object value) {
     return VFailure<S?>([
       VError(
-        code: 'invalid_type',
-        message: _invalidTypeMessage(expected, value.runtimeType.toString()),
+        code: VCode.invalidType,
+        message: V.t(VCode.invalidType, {
+          'expected': expected,
+          'received': value.runtimeType.toString(),
+        }),
       ),
     ]);
   }
@@ -145,10 +139,11 @@ abstract class VType<T> {
 
     for (final step in _steps) {
       switch (step) {
-        case _ValidatorStep<T>(:final validator):
-          final error = validator.validate(current);
-          if (error != null) {
-            errors.add(VError(code: validator.code, message: error));
+        case _ValidatorStep<T>(:final validator, :final messageOverride):
+          final params = validator.validate(current);
+          if (params != null) {
+            final message = messageOverride ?? V.t(validator.code, params);
+            errors.add(VError(code: validator.code, message: message));
           }
         case _TransformStep<T>(:final transform):
           if (errors.isEmpty) {
@@ -193,13 +188,10 @@ abstract class VType<T> {
     String? message,
     String? code,
   }) {
-    final msg = message ?? 'Invalid value';
-
-    return _add(_RefineValidator<T>(
-      check: check,
-      message: msg,
-      validatorCode: code ?? 'custom',
-    ));
+    return add(
+      _RefineValidator<T>(check: check, validatorCode: code ?? VCode.custom),
+      message: message,
+    );
   }
 
   VType<T> _transform(T Function(T value) fn) {
@@ -214,7 +206,6 @@ class _RefineValidator<T> extends Validator<T> {
 
   const _RefineValidator({
     required this.check,
-    required super.message,
     required this.validatorCode,
   });
 
@@ -222,7 +213,7 @@ class _RefineValidator<T> extends Validator<T> {
   String get code => validatorCode;
 
   @override
-  String? validate(T value) => check(value) ? null : message;
+  Map<String, dynamic>? validate(T value) => check(value) ? null : {};
 }
 
 sealed class _PipelineStep<T> {
@@ -231,8 +222,9 @@ sealed class _PipelineStep<T> {
 
 final class _ValidatorStep<T> extends _PipelineStep<T> {
   final Validator<T> validator;
+  final String? messageOverride;
 
-  const _ValidatorStep(this.validator);
+  const _ValidatorStep(this.validator, {this.messageOverride});
 }
 
 final class _TransformStep<T> extends _PipelineStep<T> {

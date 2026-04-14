@@ -1,11 +1,12 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class NegativeValidator<T extends num> extends Validator<T> {
-  const NegativeValidator({required super.message});
+  const NegativeValidator();
 
   @override
-  String get code => 'negative';
+  String get code => VCode.negative;
 
   @override
-  String? validate(T value) => value < 0 ? null : message;
+  Map<String, dynamic>? validate(T value) => value < 0 ? null : {};
 }

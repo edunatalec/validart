@@ -1,14 +1,15 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class UrlValidator extends Validator<String> {
-  const UrlValidator({required super.message});
+  const UrlValidator();
 
   @override
-  String get code => 'invalid_url';
+  String get code => VCode.invalidUrl;
 
   @override
-  String? validate(String value) {
+  Map<String, dynamic>? validate(String value) {
     final regex = RegExp(r'^https?://[^\s/$.?#].[^\s]*$');
-    return regex.hasMatch(value) ? null : message;
+    return regex.hasMatch(value) ? null : {};
   }
 }

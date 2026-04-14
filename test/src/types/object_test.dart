@@ -1,5 +1,7 @@
 import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_locale.dart';
 
 class Folder {
   final String? id;
@@ -8,6 +10,8 @@ class Folder {
 }
 
 void main() {
+  setUp(() => V.setLocale(const VLocale()));
+
   group('VObject', () {
     // ── simple not-null check ─────────────────────────────────────────────
     group('simple not-null check', () {

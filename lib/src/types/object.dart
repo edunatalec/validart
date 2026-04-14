@@ -34,20 +34,9 @@ class VObjectBuilder<T> {
 class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields;
 
-  VObject._({
-    required List<_FieldEntry<T>> fields,
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) : _fields = fields {
-    if (requiredMessage != null) _requiredMessage = requiredMessage;
-    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
-  }
+  VObject._({required List<_FieldEntry<T>> fields}) : _fields = fields;
 
-  factory VObject({
-    void Function(VObjectBuilder<T> o)? configure,
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) {
+  factory VObject({void Function(VObjectBuilder<T> o)? configure}) {
     final List<_FieldEntry<T>> fields;
     if (configure != null) {
       final builder = VObjectBuilder<T>();
@@ -56,12 +45,7 @@ class VObject<T> extends VType<T> {
     } else {
       fields = [];
     }
-
-    return VObject._(
-      fields: fields,
-      requiredMessage: requiredMessage,
-      invalidTypeMessage: invalidTypeMessage,
-    );
+    return VObject._(fields: fields);
   }
 
   @override

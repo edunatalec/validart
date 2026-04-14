@@ -1,7 +1,11 @@
 import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_locale.dart';
 
 void main() {
+  setUp(() => V.setLocale(const VLocale()));
+
   group('VArray', () {
     // ── basic validation ──────────────────────────────────────────────────
     group('basic validation', () {
@@ -166,11 +170,11 @@ void main() {
         expect(schema.validate(['a', 'c']), isFalse);
       });
 
-      test('should return error code contains', () {
+      test('should return error code contains_all', () {
         final schema = VArray<String>(VString())..contains(['x']);
         final errors = schema.errors(['a', 'b']);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'contains');
+        expect(errors!.first.code, 'contains_all');
       });
 
       test('should support custom message', () {

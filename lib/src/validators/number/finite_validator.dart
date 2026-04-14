@@ -1,12 +1,13 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class FiniteValidator extends Validator<double> {
-  const FiniteValidator({required super.message});
+  const FiniteValidator();
 
   @override
-  String get code => 'finite';
+  String get code => VCode.finite;
 
   @override
-  String? validate(double value) =>
-      !value.isInfinite && !value.isNaN ? null : message;
+  Map<String, dynamic>? validate(double value) =>
+      !value.isInfinite && !value.isNaN ? null : {};
 }

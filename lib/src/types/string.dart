@@ -1,143 +1,108 @@
 part of 'type.dart';
 
 class VString extends VType<String> {
-  final VStringMessages _messages;
-
-  VString({
-    VStringMessages? messages,
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) : _messages = messages ?? const VStringMessages() {
-    if (requiredMessage != null) _requiredMessage = requiredMessage;
-    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
-  }
-
   VString min(int length, {String Function(int)? message}) {
-    _add(MinLengthValidator(
-      min: length,
-      message: message?.call(length) ?? _messages.min(length),
-    ));
+    add(MinLengthValidator(min: length), message: message?.call(length));
     return this;
   }
 
   VString max(int length, {String Function(int)? message}) {
-    _add(MaxLengthValidator(
-      max: length,
-      message: message?.call(length) ?? _messages.max(length),
-    ));
+    add(MaxLengthValidator(max: length), message: message?.call(length));
     return this;
   }
 
   VString length(int len, {String Function(int)? message}) {
-    _add(LengthValidator(
-      length: len,
-      message: message?.call(len) ?? _messages.length(len),
-    ));
+    add(LengthValidator(length: len), message: message?.call(len));
     return this;
   }
 
   VString email({String? message}) {
-    _add(EmailValidator(message: message ?? _messages.email));
+    add(const EmailValidator(), message: message);
     return this;
   }
 
   VString url({String? message}) {
-    _add(UrlValidator(message: message ?? _messages.url));
+    add(const UrlValidator(), message: message);
     return this;
   }
 
   VString uuid({String? message}) {
-    _add(UuidValidator(message: message ?? _messages.uuid));
+    add(const UuidValidator(), message: message);
     return this;
   }
 
   VString ip({String? message}) {
-    _add(IpValidator(message: message ?? _messages.ip));
+    add(const IpValidator(), message: message);
     return this;
   }
 
   VString pattern(String regex, {String? message}) {
-    _add(PatternValidator(
-      pattern: regex,
-      message: message ?? _messages.pattern,
-    ));
+    add(PatternValidator(pattern: regex), message: message);
     return this;
   }
 
   VString date({String? message}) {
-    _add(DateStringValidator(message: message ?? _messages.date));
+    add(const DateStringValidator(), message: message);
     return this;
   }
 
   VString time({String? message}) {
-    _add(TimeValidator(message: message ?? _messages.time));
+    add(const TimeValidator(), message: message);
     return this;
   }
 
   VString contains(String value, {String? message}) {
-    _add(ContainsValidator(
-      substring: value,
-      message: message ?? _messages.contains(value),
-    ));
+    add(ContainsValidator(substring: value), message: message);
     return this;
   }
 
   VString startsWith(String prefix, {String? message}) {
-    _add(StartsWithValidator(
-      prefix: prefix,
-      message: message ?? _messages.startsWith(prefix),
-    ));
+    add(StartsWithValidator(prefix: prefix), message: message);
     return this;
   }
 
   VString endsWith(String suffix, {String? message}) {
-    _add(EndsWithValidator(
-      suffix: suffix,
-      message: message ?? _messages.endsWith(suffix),
-    ));
+    add(EndsWithValidator(suffix: suffix), message: message);
     return this;
   }
 
   VString equals(String value, {String? message}) {
-    _add(EqualsValidator(
-      expected: value,
-      message: message ?? _messages.equals(value),
-    ));
+    add(EqualsValidator(expected: value), message: message);
     return this;
   }
 
   VString alpha({String? message}) {
-    _add(AlphaValidator(message: message ?? _messages.alpha));
+    add(const AlphaValidator(), message: message);
     return this;
   }
 
   VString alphanumeric({String? message}) {
-    _add(AlphanumericValidator(message: message ?? _messages.alphanumeric));
+    add(const AlphanumericValidator(), message: message);
     return this;
   }
 
   VString slug({String? message}) {
-    _add(SlugValidator(message: message ?? _messages.slug));
+    add(const SlugValidator(), message: message);
     return this;
   }
 
   VString password({String? message}) {
-    _add(PasswordValidator(message: message ?? _messages.password));
+    add(const PasswordValidator(), message: message);
     return this;
   }
 
   VString jwt({String? message}) {
-    _add(JwtValidator(message: message ?? _messages.jwt));
+    add(const JwtValidator(), message: message);
     return this;
   }
 
   VString card({String? message}) {
-    _add(CardValidator(message: message ?? _messages.card));
+    add(const CardValidator(), message: message);
     return this;
   }
 
   VString phone({String? message}) {
-    _add(PhoneValidator(message: message ?? _messages.phone));
+    add(const PhoneValidator(), message: message);
     return this;
   }
 

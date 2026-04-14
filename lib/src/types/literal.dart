@@ -3,14 +3,7 @@ part of 'type.dart';
 class VLiteral<T> extends VType<T> {
   final T _expected;
 
-  VLiteral(
-    this._expected, {
-    String? requiredMessage,
-    String Function(String, String)? invalidTypeMessage,
-  }) {
-    if (requiredMessage != null) _requiredMessage = requiredMessage;
-    if (invalidTypeMessage != null) _invalidTypeMessage = invalidTypeMessage;
-  }
+  VLiteral(this._expected);
 
   @override
   VResult<T?> safeParse(Object? value) {
@@ -23,8 +16,11 @@ class VLiteral<T> extends VType<T> {
 
     return VFailure<T?>([
       VError(
-        code: 'invalid_literal',
-        message: 'Expected "$_expected", received "$value"',
+        code: VCode.invalidLiteral,
+        message: V.t(VCode.invalidLiteral, {
+          'expected': _expected,
+          'received': value,
+        }),
       ),
     ]);
   }

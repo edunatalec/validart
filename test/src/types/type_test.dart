@@ -2,10 +2,14 @@ import 'package:test/test.dart';
 import 'package:validart/src/error.dart';
 import 'package:validart/src/result.dart';
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/v.dart';
+import 'package:validart/src/v_locale.dart';
 
 class TestStringType extends VType<String> {}
 
 void main() {
+  setUp(() => V.setLocale(const VLocale()));
+
   group('VType base', () {
     group('parse', () {
       test('should return value when valid', () {

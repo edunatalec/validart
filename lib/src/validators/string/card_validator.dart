@@ -1,15 +1,16 @@
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
 class CardValidator extends Validator<String> {
-  const CardValidator({required super.message});
+  const CardValidator();
 
   @override
-  String get code => 'card';
+  String get code => VCode.card;
 
   @override
-  String? validate(String value) {
+  Map<String, dynamic>? validate(String value) {
     final digits = value.replaceAll(RegExp(r'\D'), '');
-    if (digits.length < 13 || digits.length > 19) return message;
+    if (digits.length < 13 || digits.length > 19) return {};
 
     int sum = 0;
     bool alternate = false;
@@ -24,6 +25,6 @@ class CardValidator extends Validator<String> {
       alternate = !alternate;
     }
 
-    return (sum % 10 == 0) ? null : message;
+    return (sum % 10 == 0) ? null : {};
   }
 }
