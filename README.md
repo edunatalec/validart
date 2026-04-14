@@ -1,7 +1,7 @@
+# Validart
+
 [![pub package](https://img.shields.io/pub/v/validart.svg)](https://pub.dev/packages/validart)
 [![package publisher](https://img.shields.io/pub/publisher/validart.svg)](https://pub.dev/packages/validart/publisher)
-
-# Validart
 
 A type-safe validation library for Dart, inspired by [Zod](https://zod.dev).
 
