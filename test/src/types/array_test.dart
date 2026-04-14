@@ -7,7 +7,6 @@ void main() {
   setUp(() => V.setLocale(const VLocale()));
 
   group('VArray', () {
-    // ── basic validation ──────────────────────────────────────────────────
     group('basic validation', () {
       test('should pass for valid list of strings', () {
         final schema = VArray<String>(VString());
@@ -30,7 +29,6 @@ void main() {
       });
     });
 
-    // ── element validation ────────────────────────────────────────────────
     group('element validation', () {
       test('should fail when element is invalid', () {
         final schema = VArray<String>(VString()..email());
@@ -63,7 +61,6 @@ void main() {
       });
     });
 
-    // ── min ───────────────────────────────────────────────────────────────
     group('min', () {
       test('should pass when array length >= min', () {
         final schema = VArray<String>(VString())..min(2);
@@ -95,7 +92,6 @@ void main() {
       });
     });
 
-    // ── max ───────────────────────────────────────────────────────────────
     group('max', () {
       test('should pass when array length <= max', () {
         final schema = VArray<String>(VString())..max(3);
@@ -127,7 +123,6 @@ void main() {
       });
     });
 
-    // ── unique ────────────────────────────────────────────────────────────
     group('unique', () {
       test('should pass when all elements are unique', () {
         final schema = VArray<String>(VString())..unique();
@@ -158,7 +153,6 @@ void main() {
       });
     });
 
-    // ── contains ──────────────────────────────────────────────────────────
     group('contains', () {
       test('should pass when array contains required values', () {
         final schema = VArray<String>(VString())..contains(['a', 'b']);
@@ -185,7 +179,6 @@ void main() {
       });
     });
 
-    // ── type checking ─────────────────────────────────────────────────────
     group('type checking', () {
       test('should fail for non-list input', () {
         final schema = VArray<String>(VString());
@@ -210,7 +203,6 @@ void main() {
       });
     });
 
-    // ── null handling ─────────────────────────────────────────────────────
     group('null handling', () {
       test('should fail for null by default', () {
         final schema = VArray<String>(VString());
@@ -245,7 +237,6 @@ void main() {
       });
     });
 
-    // ── method chaining ───────────────────────────────────────────────────
     group('method chaining', () {
       test('should chain min and unique', () {
         final schema = VArray<String>(VString())
@@ -293,7 +284,6 @@ void main() {
       });
     });
 
-    // ── nested arrays ─────────────────────────────────────────────────────
     group('nested arrays', () {
       test('should validate array of arrays', () {
         final schema = VArray<List<String>>(VArray<String>(VString()));
@@ -332,7 +322,6 @@ void main() {
       });
     });
 
-    // ── refine ────────────────────────────────────────────────────────────
     group('refine', () {
       test('should add custom validation', () {
         final schema = VArray<int>(VInt())

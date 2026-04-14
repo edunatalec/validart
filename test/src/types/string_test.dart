@@ -7,7 +7,6 @@ void main() {
   setUp(() => V.setLocale(const VLocale()));
 
   group('VString', () {
-    // ── min ──────────────────────────────────────────────────────────────
     group('min', () {
       test('should pass when string length >= min', () {
         final schema = VString()..min(3);
@@ -43,7 +42,6 @@ void main() {
       });
     });
 
-    // ── max ──────────────────────────────────────────────────────────────
     group('max', () {
       test('should pass when string length <= max', () {
         final schema = VString()..max(5);
@@ -73,7 +71,6 @@ void main() {
       });
     });
 
-    // ── length ───────────────────────────────────────────────────────────
     group('length', () {
       test('should pass when string has exact length', () {
         final schema = VString()..length(4);
@@ -103,7 +100,6 @@ void main() {
       });
     });
 
-    // ── email ────────────────────────────────────────────────────────────
     group('email', () {
       test('should pass for valid email', () {
         final schema = VString()..email();
@@ -143,7 +139,6 @@ void main() {
       });
     });
 
-    // ── url ──────────────────────────────────────────────────────────────
     group('url', () {
       test('should pass for valid http url', () {
         final schema = VString()..url();
@@ -178,7 +173,6 @@ void main() {
       });
     });
 
-    // ── uuid ─────────────────────────────────────────────────────────────
     group('uuid', () {
       test('should pass for valid uuid v4', () {
         final schema = VString()..uuid();
@@ -208,7 +202,6 @@ void main() {
       });
     });
 
-    // ── ip ───────────────────────────────────────────────────────────────
     group('ip', () {
       test('should pass for valid IPv4', () {
         final schema = VString()..ip();
@@ -246,7 +239,6 @@ void main() {
       });
     });
 
-    // ── pattern ──────────────────────────────────────────────────────────
     group('pattern', () {
       test('should pass when value matches regex', () {
         final schema = VString()..pattern(r'^\d{3}$');
@@ -271,7 +263,6 @@ void main() {
       });
     });
 
-    // ── date ─────────────────────────────────────────────────────────────
     group('date', () {
       test('should pass for valid ISO date', () {
         final schema = VString()..date();
@@ -311,7 +302,6 @@ void main() {
       });
     });
 
-    // ── time ─────────────────────────────────────────────────────────────
     group('time', () {
       test('should pass for HH:MM format', () {
         final schema = VString()..time();
@@ -356,7 +346,6 @@ void main() {
       });
     });
 
-    // ── contains ─────────────────────────────────────────────────────────
     group('contains', () {
       test('should pass when string contains value', () {
         final schema = VString()..contains('world');
@@ -381,7 +370,6 @@ void main() {
       });
     });
 
-    // ── startsWith ───────────────────────────────────────────────────────
     group('startsWith', () {
       test('should pass when string starts with prefix', () {
         final schema = VString()..startsWith('hello');
@@ -406,7 +394,6 @@ void main() {
       });
     });
 
-    // ── endsWith ─────────────────────────────────────────────────────────
     group('endsWith', () {
       test('should pass when string ends with suffix', () {
         final schema = VString()..endsWith('.dart');
@@ -431,7 +418,6 @@ void main() {
       });
     });
 
-    // ── equals ───────────────────────────────────────────────────────────
     group('equals', () {
       test('should pass when string equals value', () {
         final schema = VString()..equals('exact');
@@ -461,7 +447,6 @@ void main() {
       });
     });
 
-    // ── alpha ────────────────────────────────────────────────────────────
     group('alpha', () {
       test('should pass for only letters', () {
         final schema = VString()..alpha();
@@ -496,7 +481,6 @@ void main() {
       });
     });
 
-    // ── alphanumeric ─────────────────────────────────────────────────────
     group('alphanumeric', () {
       test('should pass for letters and numbers', () {
         final schema = VString()..alphanumeric();
@@ -536,7 +520,6 @@ void main() {
       });
     });
 
-    // ── slug ─────────────────────────────────────────────────────────────
     group('slug', () {
       test('should pass for valid slug', () {
         final schema = VString()..slug();
@@ -586,7 +569,6 @@ void main() {
       });
     });
 
-    // ── password ─────────────────────────────────────────────────────────
     group('password', () {
       test('should pass for strong password', () {
         final schema = VString()..password();
@@ -631,7 +613,6 @@ void main() {
       });
     });
 
-    // ── jwt ──────────────────────────────────────────────────────────────
     group('jwt', () {
       test('should pass for valid JWT', () {
         final schema = VString()..jwt();
@@ -671,7 +652,6 @@ void main() {
       });
     });
 
-    // ── card ─────────────────────────────────────────────────────────────
     group('card', () {
       test('should pass for valid card number (Luhn)', () {
         final schema = VString()..card();
@@ -706,7 +686,6 @@ void main() {
       });
     });
 
-    // ── phone ────────────────────────────────────────────────────────────
     group('phone', () {
       test('should pass for valid E.164 phone', () {
         final schema = VString()..phone();
@@ -746,7 +725,6 @@ void main() {
       });
     });
 
-    // ── trim ─────────────────────────────────────────────────────────────
     group('trim', () {
       test('should trim whitespace from both ends', () {
         final schema = VString()..trim();
@@ -759,7 +737,6 @@ void main() {
       });
     });
 
-    // ── toLowerCase ──────────────────────────────────────────────────────
     group('toLowerCase', () {
       test('should convert to lowercase', () {
         final schema = VString()..toLowerCase();
@@ -772,7 +749,6 @@ void main() {
       });
     });
 
-    // ── toUpperCase ──────────────────────────────────────────────────────
     group('toUpperCase', () {
       test('should convert to uppercase', () {
         final schema = VString()..toUpperCase();
@@ -785,7 +761,6 @@ void main() {
       });
     });
 
-    // ── transform + validation ───────────────────────────────────────────
     group('transform + validation', () {
       test('trim then min should validate after trimming', () {
         final schema = VString()
@@ -823,7 +798,6 @@ void main() {
       });
     });
 
-    // ── method chaining ──────────────────────────────────────────────────
     group('method chaining', () {
       test('should combine min and max', () {
         final schema = VString()
@@ -866,7 +840,6 @@ void main() {
       });
     });
 
-    // ── base class features ──────────────────────────────────────────────
     group('base class features', () {
       test('optional should allow null', () {
         final schema = VString()

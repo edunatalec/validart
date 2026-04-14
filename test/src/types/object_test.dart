@@ -13,7 +13,6 @@ void main() {
   setUp(() => V.setLocale(const VLocale()));
 
   group('VObject', () {
-    // ── simple not-null check ─────────────────────────────────────────────
     group('simple not-null check', () {
       test('should pass for non-null Folder instance', () {
         final schema = VObject<Folder>();
@@ -44,7 +43,6 @@ void main() {
       });
     });
 
-    // ── field validation with path errors ─────────────────────────────────
     group('field validation', () {
       test('should validate fields and pass for valid data', () {
         final schema = VObject<Folder>(
@@ -125,7 +123,6 @@ void main() {
       });
     });
 
-    // ── refine ────────────────────────────────────────────────────────────
     group('refine', () {
       test('should add custom validation', () {
         final schema = VObject<Folder>()
@@ -161,7 +158,6 @@ void main() {
       });
     });
 
-    // ── nullable / optional ───────────────────────────────────────────────
     group('nullable and optional', () {
       test('nullable should allow null', () {
         final schema = VObject<Folder>()..nullable();
@@ -186,7 +182,6 @@ void main() {
       });
     });
 
-    // ── wrong type input ──────────────────────────────────────────────────
     group('wrong type input', () {
       test('should fail for string input', () {
         final schema = VObject<Folder>();
@@ -216,7 +211,6 @@ void main() {
       });
     });
 
-    // ── combined with VMap ────────────────────────────────────────────────
     group('combined with VMap', () {
       test('should use VObject inside VMap schema', () {
         final schema = VMap({

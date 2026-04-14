@@ -7,7 +7,6 @@ void main() {
   setUp(() => V.setLocale(const VLocale()));
 
   group('VMap', () {
-    // ── basic validation ──────────────────────────────────────────────────
     group('basic validation', () {
       test('should pass for valid map', () {
         final schema = VMap({
@@ -42,7 +41,6 @@ void main() {
       });
     });
 
-    // ── field-level errors with paths ─────────────────────────────────────
     group('field-level errors', () {
       test('should include field name in error path', () {
         final schema = VMap({
@@ -78,7 +76,6 @@ void main() {
       });
     });
 
-    // ── nested maps with nested error paths ───────────────────────────────
     group('nested maps', () {
       test('should validate nested map', () {
         final schema = VMap({
@@ -125,7 +122,6 @@ void main() {
       });
     });
 
-    // ── pick ──────────────────────────────────────────────────────────────
     group('pick', () {
       test('should return new VMap with only picked keys', () {
         final schema = VMap({
@@ -156,7 +152,6 @@ void main() {
       });
     });
 
-    // ── omit ──────────────────────────────────────────────────────────────
     group('omit', () {
       test('should return new VMap without omitted keys', () {
         final schema = VMap({
@@ -181,7 +176,6 @@ void main() {
       });
     });
 
-    // ── extend ────────────────────────────────────────────────────────────
     group('extend', () {
       test('should add new fields to schema', () {
         final schema = VMap({'name': VString()});
@@ -196,7 +190,6 @@ void main() {
       });
     });
 
-    // ── merge ─────────────────────────────────────────────────────────────
     group('merge', () {
       test('should merge two VMap schemas', () {
         final schema1 = VMap({'name': VString()});
@@ -220,7 +213,6 @@ void main() {
       });
     });
 
-    // ── partial ───────────────────────────────────────────────────────────
     group('partial', () {
       test('should make all fields optional', () {
         final schema = VMap({
@@ -250,7 +242,6 @@ void main() {
       });
     });
 
-    // ── strict ────────────────────────────────────────────────────────────
     group('strict', () {
       test('should reject unknown keys', () {
         final schema = VMap({'name': VString()})..strict();
@@ -287,7 +278,6 @@ void main() {
       });
     });
 
-    // ── passthrough ───────────────────────────────────────────────────────
     group('passthrough', () {
       test('should pass through unknown keys', () {
         final schema = VMap({'name': VString()})..passthrough();
@@ -315,7 +305,6 @@ void main() {
       });
     });
 
-    // ── refineField ───────────────────────────────────────────────────────
     group('refineField', () {
       test('should validate cross-field constraint', () {
         final schema = VMap({
@@ -375,7 +364,6 @@ void main() {
       });
     });
 
-    // ── null handling ─────────────────────────────────────────────────────
     group('null handling', () {
       test('should fail for null by default', () {
         final schema = VMap({'name': VString()});
@@ -405,7 +393,6 @@ void main() {
       });
     });
 
-    // ── type checking ─────────────────────────────────────────────────────
     group('type checking', () {
       test('should fail for non-map input', () {
         final schema = VMap({'name': VString()});
