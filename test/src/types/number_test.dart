@@ -471,5 +471,21 @@ void main() {
         expect(schema.parse(3.14), 3.14);
       });
     });
+
+    group('array', () {
+      test('should create array of doubles', () {
+        final schema = (VDouble()..finite()).array();
+        expect(schema.validate([1.0, 2.5]), isTrue);
+        expect(schema.validate([1.0, double.infinity]), isFalse);
+      });
+    });
+  });
+
+  group('VInt array', () {
+    test('should create array of ints', () {
+      final schema = (VInt()..min(0)).array();
+      expect(schema.validate([1, 2, 3]), isTrue);
+      expect(schema.validate([1, -1, 3]), isFalse);
+    });
   });
 }

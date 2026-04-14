@@ -70,5 +70,17 @@ void main() {
       expect(schema.validate(Color.green), isTrue);
       expect(schema.validate(Color.red), isFalse);
     });
+
+    group('array', () {
+      test('should validate array of enums', () {
+        final schema = VEnum(Color.values).array();
+        expect(schema.validate([Color.red, Color.blue]), isTrue);
+      });
+
+      test('should fail for invalid enum in array', () {
+        final schema = VEnum(Color.values).array();
+        expect(schema.validate([Color.red, 'invalid']), isFalse);
+      });
+    });
   });
 }

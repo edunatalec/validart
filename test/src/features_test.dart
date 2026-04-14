@@ -324,4 +324,66 @@ void main() {
       expect(errs!.first.path, ['cnpj']);
     });
   });
+
+  group('VFailure.toMap edge cases', () {
+    test('should handle nested error paths', () {
+      final schema = V.map({
+        'user': V.map({
+          'email': V.string()..email(),
+        }),
+      });
+
+      final result = schema.safeParse({
+        'user': {'email': 'bad'},
+      });
+      final map = (result as VFailure).toMap();
+      expect(map['user.email'], isNotNull);
+    });
+
+    test('should handle array index paths', () {
+      final schema = V.array(V.string()..email());
+      final result = schema.safeParse(['good@email.com', 'bad']);
+      final map = (result as VFailure).toMap();
+      expect(map['[1]'], isNotNull);
+    });
+
+    test('should keep first error when field has multiple', () {
+      final schema = V.map({
+        'x': V.string()
+          ..min(10)
+          ..email(),
+      });
+
+      final result = schema.safeParse({'x': 'ab'});
+      final map = (result as VFailure).toMap();
+      expect(map.length, 1);
+    });
+  });
+
+  group('transform chaining', () {
+    test('should chain multiple transforms', () {
+      final schema = V
+          .string()
+          .transform<int>((s) => s.length)
+          .transform<String>((n) => 'len:$n');
+      expect(schema.parse('hello'), 'len:5');
+    });
+  });
+
+  group('VLocale interpolation edge cases', () {
+    test('should leave unreplaced params as-is', () {
+      V.setLocale(
+        const VLocale({'test_code': 'Hello {name}, your {missing}'}),
+      );
+      expect(
+        V.t('test_code', {'name': 'World'}),
+        'Hello World, your {missing}',
+      );
+    });
+
+    test('should handle empty params', () {
+      V.setLocale(const VLocale({'test_code': 'Simple message'}));
+      expect(V.t('test_code'), 'Simple message');
+    });
+  });
 }

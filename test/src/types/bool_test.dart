@@ -147,5 +147,13 @@ void main() {
         expect(schema.parse(false), isFalse);
       });
     });
+
+    group('array', () {
+      test('should create array of bools', () {
+        final schema = VBool().isTrue().array();
+        expect(schema.validate([true, true]), isTrue);
+        expect(schema.validate([true, false]), isFalse);
+      });
+    });
   });
 }

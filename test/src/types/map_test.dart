@@ -411,5 +411,150 @@ void main() {
         expect(schema.validate([1, 2, 3]), isFalse);
       });
     });
+
+    group('array', () {
+      test('should create array of maps', () {
+        final schema = VMap({'name': VString()..min(1)}).array();
+        expect(
+          schema.validate([
+            {'name': 'Alice'},
+            {'name': 'Bob'},
+          ]),
+          isTrue,
+        );
+      });
+
+      test('should fail for invalid map in array', () {
+        final schema = VMap({'name': VString()..min(1)}).array();
+        expect(
+          schema.validate([
+            {'name': 'Alice'},
+            {'name': ''},
+          ]),
+          isFalse,
+        );
+      });
+
+      test('should include index in error path', () {
+        final schema = VMap({'name': VString()..min(3)}).array();
+        final errs = schema.errors([
+          {'name': 'Al'},
+        ]);
+        expect(errs!.first.path, [0, 'name']);
+      });
+    });
+
+    group('equalFields', () {
+      test('should pass when fields match', () {
+        final schema = VMap({
+          'password': VString(),
+          'confirm': VString(),
+        })
+          ..equalFields('confirm', 'password');
+
+        expect(
+          schema.validate({'password': 'abc', 'confirm': 'abc'}),
+          isTrue,
+        );
+      });
+
+      test('should fail when fields differ', () {
+        final schema = VMap({
+          'password': VString(),
+          'confirm': VString(),
+        })
+          ..equalFields('confirm', 'password');
+
+        expect(
+          schema.validate({'password': 'abc', 'confirm': 'xyz'}),
+          isFalse,
+        );
+      });
+
+      test('should use custom message', () {
+        final schema = VMap({
+          'password': VString(),
+          'confirm': VString(),
+        })
+          ..equalFields('confirm', 'password', message: 'Must match');
+
+        final errs = schema.errors({'password': 'a', 'confirm': 'b'});
+        expect(errs!.first.message, 'Must match');
+      });
+    });
+
+    group('when', () {
+      test('should apply validation when condition matches', () {
+        final schema = VMap({
+          'type': VString(),
+          'value': VString()..optional(),
+        })
+          ..when('type', equals: 'special', then: {
+            'value': VString()..min(5),
+          });
+
+        expect(
+          schema.validate({'type': 'special', 'value': 'hello'}),
+          isTrue,
+        );
+        expect(
+          schema.validate({'type': 'special', 'value': 'hi'}),
+          isFalse,
+        );
+      });
+
+      test('should skip validation when condition does not match', () {
+        final schema = VMap({
+          'type': VString(),
+          'value': VString()..optional(),
+        })
+          ..when('type', equals: 'special', then: {
+            'value': VString()..min(5),
+          });
+
+        expect(
+          schema.validate({'type': 'normal', 'value': 'hi'}),
+          isTrue,
+        );
+      });
+
+      test('should support multiple when rules', () {
+        final schema = VMap({
+          'role': VString(),
+          'level': VInt()..optional(),
+          'dept': VString()..optional(),
+        })
+          ..when('role', equals: 'admin', then: {
+            'level': VInt()..min(5),
+          })
+          ..when('role', equals: 'manager', then: {
+            'dept': VString()..min(1),
+          });
+
+        expect(schema.validate({'role': 'admin', 'level': 10}), isTrue);
+        expect(schema.validate({'role': 'admin', 'level': 1}), isFalse);
+        expect(schema.validate({'role': 'manager', 'dept': 'HR'}), isTrue);
+        expect(schema.validate({'role': 'user'}), isTrue);
+      });
+    });
+
+    group('deeply nested maps', () {
+      test('should produce 3-level nested error paths', () {
+        final schema = VMap({
+          'level1': VMap({
+            'level2': VMap({
+              'level3': VString()..min(5),
+            }),
+          }),
+        });
+
+        final errs = schema.errors({
+          'level1': {
+            'level2': {'level3': 'hi'},
+          },
+        });
+        expect(errs!.first.path, ['level1', 'level2', 'level3']);
+      });
+    });
   });
 }

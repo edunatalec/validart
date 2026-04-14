@@ -227,5 +227,19 @@ void main() {
         expect(schema.validate(null), isTrue);
       });
     });
+
+    group('array', () {
+      test('should create array of dates', () {
+        final now = DateTime.now();
+        final future = now.add(const Duration(days: 1));
+        final schema = (VDate()..after(now)).array();
+
+        expect(schema.validate([future]), isTrue);
+        expect(
+          schema.validate([now.subtract(const Duration(days: 1))]),
+          isFalse,
+        );
+      });
+    });
   });
 }

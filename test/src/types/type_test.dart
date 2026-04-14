@@ -4,8 +4,22 @@ import 'package:validart/src/result.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
+import 'package:validart/src/validators/validator.dart';
 
 class TestStringType extends VType<String> {}
+
+class _LengthValidator extends Validator<String> {
+  final int min;
+
+  const _LengthValidator({required this.min});
+
+  @override
+  String get code => 'custom';
+
+  @override
+  Map<String, dynamic>? validate(String value) =>
+      value.length >= min ? null : {'min': min};
+}
 
 void main() {
   setUp(() => V.setLocale(const VLocale()));
@@ -239,6 +253,96 @@ void main() {
       ]);
       expect(ex.toString(), contains('error a'));
       expect(ex.toString(), contains('error b'));
+    });
+  });
+
+  group('add', () {
+    test('should add custom validator', () {
+      final schema = TestStringType()..add(const _LengthValidator(min: 3));
+      expect(schema.validate('hello'), isTrue);
+      expect(schema.validate('hi'), isFalse);
+    });
+
+    test('should add custom validator with message override', () {
+      final schema = TestStringType()
+        ..add(const _LengthValidator(min: 3), message: 'Too short');
+      final errs = schema.errors('hi');
+      expect(errs!.first.message, 'Too short');
+    });
+  });
+
+  group('preprocess', () {
+    test('should transform value before type check', () {
+      final schema = TestStringType()..preprocess((v) => v?.toString() ?? '');
+      expect(schema.parse(42), '42');
+    });
+
+    test('should preprocess null into non-null', () {
+      final schema = TestStringType()..preprocess((v) => v ?? 'default');
+      expect(schema.parse(null), 'default');
+    });
+
+    test('should preprocess before validation', () {
+      final schema = TestStringType()
+        ..preprocess((v) => (v as String?)?.trim())
+        ..refine((v) => v.length >= 3);
+      expect(schema.validate('  hello  '), isTrue);
+      expect(schema.validate('  hi  '), isFalse);
+    });
+  });
+
+  group('transform', () {
+    test('should transform to different type', () {
+      final schema = TestStringType().transform<int>((s) => s.length);
+      expect(schema.parse('hello'), 5);
+    });
+
+    test('should propagate errors from inner schema', () {
+      final schema = (TestStringType()
+            ..refine((v) => v.length >= 5, message: 'Too short'))
+          .transform<int>((s) => s.length);
+      expect(schema.validate('hi'), isFalse);
+    });
+
+    test('should chain transforms', () {
+      final schema = TestStringType()
+          .transform<int>((s) => s.length)
+          .transform<String>((n) => 'len:$n');
+      expect(schema.parse('hello'), 'len:5');
+    });
+
+    test('should handle null when inner is nullable', () {
+      final schema =
+          (TestStringType()..nullable()).transform<int>((s) => s.length);
+      expect(schema.parse(null), isNull);
+    });
+  });
+
+  group('pipeline order', () {
+    test('should run steps in order added', () {
+      final schema = VString()
+        ..trim()
+        ..refine((v) => v.length >= 5, message: 'Too short');
+
+      expect(schema.validate('  hello  '), isTrue);
+      expect(schema.parse('  hello  '), 'hello');
+    });
+
+    test('should validate trimmed value when trim is first', () {
+      final schema = VString()
+        ..trim()
+        ..refine((v) => v.length >= 5);
+
+      expect(schema.validate('  hi  '), isFalse);
+    });
+
+    test('should not run transforms after validation fails', () {
+      final schema = VString()
+        ..refine((v) => false, message: 'Always fails')
+        ..trim();
+      final result = schema.safeParse('  hello  ');
+
+      expect(result.isValid, isFalse);
     });
   });
 }

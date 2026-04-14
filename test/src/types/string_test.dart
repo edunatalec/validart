@@ -871,5 +871,36 @@ void main() {
         expect(schema.validate('hello'), isFalse);
       });
     });
+
+    group('notEmpty', () {
+      test('should pass for non-empty string', () {
+        final schema = VString()..notEmpty();
+        expect(schema.validate('hello'), isTrue);
+      });
+
+      test('should fail for empty string', () {
+        final schema = VString()..notEmpty();
+        expect(schema.validate(''), isFalse);
+      });
+
+      test('should pass for whitespace-only string', () {
+        final schema = VString()..notEmpty();
+        expect(schema.validate('  '), isTrue);
+      });
+
+      test('should return correct error code', () {
+        final schema = VString()..notEmpty();
+        final errs = schema.errors('');
+        expect(errs!.first.code, 'not_empty');
+      });
+    });
+
+    group('array', () {
+      test('should create array of strings', () {
+        final schema = VString().email().array();
+        expect(schema.validate(['a@b.com']), isTrue);
+        expect(schema.validate(['bad']), isFalse);
+      });
+    });
   });
 }

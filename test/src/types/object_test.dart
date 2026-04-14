@@ -9,6 +9,12 @@ class Folder {
   Folder({this.id, required this.name});
 }
 
+class _TaggedFolder {
+  final String name;
+  final List<String> tags;
+  _TaggedFolder(this.name, this.tags);
+}
+
 void main() {
   setUp(() => V.setLocale(const VLocale()));
 
@@ -264,6 +270,30 @@ void main() {
         expect(errors, isNotNull);
         expect(errors!.first.code, 'required');
         expect(errors.first.path, ['folder']);
+      });
+    });
+
+    group('VObject with VArray', () {
+      test('should validate object containing a list field', () {
+        final schema = VObject<_TaggedFolder>(
+          configure: (o) => o
+              .field('name', (f) => f.name, VString()..min(1))
+              .field('tags', (f) => f.tags, VArray<String>(VString()..min(1))),
+        );
+
+        expect(schema.validate(_TaggedFolder('Docs', ['a', 'b'])), isTrue);
+        expect(schema.validate(_TaggedFolder('Docs', ['a', ''])), isFalse);
+      });
+
+      test('should include nested path for array field errors', () {
+        final schema = VObject<_TaggedFolder>(
+          configure: (o) =>
+              o.field('tags', (f) => f.tags, VArray<String>(VString()..min(3))),
+        );
+
+        final errs = schema.errors(_TaggedFolder('Docs', ['hello', 'ab']));
+        expect(errs, isNotNull);
+        expect(errs!.first.path, ['tags', 1]);
       });
     });
   });
