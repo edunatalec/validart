@@ -26,7 +26,7 @@ void main() {
     'email': V.string()..email(),
     'age': V.int()
       ..min(0)
-      ..optional(),
+      ..nullable(),
   });
   print(
       userSchema.validate({'name': 'Alice', 'email': 'alice@ex.com'})); // true
@@ -124,8 +124,8 @@ void main() {
   // Conditional validation with when
   final formSchema = V.map({
     'type': V.string(),
-    'cnpj': V.string()..optional(),
-    'cpf': V.string()..optional(),
+    'cnpj': V.string()..nullable(),
+    'cpf': V.string()..nullable(),
   })
     ..when('type', equals: 'company', then: {
       'cnpj': V.string()..min(14),

@@ -58,7 +58,7 @@ class VMap extends VType<Map<String, dynamic>> {
     final partialSchema = <String, VType>{};
 
     for (final entry in _schema.entries) {
-      partialSchema[entry.key] = entry.value..optional();
+      partialSchema[entry.key] = entry.value..nullable();
     }
 
     return VMap(partialSchema);

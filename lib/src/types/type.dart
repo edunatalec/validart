@@ -64,7 +64,6 @@ part 'transformed.dart';
 
 abstract class VType<T> {
   final List<_PipelineStep<T>> _steps = [];
-  bool _isOptional = false;
   bool _isNullable = false;
   T? _defaultValue;
   bool _hasDefault = false;
@@ -85,7 +84,6 @@ abstract class VType<T> {
 
     if (_isNullable) return VSuccess<S?>(null);
     if (hasDefault) return VSuccess<S?>(defaultVal);
-    if (_isOptional) return VSuccess<S?>(null);
 
     return VFailure<S?>([
       VError(code: VCode.required, message: V.t(VCode.required)),
@@ -171,11 +169,6 @@ abstract class VType<T> {
     if (result case VFailure(:final errors)) return errors;
 
     return null;
-  }
-
-  VType<T> optional() {
-    _isOptional = true;
-    return this;
   }
 
   VType<T> nullable() {

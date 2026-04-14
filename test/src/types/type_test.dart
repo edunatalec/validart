@@ -103,18 +103,6 @@ void main() {
       });
     });
 
-    group('optional', () {
-      test('should allow null when optional', () {
-        final schema = TestStringType()..optional();
-        expect(schema.validate(null), isTrue);
-      });
-
-      test('should still validate type when optional', () {
-        final schema = TestStringType()..optional();
-        expect(schema.validate('hello'), isTrue);
-      });
-    });
-
     group('nullable', () {
       test('should allow null when nullable', () {
         final schema = TestStringType()..nullable();

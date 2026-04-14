@@ -251,7 +251,7 @@ void main() {
     test('should validate conditionally when condition matches', () {
       final schema = V.map({
         'type': V.string(),
-        'cnpj': V.string()..optional(),
+        'cnpj': V.string()..nullable(),
       })
         ..when('type', equals: 'company', then: {
           'cnpj': V.string()..min(14),
@@ -270,7 +270,7 @@ void main() {
     test('should skip validation when condition does not match', () {
       final schema = V.map({
         'type': V.string(),
-        'cnpj': V.string()..optional(),
+        'cnpj': V.string()..nullable(),
       })
         ..when('type', equals: 'company', then: {
           'cnpj': V.string()..min(14),
@@ -285,8 +285,8 @@ void main() {
     test('should support multiple when rules', () {
       final schema = V.map({
         'type': V.string(),
-        'cnpj': V.string()..optional(),
-        'cpf': V.string()..optional(),
+        'cnpj': V.string()..nullable(),
+        'cpf': V.string()..nullable(),
       })
         ..when('type', equals: 'company', then: {
           'cnpj': V.string()..min(14),
@@ -314,7 +314,7 @@ void main() {
     test('should include field path in errors', () {
       final schema = V.map({
         'type': V.string(),
-        'cnpj': V.string()..optional(),
+        'cnpj': V.string()..nullable(),
       })
         ..when('type', equals: 'company', then: {
           'cnpj': V.string()..min(14),

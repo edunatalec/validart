@@ -58,7 +58,7 @@ void main() {
                   (f) => f.id,
                   VString()
                     ..uuid()
-                    ..optional(),
+                    ..nullable(),
                 )
                 .field('name', (f) => f.name, VString()..min(1)));
         expect(schema.validate(Folder(name: 'Documents')), isTrue);
@@ -175,8 +175,8 @@ void main() {
         expect(schema.parse(null), isNull);
       });
 
-      test('optional should allow null', () {
-        final schema = VObject<Folder>()..optional();
+      test('nullable should allow null', () {
+        final schema = VObject<Folder>()..nullable();
         expect(schema.validate(null), isTrue);
       });
 

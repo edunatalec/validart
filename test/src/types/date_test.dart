@@ -221,13 +221,6 @@ void main() {
       });
     });
 
-    group('optional', () {
-      test('should allow null when optional', () {
-        final schema = VDate()..optional();
-        expect(schema.validate(null), isTrue);
-      });
-    });
-
     group('array', () {
       test('should create array of dates', () {
         final now = DateTime.now();

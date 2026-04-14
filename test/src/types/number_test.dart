@@ -245,13 +245,6 @@ void main() {
       });
     });
 
-    group('optional', () {
-      test('should allow null when optional', () {
-        final schema = VInt()..optional();
-        expect(schema.validate(null), isTrue);
-      });
-    });
-
     group('defaultValue', () {
       test('should use default when value is null', () {
         final schema = VInt()..defaultValue(0);
@@ -450,13 +443,6 @@ void main() {
         final schema = VDouble()..nullable();
         expect(schema.validate(null), isTrue);
         expect(schema.parse(null), isNull);
-      });
-    });
-
-    group('optional', () {
-      test('should allow null when optional', () {
-        final schema = VDouble()..optional();
-        expect(schema.validate(null), isTrue);
       });
     });
 

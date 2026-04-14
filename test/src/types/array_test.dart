@@ -226,8 +226,8 @@ void main() {
         expect(schema.parse(null), isNull);
       });
 
-      test('optional should allow null', () {
-        final schema = VArray<String>(VString())..optional();
+      test('nullable should allow null', () {
+        final schema = VArray<String>(VString())..nullable();
         expect(schema.validate(null), isTrue);
       });
 

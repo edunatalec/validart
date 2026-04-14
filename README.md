@@ -103,7 +103,7 @@ Validates `Map<String, dynamic>` with a schema:
 final userSchema = V.map({
   'name': V.string()..min(1),
   'email': V.string()..email(),
-  'age': V.int()..min(0)..optional(),
+  'age': V.int()..min(0)..nullable(),
 });
 
 userSchema.validate({'name': 'Alice', 'email': 'a@b.com'}); // true
@@ -125,7 +125,7 @@ base.pick(['name']);                          // only name
 base.omit(['email']);                         // everything except email
 base.extend({'password': V.string()..min(8)}); // add fields
 base.merge(otherSchema);                     // combine two schemas
-base.partial();                              // all fields optional
+base.partial();                              // all fields nullable
 base.strict();                               // reject unknown keys
 base.passthrough();                          // allow unknown keys
 ```
@@ -144,7 +144,7 @@ V.map({
 ```dart
 V.map({
   'type': V.string(),
-  'cnpj': V.string()..optional(),
+  'cnpj': V.string()..nullable(),
 })..when('type', equals: 'company', then: {
   'cnpj': V.string()..min(14),
 });
@@ -247,7 +247,6 @@ schema.parse(42); // '42'
 Available on all types:
 
 ```dart
-V.string()..optional();          // allows null (skips validation)
 V.string()..nullable();          // allows null
 V.string()..defaultValue('N/A'); // uses default when null
 V.string()..refine(             // custom validation

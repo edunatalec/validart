@@ -124,18 +124,6 @@ void main() {
       });
     });
 
-    group('optional', () {
-      test('should allow null when optional', () {
-        final schema = VBool()..optional();
-        expect(schema.validate(null), isTrue);
-      });
-
-      test('should still validate type when optional', () {
-        final schema = VBool()..optional();
-        expect(schema.validate(false), isTrue);
-      });
-    });
-
     group('defaultValue', () {
       test('should use default when value is null', () {
         final schema = VBool()..defaultValue(true);

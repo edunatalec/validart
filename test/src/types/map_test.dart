@@ -387,8 +387,8 @@ void main() {
         expect(schema.parse(null), isNull);
       });
 
-      test('optional should allow null', () {
-        final schema = VMap({'name': VString()})..optional();
+      test('nullable should allow null', () {
+        final schema = VMap({'name': VString()})..nullable();
         expect(schema.validate(null), isTrue);
       });
     });
@@ -487,7 +487,7 @@ void main() {
       test('should apply validation when condition matches', () {
         final schema = VMap({
           'type': VString(),
-          'value': VString()..optional(),
+          'value': VString()..nullable(),
         })
           ..when('type', equals: 'special', then: {
             'value': VString()..min(5),
@@ -506,7 +506,7 @@ void main() {
       test('should skip validation when condition does not match', () {
         final schema = VMap({
           'type': VString(),
-          'value': VString()..optional(),
+          'value': VString()..nullable(),
         })
           ..when('type', equals: 'special', then: {
             'value': VString()..min(5),
@@ -521,8 +521,8 @@ void main() {
       test('should support multiple when rules', () {
         final schema = VMap({
           'role': VString(),
-          'level': VInt()..optional(),
-          'dept': VString()..optional(),
+          'level': VInt()..nullable(),
+          'dept': VString()..nullable(),
         })
           ..when('role', equals: 'admin', then: {
             'level': VInt()..min(5),

@@ -841,10 +841,10 @@ void main() {
     });
 
     group('base class features', () {
-      test('optional should allow null', () {
+      test('nullable should allow null', () {
         final schema = VString()
           ..min(3)
-          ..optional();
+          ..nullable();
         expect(schema.validate(null), isTrue);
       });
 
