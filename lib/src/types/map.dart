@@ -37,6 +37,12 @@ class VMap extends VType<Map<String, dynamic>> {
   /// Returns an unmodifiable view of the field schema.
   Map<String, VType> get schema => Map.unmodifiable(_schema);
 
+  /// The conditional validation rules added via [when].
+  List<({String field, Object? equals, Map<String, VType> then})>
+      get whenRules => _whenRules
+          .map((r) => (field: r.field, equals: r.equals, then: r.then))
+          .toList();
+
   /// Creates a new schema containing only the specified [keys].
   ///
   /// ```dart
