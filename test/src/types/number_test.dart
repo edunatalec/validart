@@ -24,7 +24,7 @@ void main() {
         final schema = VInt()..min(5);
         final errs = schema.errors(3);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'too_small');
+        expect(errs!.first.code, 'number.too_small');
       });
     });
 
@@ -44,7 +44,7 @@ void main() {
         final schema = VInt()..max(10);
         final errs = schema.errors(11);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'too_big');
+        expect(errs!.first.code, 'number.too_big');
       });
     });
 
@@ -108,7 +108,7 @@ void main() {
         final schema = VInt()..between(1, 10);
         final errs = schema.errors(0);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'not_in_range');
+        expect(errs!.first.code, 'number.not_in_range');
       });
     });
 

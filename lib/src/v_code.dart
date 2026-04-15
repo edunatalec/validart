@@ -4,9 +4,9 @@ abstract class VCode {
 
   // String
   static const notEmpty = 'not_empty';
-  static const tooSmall = 'too_small';
-  static const tooBig = 'too_big';
-  static const length = 'length';
+  static const stringTooSmall = 'string.too_small';
+  static const stringTooBig = 'string.too_big';
+  static const stringLength = 'string.length';
   static const invalidEmail = 'invalid_email';
   static const invalidUrl = 'invalid_url';
   static const invalidUuid = 'invalid_uuid';
@@ -27,9 +27,11 @@ abstract class VCode {
   static const invalidPhone = 'invalid_phone';
 
   // Number
+  static const numberTooSmall = 'number.too_small';
+  static const numberTooBig = 'number.too_big';
+  static const numberNotInRange = 'number.not_in_range';
   static const positive = 'positive';
   static const negative = 'negative';
-  static const notInRange = 'not_in_range';
   static const multipleOf = 'multiple_of';
   static const even = 'even';
   static const odd = 'odd';
@@ -43,10 +45,15 @@ abstract class VCode {
   static const isFalse = 'is_false';
 
   // Date
+  static const dateTooSmall = 'date.too_small';
+  static const dateTooBig = 'date.too_big';
+  static const dateNotInRange = 'date.not_in_range';
   static const weekday = 'weekday';
   static const weekend = 'weekend';
 
   // Array
+  static const arrayTooSmall = 'array.too_small';
+  static const arrayTooBig = 'array.too_big';
   static const unique = 'unique';
   static const containsAll = 'contains_all';
 

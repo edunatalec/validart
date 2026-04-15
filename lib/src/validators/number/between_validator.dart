@@ -11,7 +11,7 @@ class BetweenValidator<T extends num> extends Validator<T> {
   });
 
   @override
-  String get code => VCode.notInRange;
+  String get code => VCode.numberNotInRange;
 
   @override
   Map<String, dynamic>? validate(T value) =>

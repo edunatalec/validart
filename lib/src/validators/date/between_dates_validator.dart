@@ -8,7 +8,7 @@ class BetweenDatesValidator extends Validator<DateTime> {
   const BetweenDatesValidator({required this.min, required this.max});
 
   @override
-  String get code => VCode.notInRange;
+  String get code => VCode.dateNotInRange;
 
   @override
   Map<String, dynamic>? validate(DateTime value) {

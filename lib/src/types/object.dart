@@ -36,6 +36,12 @@ class VObject<T> extends VType<T> {
 
   VObject._({required List<_FieldEntry<T>> fields}) : _fields = fields;
 
+  Map<String, VType> get schema =>
+      Map.fromEntries(_fields.map((f) => MapEntry(f.name, f.validator)));
+
+  Map<String, dynamic> extract(T instance) => Map.fromEntries(
+      _fields.map((f) => MapEntry(f.name, f.extractor(instance))));
+
   factory VObject({void Function(VObjectBuilder<T> o)? configure}) {
     final List<_FieldEntry<T>> fields;
     if (configure != null) {

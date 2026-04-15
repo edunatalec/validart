@@ -28,7 +28,7 @@ void main() {
         final schema = VDate()..after(DateTime(2024, 1, 1));
         final errs = schema.errors(DateTime(2023, 6, 1));
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'too_small');
+        expect(errs!.first.code, 'date.too_small');
       });
 
       test('should use custom message', () {
@@ -59,7 +59,7 @@ void main() {
         final schema = VDate()..before(DateTime(2024, 12, 31));
         final errs = schema.errors(DateTime(2025, 1, 1));
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'too_big');
+        expect(errs!.first.code, 'date.too_big');
       });
 
       test('should use custom message', () {
@@ -103,7 +103,7 @@ void main() {
         final schema = VDate()..between(min, max);
         final errs = schema.errors(DateTime(2023, 1, 1));
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'not_in_range');
+        expect(errs!.first.code, 'date.not_in_range');
       });
 
       test('should use custom message', () {

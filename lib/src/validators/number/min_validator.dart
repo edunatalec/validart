@@ -7,7 +7,7 @@ class MinValidator<T extends num> extends Validator<T> {
   const MinValidator({required this.min});
 
   @override
-  String get code => VCode.tooSmall;
+  String get code => VCode.numberTooSmall;
 
   @override
   Map<String, dynamic>? validate(T value) => value >= min ? null : {'min': min};

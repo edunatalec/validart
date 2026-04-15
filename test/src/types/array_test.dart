@@ -81,7 +81,7 @@ void main() {
         final schema = VArray<String>(VString())..min(2);
         final errors = schema.errors(['a']);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'too_small');
+        expect(errors!.first.code, 'array.too_small');
       });
 
       test('should support custom message', () {
@@ -112,7 +112,7 @@ void main() {
         final schema = VArray<String>(VString())..max(1);
         final errors = schema.errors(['a', 'b']);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'too_big');
+        expect(errors!.first.code, 'array.too_big');
       });
 
       test('should support custom message', () {
@@ -279,7 +279,7 @@ void main() {
         final errors = schema.errors(['a', 'a']);
         expect(errors, isNotNull);
         expect(errors!.length, 2);
-        expect(errors[0].code, 'too_small');
+        expect(errors[0].code, 'array.too_small');
         expect(errors[1].code, 'unique');
       });
     });

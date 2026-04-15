@@ -16,7 +16,7 @@ void main() {
     test('default translations should interpolate params', () {
       const locale = VLocale();
       expect(
-        locale.translate('too_small', {'min': 3}),
+        locale.translate('string.too_small', {'min': 3}),
         'Must be at least 3 characters',
       );
       expect(
@@ -44,10 +44,10 @@ void main() {
 
     test('custom translations should interpolate params', () {
       const locale = VLocale({
-        'too_small': 'Mínimo de {min} caracteres',
+        'string.too_small': 'Mínimo de {min} caracteres',
       });
       expect(
-        locale.translate('too_small', {'min': 5}),
+        locale.translate('string.too_small', {'min': 5}),
         'Mínimo de 5 caracteres',
       );
     });
@@ -119,9 +119,9 @@ void main() {
 
     test('should interpolate params', () {
       V.setLocale(const VLocale({
-        'too_small': 'Min {min}',
+        'string.too_small': 'Min {min}',
       }));
-      expect(V.t('too_small', {'min': 3}), 'Min 3');
+      expect(V.t('string.too_small', {'min': 3}), 'Min 3');
     });
 
     test('should fall back to default when custom not set', () {

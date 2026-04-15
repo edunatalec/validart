@@ -216,7 +216,7 @@ void main() {
     test('should propagate errors from inner schema', () {
       final schema = (V.string()..min(5)).transform<int>((s) => s.length);
       final errs = schema.errors('hi');
-      expect(errs!.first.code, VCode.tooSmall);
+      expect(errs!.first.code, VCode.stringTooSmall);
     });
 
     test('should return null for null when inner is nullable', () {

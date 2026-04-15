@@ -32,7 +32,7 @@ void main() {
         final schema = VString()..min(3);
         final errors = schema.errors('ab');
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'too_small');
+        expect(errors!.first.code, 'string.too_small');
       });
 
       test('should support custom message', () {
@@ -61,7 +61,7 @@ void main() {
       test('should return error code too_big', () {
         final schema = VString()..max(3);
         final errors = schema.errors('abcd');
-        expect(errors!.first.code, 'too_big');
+        expect(errors!.first.code, 'string.too_big');
       });
 
       test('should support custom message', () {
@@ -90,7 +90,7 @@ void main() {
       test('should return error code length', () {
         final schema = VString()..length(4);
         final errors = schema.errors('ab');
-        expect(errors!.first.code, 'length');
+        expect(errors!.first.code, 'string.length');
       });
 
       test('should support custom message', () {
@@ -815,7 +815,7 @@ void main() {
         final errors = schema.errors('ab');
         expect(errors, isNotNull);
         expect(errors!.length, 2);
-        expect(errors[0].code, 'too_small');
+        expect(errors[0].code, 'string.too_small');
         expect(errors[1].code, 'contains');
       });
 

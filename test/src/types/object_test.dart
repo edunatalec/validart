@@ -83,7 +83,7 @@ void main() {
                 ));
         final errors = schema.errors(Folder(name: 'Doc'));
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'too_small');
+        expect(errors!.first.code, 'string.too_small');
         expect(errors.first.path, ['name']);
       });
 

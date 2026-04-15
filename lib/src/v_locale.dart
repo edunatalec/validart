@@ -10,9 +10,9 @@ class VLocale {
 
     // String
     'not_empty': 'Must not be empty',
-    'too_small': 'Must be at least {min} characters',
-    'too_big': 'Must be at most {max} characters',
-    'length': 'Must be exactly {length} characters',
+    'string.too_small': 'Must be at least {min} characters',
+    'string.too_big': 'Must be at most {max} characters',
+    'string.length': 'Must be exactly {length} characters',
     'invalid_email': 'Invalid email address',
     'invalid_url': 'Invalid URL',
     'invalid_uuid': 'Invalid UUID',
@@ -34,9 +34,11 @@ class VLocale {
     'invalid_phone': 'Invalid phone number',
 
     // Number
+    'number.too_small': 'Must be at least {min}',
+    'number.too_big': 'Must be at most {max}',
+    'number.not_in_range': 'Must be between {min} and {max}',
     'positive': 'Must be positive',
     'negative': 'Must be negative',
-    'not_in_range': 'Must be between {min} and {max}',
     'multiple_of': 'Must be a multiple of {factor}',
     'even': 'Must be even',
     'odd': 'Must be odd',
@@ -50,10 +52,15 @@ class VLocale {
     'is_false': 'Must be false',
 
     // Date
+    'date.too_small': 'Must be after {date}',
+    'date.too_big': 'Must be before {date}',
+    'date.not_in_range': 'Must be between {min} and {max}',
     'weekday': 'Must be a weekday',
     'weekend': 'Must be a weekend',
 
     // Array
+    'array.too_small': 'Must have at least {min} items',
+    'array.too_big': 'Must have at most {max} items',
     'unique': 'Must contain unique values',
     'contains_all': 'Must contain all required values',
 

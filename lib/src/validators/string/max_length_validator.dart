@@ -7,7 +7,7 @@ class MaxLengthValidator extends Validator<String> {
   const MaxLengthValidator({required this.max});
 
   @override
-  String get code => VCode.tooBig;
+  String get code => VCode.stringTooBig;
 
   @override
   Map<String, dynamic>? validate(String value) =>

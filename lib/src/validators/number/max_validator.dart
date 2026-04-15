@@ -7,7 +7,7 @@ class MaxValidator<T extends num> extends Validator<T> {
   const MaxValidator({required this.max});
 
   @override
-  String get code => VCode.tooBig;
+  String get code => VCode.numberTooBig;
 
   @override
   Map<String, dynamic>? validate(T value) => value <= max ? null : {'max': max};

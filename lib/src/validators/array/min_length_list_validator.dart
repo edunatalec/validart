@@ -7,7 +7,7 @@ class MinLengthListValidator<T> extends Validator<List<T>> {
   const MinLengthListValidator({required this.min});
 
   @override
-  String get code => VCode.tooSmall;
+  String get code => VCode.arrayTooSmall;
 
   @override
   Map<String, dynamic>? validate(List<T> value) =>

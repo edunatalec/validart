@@ -7,7 +7,7 @@ class AfterValidator extends Validator<DateTime> {
   const AfterValidator({required this.date});
 
   @override
-  String get code => VCode.tooSmall;
+  String get code => VCode.dateTooSmall;
 
   @override
   Map<String, dynamic>? validate(DateTime value) =>
