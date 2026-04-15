@@ -111,18 +111,27 @@ class VString extends VType<String> {
     return this;
   }
 
+  /// Removes leading and trailing whitespace from the value.
+  ///
+  /// Runs in the pre-processing phase, before any validation.
   VString trim() {
-    _transform((value) => value.trim());
+    _preTransform((value) => value.trim());
     return this;
   }
 
+  /// Converts the value to lowercase.
+  ///
+  /// Runs in the pre-processing phase, before any validation.
   VString toLowerCase() {
-    _transform((value) => value.toLowerCase());
+    _preTransform((value) => value.toLowerCase());
     return this;
   }
 
+  /// Converts the value to uppercase.
+  ///
+  /// Runs in the pre-processing phase, before any validation.
   VString toUpperCase() {
-    _transform((value) => value.toUpperCase());
+    _preTransform((value) => value.toUpperCase());
     return this;
   }
 

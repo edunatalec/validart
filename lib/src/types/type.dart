@@ -138,30 +138,42 @@ abstract class VType<T> {
   }
 
   VResult<T?> _runPipeline(T value) {
-    final errors = <VError>[];
     T current = value;
 
     for (final step in _steps) {
-      switch (step) {
-        case _ValidatorStep<T>(:final validator, :final messageOverride):
-          final params = validator.validate(current);
-          if (params != null) {
-            final message = messageOverride ?? V.t(validator.code, params);
-            errors.add(VError(code: validator.code, message: message));
-          }
-        case _TransformStep<T>(:final transform):
-          if (errors.isEmpty) {
-            current = transform(current);
-          }
+      if (step case _PreTransformStep<T>(:final transform)) {
+        current = transform(current);
+      }
+    }
+
+    final errors = <VError>[];
+
+    for (final step in _steps) {
+      if (step
+          case _ValidatorStep<T>(:final validator, :final messageOverride)) {
+        final params = validator.validate(current);
+
+        if (params != null) {
+          final message = messageOverride ?? V.t(validator.code, params);
+          errors.add(VError(code: validator.code, message: message));
+        }
       }
     }
 
     if (errors.isNotEmpty) return VFailure<T?>(errors);
 
+    for (final step in _steps) {
+      if (step case _TransformStep<T>(:final transform)) {
+        current = transform(current);
+      }
+    }
+
     return VSuccess<T?>(current);
   }
 
   bool validate(Object? value) => safeParse(value).isValid;
+
+  R mapType<R>(R Function<U>(VType<U> type) fn) => fn<T>(this);
 
   List<VError>? errors(Object? value) {
     final result = safeParse(value);
@@ -201,8 +213,8 @@ abstract class VType<T> {
     );
   }
 
-  VType<T> _transform(T Function(T value) fn) {
-    _addStep(_TransformStep<T>(transform: fn));
+  VType<T> _preTransform(T Function(T value) fn) {
+    _addStep(_PreTransformStep<T>(transform: fn));
     return this;
   }
 }
@@ -225,6 +237,12 @@ class _RefineValidator<T> extends Validator<T> {
 
 sealed class _PipelineStep<T> {
   const _PipelineStep();
+}
+
+final class _PreTransformStep<T> extends _PipelineStep<T> {
+  final T Function(T value) transform;
+
+  const _PreTransformStep({required this.transform});
 }
 
 final class _ValidatorStep<T> extends _PipelineStep<T> {

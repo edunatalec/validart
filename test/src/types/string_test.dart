@@ -761,7 +761,7 @@ void main() {
       });
     });
 
-    group('transform + validation', () {
+    group('pre-processing + validation', () {
       test('trim then min should validate after trimming', () {
         final schema = VString()
           ..trim()
@@ -795,6 +795,45 @@ void main() {
           ..trim()
           ..toLowerCase();
         expect(schema.parse('  HELLO  '), 'hello');
+      });
+
+      test('trim should run before validation regardless of order', () {
+        final trimFirst = VString()
+          ..trim()
+          ..email();
+
+        final trimLast = VString()
+          ..email()
+          ..trim();
+
+        expect(trimFirst.validate('  user@mail.com  '), isTrue);
+        expect(trimLast.validate('  user@mail.com  '), isTrue);
+      });
+
+      test('toLowerCase should run before validation regardless of order', () {
+        final lowerFirst = VString()
+          ..toLowerCase()
+          ..equals('hello');
+
+        final lowerLast = VString()
+          ..equals('hello')
+          ..toLowerCase();
+
+        expect(lowerFirst.validate('HELLO'), isTrue);
+        expect(lowerLast.validate('HELLO'), isTrue);
+      });
+
+      test('toUpperCase should run before validation regardless of order', () {
+        final upperFirst = VString()
+          ..toUpperCase()
+          ..equals('HELLO');
+
+        final upperLast = VString()
+          ..equals('HELLO')
+          ..toUpperCase();
+
+        expect(upperFirst.validate('hello'), isTrue);
+        expect(upperLast.validate('hello'), isTrue);
       });
     });
 
