@@ -113,7 +113,7 @@ Errors include field paths:
 
 ```dart
 final errors = userSchema.errors({'name': '', 'email': 'bad'});
-// [VError(code: too_small, path: [name]), VError(code: invalid_email, path: [email])]
+// [VError(code: string.too_small, path: [name]), VError(code: invalid_email, path: [email])]
 ```
 
 ### Schema Composition
@@ -136,7 +136,19 @@ base.passthrough();                          // allow unknown keys
 V.map({
   'password': V.string()..min(8),
   'confirm': V.string(),
-})..equalFields('confirm', 'password');
+})..equalFields('password', 'confirm');
+```
+
+### Custom Field Validation
+
+```dart
+V.map({
+  'age': V.int(),
+})..refineField(
+  (data) => (data['age'] as int) >= 18,
+  path: 'age',
+  message: 'Must be at least 18',
+);
 ```
 
 ### Conditional Validation
@@ -317,9 +329,10 @@ V.t('too_small', {'min': 3}); // 'Mínimo de 3 caracteres'
 Error codes are defined in `VCode`:
 
 ```dart
-VCode.required     // 'required'
-VCode.invalidEmail // 'invalid_email'
-VCode.tooSmall     // 'too_small'
+VCode.required        // 'required'
+VCode.invalidEmail    // 'invalid_email'
+VCode.stringTooSmall  // 'string.too_small'
+VCode.numberTooSmall  // 'number.too_small'
 // ... see VCode for all codes
 ```
 

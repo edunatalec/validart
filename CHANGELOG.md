@@ -14,7 +14,7 @@
 - `VBool` — `isTrue`, `isFalse`
 - `VDate` — `after`, `before`, `between`, `weekday`, `weekend`
 - `VArray<T>` — `min`, `max`, `unique`, `contains` + indexed error paths
-- `VMap` — schema composition (`pick`, `omit`, `extend`, `merge`, `partial`, `strict`, `passthrough`) + `equalFields()`, `when()`, `array()`
+- `VMap` — schema composition (`pick`, `omit`, `extend`, `merge`, `partial`, `strict`, `passthrough`) + `equalFields()`, `refineField()`, `when()`, `whenRules`, `array()`
 - `VObject<T>` — validates class/entity instances with type-safe field extraction
 - `VEnum<T>`, `VLiteral<T>`, `VUnion`
 - `VTransformed<I, O>` — type-changing transforms
