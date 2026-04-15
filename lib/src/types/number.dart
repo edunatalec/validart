@@ -1,26 +1,71 @@
 part of 'type.dart';
 
+/// Abstract base for numeric validation types ([VInt] and [VDouble]).
+///
+/// ```dart
+/// V.int().min(0).max(100).parse(42); // 42
+/// ```
 abstract class VNumber<T extends num> extends VType<T> {
+  /// Validates that the value is at least [value].
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().min(5).validate(5);  // true
+  /// V.int().min(5).validate(3);  // false
+  /// ```
   VNumber<T> min(T value, {String Function(T)? message}) {
     add(MinValidator<T>(min: value), message: message?.call(value));
     return this;
   }
 
+  /// Validates that the value is at most [value].
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().max(10).validate(10); // true
+  /// V.int().max(10).validate(15); // false
+  /// ```
   VNumber<T> max(T value, {String Function(T)? message}) {
     add(MaxValidator<T>(max: value), message: message?.call(value));
     return this;
   }
 
+  /// Validates that the value is greater than zero.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().positive().validate(1);  // true
+  /// V.int().positive().validate(-1); // false
+  /// ```
   VNumber<T> positive({String? message}) {
     add(PositiveValidator<T>(), message: message);
     return this;
   }
 
+  /// Validates that the value is less than zero.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().negative().validate(-1); // true
+  /// V.int().negative().validate(1);  // false
+  /// ```
   VNumber<T> negative({String? message}) {
     add(NegativeValidator<T>(), message: message);
     return this;
   }
 
+  /// Validates that the value is between [min] and [max] (inclusive).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().between(1, 10).validate(5);  // true
+  /// V.int().between(1, 10).validate(15); // false
+  /// ```
   VNumber<T> between(T min, T max, {String Function(T, T)? message}) {
     add(
       BetweenValidator<T>(min: min, max: max),
@@ -29,46 +74,124 @@ abstract class VNumber<T extends num> extends VType<T> {
     return this;
   }
 
+  /// Validates that the value is a multiple of [factor].
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().multipleOf(3).validate(9); // true
+  /// V.int().multipleOf(3).validate(7); // false
+  /// ```
   VNumber<T> multipleOf(T factor, {String Function(T)? message}) {
     add(MultipleOfValidator<T>(factor: factor), message: message?.call(factor));
     return this;
   }
 }
 
+/// Validates [int] values.
+///
+/// ```dart
+/// final schema = V.int().positive().even();
+/// schema.parse(4); // 4
+/// ```
 class VInt extends VNumber<int> {
+  /// Validates that the value is even.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().even().validate(4); // true
+  /// V.int().even().validate(3); // false
+  /// ```
   VInt even({String? message}) {
     add(const EvenValidator(), message: message);
     return this;
   }
 
+  /// Validates that the value is odd.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().odd().validate(3); // true
+  /// V.int().odd().validate(4); // false
+  /// ```
   VInt odd({String? message}) {
     add(const OddValidator(), message: message);
     return this;
   }
 
+  /// Validates that the value is a prime number.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.int().prime().validate(7); // true
+  /// V.int().prime().validate(4); // false
+  /// ```
   VInt prime({String? message}) {
     add(const PrimeValidator(), message: message);
     return this;
   }
 
+  /// Creates a [VArray] schema that validates a `List<int>`.
+  ///
+  /// ```dart
+  /// V.int().positive().array().parse([1, 2, 3]);
+  /// ```
   VArray<int> array() => VArray<int>(this);
 }
 
+/// Validates [double] values.
+///
+/// ```dart
+/// final schema = V.double().positive().finite();
+/// schema.parse(3.14); // 3.14
+/// ```
 class VDouble extends VNumber<double> {
+  /// Validates that the value is finite (not infinity or NaN).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.double().finite().validate(3.14);             // true
+  /// V.double().finite().validate(double.infinity);   // false
+  /// ```
   VDouble finite({String? message}) {
     add(const FiniteValidator(), message: message);
     return this;
   }
 
+  /// Validates that the value has a fractional part (is not a whole number).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.double().decimal().validate(3.14); // true
+  /// V.double().decimal().validate(3.0);  // false
+  /// ```
   VDouble decimal({String? message}) {
     add(const DecimalValidator(), message: message);
     return this;
   }
 
+  /// Validates that the value is a whole number (no fractional part).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.double().integer().validate(3.0);  // true
+  /// V.double().integer().validate(3.14); // false
+  /// ```
   VDouble integer({String? message}) {
     add(const IntegerDoubleValidator(), message: message);
     return this;
   }
 
+  /// Creates a [VArray] schema that validates a `List<double>`.
+  ///
+  /// ```dart
+  /// V.double().positive().array().parse([1.1, 2.2]);
+  /// ```
   VArray<double> array() => VArray<double>(this);
 }

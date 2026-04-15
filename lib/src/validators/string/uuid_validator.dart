@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid UUID (versions 1-5).
 class UuidValidator extends Validator<String> {
+  /// Creates a [UuidValidator].
   const UuidValidator();
 
   @override

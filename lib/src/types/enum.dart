@@ -1,8 +1,17 @@
 part of 'type.dart';
 
+/// Validates that a value belongs to a set of enum values.
+///
+/// ```dart
+/// enum Color { red, green, blue }
+///
+/// final schema = V.enm(Color.values);
+/// schema.parse(Color.red); // Color.red
+/// ```
 class VEnum<T extends Enum> extends VType<T> {
   final List<T> _values;
 
+  /// Creates an enum validator that accepts only the given [_values].
   VEnum(this._values);
 
   @override
@@ -24,5 +33,10 @@ class VEnum<T extends Enum> extends VType<T> {
     ]);
   }
 
+  /// Creates a [VArray] schema that validates a `List<T>`.
+  ///
+  /// ```dart
+  /// V.enm(Color.values).array().parse([Color.red, Color.blue]);
+  /// ```
   VArray<T> array() => VArray<T>(this);
 }

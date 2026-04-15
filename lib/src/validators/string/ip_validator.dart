@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid IPv4 or IPv6 address.
 class IpValidator extends Validator<String> {
+  /// Creates an [IpValidator].
   const IpValidator();
 
   @override

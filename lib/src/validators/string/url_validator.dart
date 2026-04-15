@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid HTTP or HTTPS URL.
 class UrlValidator extends Validator<String> {
+  /// Creates a [UrlValidator].
   const UrlValidator();
 
   @override

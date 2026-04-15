@@ -12,18 +12,37 @@ class _WhenRule {
   });
 }
 
+/// Validates `Map<String, dynamic>` values against a field schema.
+///
+/// Errors from individual fields include the field name in their path.
+///
+/// ```dart
+/// final schema = V.map({
+///   'name': V.string().min(2),
+///   'age': V.int().positive(),
+/// });
+/// schema.parse({'name': 'Jo', 'age': 25});
+/// ```
 class VMap extends VType<Map<String, dynamic>> {
   final Map<String, VType> _schema;
   final List<_WhenRule> _whenRules = [];
   bool _isStrict = false;
   bool _isPassthrough = false;
 
+  /// Creates a map validator with the given field [_schema].
   VMap(this._schema) {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
   }
 
+  /// Returns an unmodifiable view of the field schema.
   Map<String, VType> get schema => Map.unmodifiable(_schema);
 
+  /// Creates a new schema containing only the specified [keys].
+  ///
+  /// ```dart
+  /// final full = V.map({'name': V.string(), 'age': V.int()});
+  /// final partial = full.pick(['name']); // only validates 'name'
+  /// ```
   VMap pick(List<String> keys) {
     final picked = <String, VType>{};
 
@@ -36,6 +55,12 @@ class VMap extends VType<Map<String, dynamic>> {
     return VMap(picked);
   }
 
+  /// Creates a new schema excluding the specified [keys].
+  ///
+  /// ```dart
+  /// final full = V.map({'name': V.string(), 'age': V.int()});
+  /// final reduced = full.omit(['age']); // only validates 'name'
+  /// ```
   VMap omit(List<String> keys) {
     final omitted = Map<String, VType>.from(_schema);
 
@@ -46,14 +71,33 @@ class VMap extends VType<Map<String, dynamic>> {
     return VMap(omitted);
   }
 
+  /// Creates a new schema by adding [extra] fields to the current schema.
+  ///
+  /// ```dart
+  /// final base = V.map({'name': V.string()});
+  /// final extended = base.extend({'age': V.int()});
+  /// ```
   VMap extend(Map<String, VType> extra) {
     return VMap({..._schema, ...extra});
   }
 
+  /// Creates a new schema by merging with [other]'s fields.
+  ///
+  /// ```dart
+  /// final a = V.map({'name': V.string()});
+  /// final b = V.map({'age': V.int()});
+  /// final merged = a.merge(b);
+  /// ```
   VMap merge(VMap other) {
     return VMap({..._schema, ...other._schema});
   }
 
+  /// Creates a new schema where all fields are nullable.
+  ///
+  /// ```dart
+  /// final schema = V.map({'name': V.string()}).partial();
+  /// schema.parse({'name': null}); // {'name': null}
+  /// ```
   VMap partial() {
     final partialSchema = <String, VType>{};
 
@@ -64,16 +108,40 @@ class VMap extends VType<Map<String, dynamic>> {
     return VMap(partialSchema);
   }
 
+  /// Rejects keys not present in the schema.
+  ///
+  /// ```dart
+  /// V.map({'name': V.string()}).strict()
+  ///   .validate({'name': 'Jo', 'extra': true}); // false
+  /// ```
   VMap strict() {
     _isStrict = true;
     return this;
   }
 
+  /// Allows extra keys not in the schema to pass through to the result.
+  ///
+  /// ```dart
+  /// V.map({'name': V.string()}).passthrough()
+  ///   .parse({'name': 'Jo', 'extra': true}); // {'name': 'Jo', 'extra': true}
+  /// ```
   VMap passthrough() {
     _isPassthrough = true;
     return this;
   }
 
+  /// Applies conditional validation rules based on a field's value.
+  ///
+  /// When [field] equals [equals], the [then] validators are applied.
+  ///
+  /// ```dart
+  /// V.map({
+  ///   'type': V.string(),
+  ///   'value': V.string(),
+  /// }).when('type', equals: 'email', then: {
+  ///   'value': V.string().email(),
+  /// });
+  /// ```
   VMap when(
     String field, {
     required Object? equals,
@@ -87,8 +155,23 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
+  /// Creates a [VArray] schema that validates a `List<Map<String, dynamic>>`.
+  ///
+  /// ```dart
+  /// V.map({'name': V.string()}).array().parse([{'name': 'Jo'}]);
+  /// ```
   VArray<Map<String, dynamic>> array() => VArray<Map<String, dynamic>>(this);
 
+  /// Validates that two fields have equal values.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.map({
+  ///   'password': V.string(),
+  ///   'confirm': V.string(),
+  /// }).equalFields('password', 'confirm');
+  /// ```
   VMap equalFields(String field, String other, {String? message}) {
     assert(
       _schema.containsKey(field),
@@ -102,6 +185,19 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
+  /// Adds a custom validation that targets a specific field path.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.map({
+  ///   'age': V.int(),
+  /// }).refineField(
+  ///   (data) => (data['age'] as int) >= 18,
+  ///   path: 'age',
+  ///   message: 'Must be at least 18',
+  /// );
+  /// ```
   VMap refineField(
     bool Function(Map<String, dynamic> data) check, {
     required String path,

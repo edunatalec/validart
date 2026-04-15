@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a date falls on a weekday (Monday through Friday).
 class WeekdayValidator extends Validator<DateTime> {
+  /// Creates a [WeekdayValidator].
   const WeekdayValidator();
 
   @override

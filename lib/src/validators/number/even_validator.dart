@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a number is even.
 class EvenValidator extends Validator<int> {
+  /// Creates an [EvenValidator].
   const EvenValidator();
 
   @override

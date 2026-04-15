@@ -1,6 +1,18 @@
+/// Provides locale-aware error message translations.
+///
+/// Uses `{param}` interpolation for dynamic values. Falls back to the
+/// default English messages when a translation is not found.
+///
+/// ```dart
+/// V.setLocale(const VLocale({
+///   'required': 'Campo obrigatório',
+///   'invalid_email': 'E-mail inválido',
+/// }));
+/// ```
 class VLocale {
   final Map<String, String> _translations;
 
+  /// Creates a [VLocale] with optional custom [_translations].
   const VLocale([this._translations = const {}]);
 
   static const _defaults = <String, String>{
@@ -73,6 +85,14 @@ class VLocale {
     'custom': 'Invalid value',
   };
 
+  /// Translates an error [code] with optional [params] interpolation.
+  ///
+  /// Lookup order: custom translations → default English → code itself.
+  ///
+  /// ```dart
+  /// final locale = VLocale({'required': 'Obrigatório'});
+  /// locale.translate('required'); // 'Obrigatório'
+  /// ```
   String translate(String code, [Map<String, dynamic> params = const {}]) {
     final template = _translations[code] ?? _defaults[code] ?? code;
 

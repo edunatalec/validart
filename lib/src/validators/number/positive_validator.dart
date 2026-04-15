@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a number is positive.
 class PositiveValidator<T extends num> extends Validator<T> {
+  /// Creates a [PositiveValidator].
   const PositiveValidator();
 
   @override

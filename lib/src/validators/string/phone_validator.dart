@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid phone number in E.164 format.
 class PhoneValidator extends Validator<String> {
+  /// Creates a [PhoneValidator].
   const PhoneValidator();
 
   @override

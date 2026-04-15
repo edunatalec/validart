@@ -1,8 +1,18 @@
 part of 'type.dart';
 
+/// Validates that a value matches at least one of the given schemas.
+///
+/// ```dart
+/// final schema = V.union([V.string(), V.int()]);
+/// schema.validate('hello'); // true
+/// schema.validate(42);      // true
+/// schema.validate(true);    // false
+/// ```
 class VUnion extends VType<Object> {
   final List<VType> _options;
 
+  /// Creates a union validator that accepts values matching any of the
+  /// [_options]. Must have at least 2 options.
   VUnion(this._options) {
     assert(_options.length >= 2, 'Union must have at least 2 options.');
   }

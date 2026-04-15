@@ -62,12 +62,31 @@ part 'literal.dart';
 part 'union.dart';
 part 'transformed.dart';
 
+/// Abstract base for all validation types.
+///
+/// The pipeline executes in three phases:
+///
+/// 1. **Pre-processing** — transforms that clean or normalize the value
+///    (e.g., `trim`, `toLowerCase`). Always runs before validation.
+/// 2. **Validation** — validators that check constraints on the value
+///    (e.g., `email`, `min`, `max`). Collects all errors.
+/// 3. **Post-processing** — transforms that modify the validated value.
+///    Only runs if validation passes.
+///
+/// ```dart
+/// final schema = V.string()
+///   ..trim()       // phase 1: pre-processing
+///   ..email();     // phase 2: validation
+/// ```
 abstract class VType<T> {
   final List<_PipelineStep<T>> _steps = [];
   bool _isNullable = false;
   T? _defaultValue;
   bool _hasDefault = false;
+
+  /// Optional coercion function to convert input to the expected type.
   T Function(Object value)? coercer;
+
   Object? Function(Object?)? _preprocessor;
 
   VType<T> _addStep(_PipelineStep<T> step) {
@@ -75,6 +94,13 @@ abstract class VType<T> {
     return this;
   }
 
+  /// Adds a [Validator] to the validation phase of the pipeline.
+  ///
+  /// Use [message] to override the default error message.
+  ///
+  /// ```dart
+  /// V.string().add(const EmailValidator(), message: 'Not a valid email');
+  /// ```
   VType<T> add(Validator<T> validator, {String? message}) {
     return _addStep(_ValidatorStep<T>(validator, messageOverride: message));
   }
@@ -102,6 +128,13 @@ abstract class VType<T> {
     ]);
   }
 
+  /// Parses [value] and returns the result, or throws a [VException] on
+  /// failure.
+  ///
+  /// ```dart
+  /// final name = V.string().min(2).parse('Jo'); // 'Jo'
+  /// V.string().min(5).parse('Jo'); // throws VException
+  /// ```
   T? parse(Object? value) {
     final result = safeParse(value);
 
@@ -112,6 +145,21 @@ abstract class VType<T> {
     return (result as VSuccess<T?>).value;
   }
 
+  /// Parses [value] and returns a [VResult] without throwing.
+  ///
+  /// Returns [VSuccess] with the parsed value, or [VFailure] with the list
+  /// of errors.
+  ///
+  /// ```dart
+  /// final result = V.string().email().safeParse('user@mail.com');
+  ///
+  /// switch (result) {
+  ///   case VSuccess(:final value):
+  ///     print(value);
+  ///   case VFailure(:final errors):
+  ///     print(errors);
+  /// }
+  /// ```
   VResult<T?> safeParse(Object? value) {
     final input = _preprocessor != null ? _preprocessor!(value) : value;
 
@@ -171,10 +219,23 @@ abstract class VType<T> {
     return VSuccess<T?>(current);
   }
 
+  /// Returns `true` if [value] passes all validations.
+  ///
+  /// ```dart
+  /// V.string().email().validate('user@mail.com'); // true
+  /// V.string().email().validate('invalid');        // false
+  /// ```
   bool validate(Object? value) => safeParse(value).isValid;
 
+  /// Maps this type through a generic function, preserving the inner type.
   R mapType<R>(R Function<U>(VType<U> type) fn) => fn<T>(this);
 
+  /// Returns the list of [VError]s for [value], or `null` if valid.
+  ///
+  /// ```dart
+  /// final errors = V.string().email().errors('invalid');
+  /// // [VError(invalid_email: Invalid email address)]
+  /// ```
   List<VError>? errors(Object? value) {
     final result = safeParse(value);
 
@@ -183,25 +244,65 @@ abstract class VType<T> {
     return null;
   }
 
+  /// Marks this schema as nullable, allowing `null` to pass validation.
+  ///
+  /// ```dart
+  /// V.string().nullable().parse(null); // null
+  /// ```
   VType<T> nullable() {
     _isNullable = true;
     return this;
   }
 
+  /// Sets a default value to use when the input is `null`.
+  ///
+  /// ```dart
+  /// V.string().defaultValue('N/A').parse(null); // 'N/A'
+  /// ```
   VType<T> defaultValue(T value) {
     _defaultValue = value;
     _hasDefault = true;
     return this;
   }
 
+  /// Applies a function to the raw input before type checking.
+  ///
+  /// Runs before everything else in the pipeline, including coercion and
+  /// null checks.
+  ///
+  /// ```dart
+  /// V.string()
+  ///   .preprocess((v) => (v as String?)?.trim())
+  ///   .email()
+  ///   .parse('  user@mail.com  '); // 'user@mail.com'
+  /// ```
   VType<T> preprocess(Object? Function(Object? value) fn) {
     _preprocessor = fn;
     return this;
   }
 
+  /// Creates a [VTransformed] that converts the validated value to type [O].
+  ///
+  /// Runs in the post-processing phase, after all validations pass.
+  ///
+  /// ```dart
+  /// final schema = V.string().transform<int>((v) => int.parse(v));
+  /// schema.parse('42'); // 42
+  /// ```
   VTransformed<T, O> transform<O>(O Function(T value) fn) =>
       VTransformed<T, O>(this, fn);
 
+  /// Adds a custom validation check.
+  ///
+  /// Runs in the validation phase. Returns an error if [check] returns
+  /// `false`.
+  ///
+  /// ```dart
+  /// V.string().refine(
+  ///   (v) => v.contains('@'),
+  ///   message: 'Must contain @',
+  /// );
+  /// ```
   VType<T> refine(
     bool Function(T value) check, {
     String? message,

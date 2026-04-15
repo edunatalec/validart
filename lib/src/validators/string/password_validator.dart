@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string meets password strength requirements.
 class PasswordValidator extends Validator<String> {
+  /// Creates a [PasswordValidator].
   const PasswordValidator();
 
   @override

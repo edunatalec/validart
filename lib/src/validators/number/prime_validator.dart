@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a number is prime.
 class PrimeValidator extends Validator<int> {
+  /// Creates a [PrimeValidator].
   const PrimeValidator();
 
   @override

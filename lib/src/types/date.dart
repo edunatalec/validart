@@ -1,18 +1,53 @@
 part of 'type.dart';
 
+/// Validates [DateTime] values.
+///
+/// ```dart
+/// final schema = V.date().after(DateTime(2024));
+/// schema.parse(DateTime(2025)); // DateTime(2025)
+/// ```
 class VDate extends VType<DateTime> {
+  /// Creates a [VArray] schema that validates a `List<DateTime>`.
+  ///
+  /// ```dart
+  /// V.date().array().parse([DateTime(2024), DateTime(2025)]);
+  /// ```
   VArray<DateTime> array() => VArray<DateTime>(this);
 
+  /// Validates that the date is after [date].
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().after(DateTime(2024)).validate(DateTime(2025)); // true
+  /// V.date().after(DateTime(2024)).validate(DateTime(2023)); // false
+  /// ```
   VDate after(DateTime date, {String Function(DateTime)? message}) {
     add(AfterValidator(date: date), message: message?.call(date));
     return this;
   }
 
+  /// Validates that the date is before [date].
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().before(DateTime(2025)).validate(DateTime(2024)); // true
+  /// V.date().before(DateTime(2025)).validate(DateTime(2026)); // false
+  /// ```
   VDate before(DateTime date, {String Function(DateTime)? message}) {
     add(BeforeValidator(date: date), message: message?.call(date));
     return this;
   }
 
+  /// Validates that the date is between [min] and [max] (inclusive).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().between(DateTime(2024), DateTime(2026))
+  ///   .validate(DateTime(2025)); // true
+  /// ```
   VDate between(
     DateTime min,
     DateTime max, {
@@ -25,11 +60,27 @@ class VDate extends VType<DateTime> {
     return this;
   }
 
+  /// Validates that the date falls on a weekday (Monday–Friday).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().weekday().validate(DateTime(2024, 1, 15)); // true (Monday)
+  /// V.date().weekday().validate(DateTime(2024, 1, 14)); // false (Sunday)
+  /// ```
   VDate weekday({String? message}) {
     add(const WeekdayValidator(), message: message);
     return this;
   }
 
+  /// Validates that the date falls on a weekend (Saturday–Sunday).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().weekend().validate(DateTime(2024, 1, 14)); // true (Sunday)
+  /// V.date().weekend().validate(DateTime(2024, 1, 15)); // false (Monday)
+  /// ```
   VDate weekend({String? message}) {
     add(const WeekendValidator(), message: message);
     return this;

@@ -9,7 +9,7 @@
 - `VError` with `code`, `message`, and `path` (nested paths like `['address', 'zip']` or `[2, 'name']`)
 
 **Types:**
-- `VString` — 22 validators + `notEmpty()` + transforms (`trim`, `toLowerCase`, `toUpperCase`)
+- `VString` — 22 validators + `notEmpty()` + pre-processing transforms (`trim`, `toLowerCase`, `toUpperCase`) that always run before validation
 - `VInt`, `VDouble` — numeric validators (`min`, `max`, `even`, `odd`, `prime`, `finite`, etc.)
 - `VBool` — `isTrue`, `isFalse`
 - `VDate` — `after`, `before`, `between`, `weekday`, `weekend`
@@ -18,6 +18,10 @@
 - `VObject<T>` — validates class/entity instances with type-safe field extraction
 - `VEnum<T>`, `VLiteral<T>`, `VUnion`
 - `VTransformed<I, O>` — type-changing transforms
+
+**Pipeline:**
+- Three-phase execution: pre-processing → validation → post-processing
+- Pre-processing transforms (`trim`, `toLowerCase`, `toUpperCase`) always run before validators regardless of chain order
 
 **Features:**
 - Coercion: `V.coerce.int()`, `V.coerce.double()`, `V.coerce.string()`, `V.coerce.bool()`, `V.coerce.date()`

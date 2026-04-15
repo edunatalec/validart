@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid credit card number using the Luhn algorithm.
 class CardValidator extends Validator<String> {
+  /// Creates a [CardValidator].
   const CardValidator();
 
   @override

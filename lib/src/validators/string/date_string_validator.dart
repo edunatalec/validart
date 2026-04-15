@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid date in `YYYY-MM-DD` format.
 class DateStringValidator extends Validator<String> {
+  /// Creates a [DateStringValidator].
   const DateStringValidator();
 
   @override

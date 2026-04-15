@@ -12,9 +12,23 @@ class _FieldEntry<T> {
   });
 }
 
+/// Builder for defining type-safe field extraction rules on [VObject].
+///
+/// ```dart
+/// V.object<User>(configure: (o) {
+///   o.field('name', (u) => u.name, V.string().min(2));
+///   o.field('age', (u) => u.age, V.int().positive());
+/// });
+/// ```
 class VObjectBuilder<T> {
   final List<_FieldEntry<T>> _fields = [];
 
+  /// Adds a field with a [name], an [extractor] to get its value from [T],
+  /// and a [validator] schema.
+  ///
+  /// ```dart
+  /// o.field('email', (u) => u.email, V.string().email());
+  /// ```
   VObjectBuilder<T> field<F>(
     String name,
     F? Function(T instance) extractor,
@@ -31,17 +45,41 @@ class VObjectBuilder<T> {
   List<_FieldEntry<T>> _build() => List.unmodifiable(_fields);
 }
 
+/// Validates class/entity instances of type [T] via type-safe field
+/// extraction callbacks.
+///
+/// ```dart
+/// final schema = V.object<User>(configure: (o) {
+///   o.field('name', (u) => u.name, V.string().min(2));
+///   o.field('age', (u) => u.age, V.int().positive());
+/// });
+/// schema.validate(User(name: 'Jo', age: 25)); // true
+/// ```
 class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields;
 
   VObject._({required List<_FieldEntry<T>> fields}) : _fields = fields;
 
+  /// Returns an unmodifiable map of field names to their validators.
   Map<String, VType> get schema =>
       Map.fromEntries(_fields.map((f) => MapEntry(f.name, f.validator)));
 
+  /// Extracts field values from [instance] into a `Map<String, dynamic>`.
+  ///
+  /// ```dart
+  /// final data = schema.extract(User(name: 'Jo', age: 25));
+  /// // {'name': 'Jo', 'age': 25}
+  /// ```
   Map<String, dynamic> extract(T instance) => Map.fromEntries(
       _fields.map((f) => MapEntry(f.name, f.extractor(instance))));
 
+  /// Creates a [VObject] with optional field [configure] callback.
+  ///
+  /// ```dart
+  /// final schema = VObject<User>(configure: (o) {
+  ///   o.field('name', (u) => u.name, V.string());
+  /// });
+  /// ```
   factory VObject({void Function(VObjectBuilder<T> o)? configure}) {
     final List<_FieldEntry<T>> fields;
     if (configure != null) {

@@ -54,7 +54,7 @@ V.string()
 
 Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `phone`.
 
-Transforms: `trim`, `toLowerCase`, `toUpperCase`.
+Pre-processing: `trim`, `toLowerCase`, `toUpperCase` — always run before validation, regardless of chain order.
 
 ### Int
 
@@ -222,18 +222,32 @@ V.coerce.bool().parse('true');   // true
 V.coerce.date().parse('2024-01-15'); // DateTime
 ```
 
-## Transform
+## Pipeline
 
-Change the output type:
+The validation pipeline runs in three phases:
+
+1. **Pre-processing** — normalizes the value before validation (`trim`, `toLowerCase`, `toUpperCase`). The order in the chain does not matter — these always run first.
+2. **Validation** — checks constraints on the normalized value (`email`, `min`, `max`, etc.).
+3. **Post-processing** — transforms the validated value (`transform<O>()`). Only runs if validation passes.
+
+```dart
+// Both are equivalent — trim always runs before email validation:
+V.string()..trim()..email();
+V.string()..email()..trim();
+```
+
+### Transform
+
+Change the output type (post-processing phase):
 
 ```dart
 final schema = V.string().transform<int>((s) => s.length);
 schema.parse('hello'); // 5
 ```
 
-## Preprocess
+### Preprocess
 
-Transform input before type checking:
+Transform the raw input before type checking — runs before everything else, including coercion and null checks:
 
 ```dart
 final schema = V.string()

@@ -1,7 +1,9 @@
 import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/validator.dart';
 
+/// Validates that a string is a valid time in `HH:mm` or `HH:mm:ss` format.
 class TimeValidator extends Validator<String> {
+  /// Creates a [TimeValidator].
   const TimeValidator();
 
   @override
