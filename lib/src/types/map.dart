@@ -34,6 +34,44 @@ class VMap extends VType<Map<String, dynamic>> {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
   }
 
+  @override
+  VMap add(
+    Validator<Map<String, dynamic>> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VMap nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VMap defaultValue(Map<String, dynamic> value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VMap preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VMap refine(
+    bool Function(Map<String, dynamic> value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
   /// Returns an unmodifiable view of the field schema.
   Map<String, VType> get schema => Map.unmodifiable(_schema);
 

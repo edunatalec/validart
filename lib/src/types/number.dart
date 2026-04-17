@@ -95,6 +95,80 @@ abstract class VNumber<T extends num> extends VType<T> {
 /// schema.parse(4); // 4
 /// ```
 class VInt extends VNumber<int> {
+  @override
+  VInt add(
+    Validator<int> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VInt nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VInt defaultValue(int value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VInt preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VInt refine(
+    bool Function(int value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
+  @override
+  VInt min(int value, {String Function(int)? message}) {
+    super.min(value, message: message);
+    return this;
+  }
+
+  @override
+  VInt max(int value, {String Function(int)? message}) {
+    super.max(value, message: message);
+    return this;
+  }
+
+  @override
+  VInt positive({String? message}) {
+    super.positive(message: message);
+    return this;
+  }
+
+  @override
+  VInt negative({String? message}) {
+    super.negative(message: message);
+    return this;
+  }
+
+  @override
+  VInt between(int min, int max, {String Function(int, int)? message}) {
+    super.between(min, max, message: message);
+    return this;
+  }
+
+  @override
+  VInt multipleOf(int factor, {String Function(int)? message}) {
+    super.multipleOf(factor, message: message);
+    return this;
+  }
+
   /// Validates that the value is even.
   ///
   /// Runs in the validation phase.
@@ -149,6 +223,84 @@ class VInt extends VNumber<int> {
 /// schema.parse(3.14); // 3.14
 /// ```
 class VDouble extends VNumber<double> {
+  @override
+  VDouble add(
+    Validator<double> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VDouble nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VDouble defaultValue(double value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VDouble preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VDouble refine(
+    bool Function(double value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
+  @override
+  VDouble min(double value, {String Function(double)? message}) {
+    super.min(value, message: message);
+    return this;
+  }
+
+  @override
+  VDouble max(double value, {String Function(double)? message}) {
+    super.max(value, message: message);
+    return this;
+  }
+
+  @override
+  VDouble positive({String? message}) {
+    super.positive(message: message);
+    return this;
+  }
+
+  @override
+  VDouble negative({String? message}) {
+    super.negative(message: message);
+    return this;
+  }
+
+  @override
+  VDouble between(
+    double min,
+    double max, {
+    String Function(double, double)? message,
+  }) {
+    super.between(min, max, message: message);
+    return this;
+  }
+
+  @override
+  VDouble multipleOf(double factor, {String Function(double)? message}) {
+    super.multipleOf(factor, message: message);
+    return this;
+  }
+
   /// Validates that the value is finite (not infinity or NaN).
   ///
   /// Runs in the validation phase.

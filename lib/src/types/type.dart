@@ -87,7 +87,7 @@ abstract class VType<T> {
   /// Optional coercion function to convert input to the expected type.
   T Function(Object value)? coercer;
 
-  Object? Function(Object?)? _preprocessor;
+  final List<Object? Function(Object?)> _preprocessors = [];
 
   VType<T> _addStep(_PipelineStep<T> step) {
     _steps.add(step);
@@ -170,7 +170,11 @@ abstract class VType<T> {
   /// }
   /// ```
   VResult<T?> safeParse(Object? value) {
-    final input = _preprocessor != null ? _preprocessor!(value) : value;
+    Object? input = value;
+
+    for (final fn in _preprocessors) {
+      input = fn(input);
+    }
 
     final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, input);
     if (nullResult != null) return nullResult;
@@ -300,9 +304,7 @@ abstract class VType<T> {
   ///   .parse('  user@mail.com  '); // 'user@mail.com'
   /// ```
   VType<T> preprocess(Object? Function(Object? value) fn) {
-    final previous = _preprocessor;
-
-    _preprocessor = previous == null ? fn : (value) => fn(previous(value));
+    _preprocessors.add(fn);
 
     return this;
   }

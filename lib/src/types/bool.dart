@@ -7,6 +7,44 @@ part of 'type.dart';
 /// schema.parse(true); // true
 /// ```
 class VBool extends VType<bool> {
+  @override
+  VBool add(
+    Validator<bool> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VBool nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VBool defaultValue(bool value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VBool preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VBool refine(
+    bool Function(bool value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
   /// Validates that the value is `true`.
   ///
   /// Runs in the validation phase.

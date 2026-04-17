@@ -7,6 +7,44 @@ part of 'type.dart';
 /// schema.parse(DateTime(2025)); // DateTime(2025)
 /// ```
 class VDate extends VType<DateTime> {
+  @override
+  VDate add(
+    Validator<DateTime> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VDate nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VDate defaultValue(DateTime value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VDate preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VDate refine(
+    bool Function(DateTime value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
   /// Creates a [VArray] schema that validates a `List<DateTime>`.
   ///
   /// ```dart

@@ -60,6 +60,44 @@ class VObject<T> extends VType<T> {
 
   VObject._({required List<_FieldEntry<T>> fields}) : _fields = fields;
 
+  @override
+  VObject<T> add(
+    Validator<T> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VObject<T> nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VObject<T> defaultValue(T value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VObject<T> preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VObject<T> refine(
+    bool Function(T value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
   /// Returns an unmodifiable map of field names to their validators.
   Map<String, VType> get schema =>
       Map.fromEntries(_fields.map((f) => MapEntry(f.name, f.validator)));

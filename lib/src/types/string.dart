@@ -7,6 +7,44 @@ part of 'type.dart';
 /// schema.parse('user@mail.com'); // 'user@mail.com'
 /// ```
 class VString extends VType<String> {
+  @override
+  VString add(
+    Validator<String> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VString nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VString defaultValue(String value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VString preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VString refine(
+    bool Function(String value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
   /// Validates that the string is not empty.
   ///
   /// Runs in the validation phase.

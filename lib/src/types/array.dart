@@ -14,6 +14,44 @@ class VArray<T> extends VType<List<T>> {
   /// Creates an array validator with the given element [_element] schema.
   VArray(this._element);
 
+  @override
+  VArray<T> add(
+    Validator<List<T>> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
+  @override
+  VArray<T> nullable() {
+    super.nullable();
+    return this;
+  }
+
+  @override
+  VArray<T> defaultValue(List<T> value) {
+    super.defaultValue(value);
+    return this;
+  }
+
+  @override
+  VArray<T> preprocess(Object? Function(Object? value) fn) {
+    super.preprocess(fn);
+    return this;
+  }
+
+  @override
+  VArray<T> refine(
+    bool Function(List<T> value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refine(check, message: message, code: code);
+    return this;
+  }
+
   /// Validates that the list has at least [length] elements.
   ///
   /// Runs in the validation phase.
