@@ -96,20 +96,29 @@ abstract class VType<T> {
 
   /// Adds a [Validator] to the validation phase of the pipeline.
   ///
-  /// Use [message] to override the default error message.
+  /// Use [message] to override the default error message. Use [path] to
+  /// attach the resulting error to a nested location instead of the root.
   ///
   /// ```dart
   /// V.string().add(const EmailValidator(), message: 'Not a valid email');
   /// ```
-  VType<T> add(Validator<T> validator, {String? message}) {
-    return _addStep(_ValidatorStep<T>(validator, messageOverride: message));
+  VType<T> add(
+    Validator<T> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    return _addStep(_ValidatorStep<T>(
+      validator,
+      messageOverride: message,
+      path: path,
+    ));
   }
 
   VResult<S?>? _nullCheck<S>(S? defaultVal, bool hasDefault, Object? value) {
     if (value != null) return null;
 
-    if (_isNullable) return VSuccess<S?>(null);
     if (hasDefault) return VSuccess<S?>(defaultVal);
+    if (_isNullable) return VSuccess<S?>(null);
 
     return VFailure<S?>([
       VError(code: VCode.required, message: V.t(VCode.required)),
@@ -198,12 +207,20 @@ abstract class VType<T> {
 
     for (final step in _steps) {
       if (step
-          case _ValidatorStep<T>(:final validator, :final messageOverride)) {
+          case _ValidatorStep<T>(
+            :final validator,
+            :final messageOverride,
+            :final path
+          )) {
         final params = validator.validate(current);
 
         if (params != null) {
           final message = messageOverride ?? V.t(validator.code, params);
-          errors.add(VError(code: validator.code, message: message));
+          errors.add(VError(
+            code: validator.code,
+            message: message,
+            path: path ?? const [],
+          ));
         }
       }
     }
@@ -246,6 +263,9 @@ abstract class VType<T> {
 
   /// Marks this schema as nullable, allowing `null` to pass validation.
   ///
+  /// When combined with [defaultValue], the default value wins — `nullable`
+  /// only applies when no default is set.
+  ///
   /// ```dart
   /// V.string().nullable().parse(null); // null
   /// ```
@@ -255,6 +275,9 @@ abstract class VType<T> {
   }
 
   /// Sets a default value to use when the input is `null`.
+  ///
+  /// Takes precedence over [nullable]: if both are set, the default is
+  /// returned on null input.
   ///
   /// ```dart
   /// V.string().defaultValue('N/A').parse(null); // 'N/A'
@@ -268,7 +291,7 @@ abstract class VType<T> {
   /// Applies a function to the raw input before type checking.
   ///
   /// Runs before everything else in the pipeline, including coercion and
-  /// null checks.
+  /// null checks. Multiple calls chain in the order they were added.
   ///
   /// ```dart
   /// V.string()
@@ -277,7 +300,10 @@ abstract class VType<T> {
   ///   .parse('  user@mail.com  '); // 'user@mail.com'
   /// ```
   VType<T> preprocess(Object? Function(Object? value) fn) {
-    _preprocessor = fn;
+    final previous = _preprocessor;
+
+    _preprocessor = previous == null ? fn : (value) => fn(previous(value));
+
     return this;
   }
 
@@ -320,6 +346,19 @@ abstract class VType<T> {
   }
 }
 
+class _NullableWrapper<T> extends VType<T> {
+  final VType<T> _inner;
+
+  _NullableWrapper(this._inner);
+
+  @override
+  VResult<T?> safeParse(Object? value) {
+    if (value == null) return VSuccess<T?>(null);
+
+    return _inner.safeParse(value);
+  }
+}
+
 class _RefineValidator<T> extends Validator<T> {
   final bool Function(T value) check;
   final String validatorCode;
@@ -349,8 +388,9 @@ final class _PreTransformStep<T> extends _PipelineStep<T> {
 final class _ValidatorStep<T> extends _PipelineStep<T> {
   final Validator<T> validator;
   final String? messageOverride;
+  final List<Object>? path;
 
-  const _ValidatorStep(this.validator, {this.messageOverride});
+  const _ValidatorStep(this.validator, {this.messageOverride, this.path});
 }
 
 final class _TransformStep<T> extends _PipelineStep<T> {

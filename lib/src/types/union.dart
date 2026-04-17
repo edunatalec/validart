@@ -22,17 +22,21 @@ class VUnion extends VType<Object> {
     final nullResult = _nullCheck<Object>(_defaultValue, _hasDefault, value);
     if (nullResult != null) return nullResult;
 
+    final optionErrors = <List<VError>>[];
+
     for (final option in _options) {
       final result = option.safeParse(value);
-      if (result.isValid) {
-        return VSuccess<Object?>(value);
-      }
+
+      if (result.isValid) return VSuccess<Object?>(value);
+
+      optionErrors.add((result as VFailure).errors);
     }
 
     return VFailure<Object?>([
       VError(
         code: VCode.invalidUnion,
         message: V.t(VCode.invalidUnion),
+        context: optionErrors,
       ),
     ]);
   }

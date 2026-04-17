@@ -100,6 +100,9 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Creates a new schema where all fields are nullable.
   ///
+  /// Does not mutate the original schema — inner validators are wrapped so
+  /// that the base schema continues to reject null.
+  ///
   /// ```dart
   /// final schema = V.map({'name': V.string()}).partial();
   /// schema.parse({'name': null}); // {'name': null}
@@ -108,7 +111,9 @@ class VMap extends VType<Map<String, dynamic>> {
     final partialSchema = <String, VType>{};
 
     for (final entry in _schema.entries) {
-      partialSchema[entry.key] = entry.value..nullable();
+      partialSchema[entry.key] = entry.value.mapType<VType>(
+        <U>(inner) => _NullableWrapper<U>(inner),
+      );
     }
 
     return VMap(partialSchema);
@@ -220,6 +225,7 @@ class VMap extends VType<Map<String, dynamic>> {
         validatorCode: VCode.custom,
       ),
       message: message,
+      path: [path],
     );
     return this;
   }

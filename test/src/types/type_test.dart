@@ -126,6 +126,18 @@ void main() {
         final schema = TestStringType()..defaultValue('fallback');
         expect(schema.parse('hello'), 'hello');
       });
+
+      test('should take precedence over nullable on null input', () {
+        final a = TestStringType()
+          ..nullable()
+          ..defaultValue('N/A');
+        expect(a.parse(null), 'N/A');
+
+        final b = TestStringType()
+          ..defaultValue('N/A')
+          ..nullable();
+        expect(b.parse(null), 'N/A');
+      });
     });
 
     group('refine', () {
@@ -276,6 +288,14 @@ void main() {
         ..refine((v) => v.length >= 3);
       expect(schema.validate('  hello  '), isTrue);
       expect(schema.validate('  hi  '), isFalse);
+    });
+
+    test('should chain multiple preprocess calls', () {
+      final schema = TestStringType()
+        ..preprocess((v) => (v as String?)?.trim())
+        ..preprocess((v) => (v as String?)?.toLowerCase());
+
+      expect(schema.parse('  HELLO  '), 'hello');
     });
   });
 

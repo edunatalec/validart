@@ -371,13 +371,13 @@ void main() {
   });
 
   group('VLocale interpolation edge cases', () {
-    test('should leave unreplaced params as-is', () {
+    test('should assert when params are missing', () {
       V.setLocale(
         const VLocale({'test_code': 'Hello {name}, your {missing}'}),
       );
       expect(
-        V.t('test_code', {'name': 'World'}),
-        'Hello World, your {missing}',
+        () => V.t('test_code', {'name': 'World'}),
+        throwsA(isA<AssertionError>()),
       );
     });
 

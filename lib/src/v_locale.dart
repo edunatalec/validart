@@ -106,6 +106,15 @@ class VLocale {
       result = result.replaceAll('{${entry.key}}', entry.value.toString());
     }
 
+    assert(
+      !_placeholderPattern.hasMatch(result),
+      'Unreplaced placeholder(s) in translation: "$result". '
+      'Provide values for all {param} tokens in the template.',
+    );
+
     return result;
   }
+
+  static final RegExp _placeholderPattern =
+      RegExp(r'\{[a-zA-Z_][a-zA-Z0-9_]*\}');
 }

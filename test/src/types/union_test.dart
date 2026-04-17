@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
+import 'package:validart/src/v_code.dart';
 import 'package:validart/src/v_locale.dart';
 
 void main() {
@@ -59,6 +60,22 @@ void main() {
       expect(schema.validate('admin'), isTrue);
       expect(schema.validate('user'), isTrue);
       expect(schema.validate('other'), isFalse);
+    });
+
+    test('should expose per-option errors in VError.context', () {
+      final schema = VUnion([
+        VString()..email(),
+        VInt()..positive(),
+      ]);
+
+      final errors = schema.errors(3.14);
+
+      expect(errors, isNotNull);
+      expect(errors!.first.code, VCode.invalidUnion);
+      expect(errors.first.context, isNotNull);
+      expect(errors.first.context!.length, 2);
+      expect(errors.first.context![0].first.code, VCode.invalidType);
+      expect(errors.first.context![1].first.code, VCode.invalidType);
     });
   });
 }

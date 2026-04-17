@@ -337,6 +337,15 @@ void main() {
         final schema = VDouble()..multipleOf(0.5);
         expect(schema.validate(1.3), isFalse);
       });
+
+      test('should handle IEEE-754 imprecise multiples', () {
+        final schema = VDouble()..multipleOf(0.1);
+
+        expect(schema.validate(0.3), isTrue);
+        expect(schema.validate(0.6), isTrue);
+        expect(schema.validate(0.9), isTrue);
+        expect(schema.validate(1.3), isTrue);
+      });
     });
 
     group('finite', () {

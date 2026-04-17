@@ -1,7 +1,9 @@
 /// Represents a single validation error.
 ///
-/// Contains a machine-readable [code], a human-readable [message], and an
-/// optional [path] indicating the location of the error in nested structures.
+/// Contains a machine-readable [code], a human-readable [message], an
+/// optional [path] indicating the location of the error in nested structures,
+/// and optional [context] with nested error lists (used by union validators
+/// to expose per-option failures).
 ///
 /// ```dart
 /// final error = VError(code: 'required', message: 'Required', path: ['name']);
@@ -19,19 +21,28 @@ final class VError {
   /// For example, `['users', 0, 'email']` represents `users[0].email`.
   final List<Object> path;
 
-  /// Creates a [VError] with the given [code], [message], and optional [path].
+  /// Nested error lists attached to this error for debugging.
+  ///
+  /// Populated by union validators with one entry per option, containing the
+  /// validation errors that caused that option to be rejected.
+  final List<List<VError>>? context;
+
+  /// Creates a [VError] with the given [code], [message], optional [path]
+  /// and optional [context].
   const VError({
     required this.code,
     required this.message,
     this.path = const [],
+    this.context,
   });
 
-  /// Creates a copy with a different [path].
-  VError copyWith({List<Object>? path}) {
+  /// Creates a copy with a different [path] or [context].
+  VError copyWith({List<Object>? path, List<List<VError>>? context}) {
     return VError(
       code: code,
       message: message,
       path: path ?? this.path,
+      context: context ?? this.context,
     );
   }
 

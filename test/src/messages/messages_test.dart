@@ -51,6 +51,16 @@ void main() {
         'Mínimo de 5 caracteres',
       );
     });
+
+    test('should assert when template has unreplaced placeholders', () {
+      const locale = VLocale({
+        'number.not_in_range': 'Must be {min} to {max}',
+      });
+      expect(
+        () => locale.translate('number.not_in_range', {'min': 5}),
+        throwsA(isA<AssertionError>()),
+      );
+    });
   });
 
   group('V.setLocale', () {

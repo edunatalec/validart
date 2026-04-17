@@ -240,6 +240,15 @@ void main() {
         final partial = schema.partial();
         expect(partial.validate({'name': 'Alice'}), isTrue);
       });
+
+      test('partial should not mutate the original schema', () {
+        final base = VMap({'name': VString(), 'age': VInt()});
+
+        base.partial();
+
+        expect(base.validate({'name': null, 'age': 10}), isFalse);
+        expect(base.validate({'name': 'Alice', 'age': null}), isFalse);
+      });
     });
 
     group('strict', () {
@@ -361,6 +370,25 @@ void main() {
         expect(errors, isNotNull);
         expect(errors!.first.code, 'custom');
         expect(errors.first.message, 'Passwords must match');
+      });
+
+      test('should attach error to the specified path', () {
+        final schema = VMap({
+          'password': VString()..min(6),
+          'confirm': VString()..min(6),
+        })
+          ..refineField(
+            (data) => data['password'] == data['confirm'],
+            path: 'confirm',
+            message: 'Passwords must match',
+          );
+
+        final errors = schema.errors({
+          'password': 'secret123',
+          'confirm': 'different',
+        });
+
+        expect(errors!.first.path, ['confirm']);
       });
     });
 

@@ -13,6 +13,13 @@ class MultipleOfValidator<T extends num> extends Validator<T> {
   String get code => VCode.multipleOf;
 
   @override
-  Map<String, dynamic>? validate(T value) =>
-      value % factor == 0 ? null : {'factor': factor};
+  Map<String, dynamic>? validate(T value) {
+    final remainder = (value % factor).abs();
+    const epsilon = 1e-10;
+
+    if (remainder < epsilon) return null;
+    if ((factor.abs() - remainder) < epsilon) return null;
+
+    return {'factor': factor};
+  }
 }

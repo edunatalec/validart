@@ -14,6 +14,7 @@ import 'package:validart/src/v_locale.dart';
 /// ```
 class V {
   static VLocale _locale = const VLocale();
+
   /// Provides coercion schemas that convert input values before validation.
   static final VCoerce coerce = VCoerce();
 
