@@ -21,7 +21,7 @@ import 'package:validart/validart.dart';
 
 ```dart
 // No instantiation needed — V is a static class
-final schema = V.string()..email();
+final schema = V.string().email();
 
 schema.validate('user@example.com'); // true
 schema.validate('invalid');          // false
@@ -46,10 +46,10 @@ if (result case VFailure(:final errors)) {
 
 ```dart
 V.string()
-  ..notEmpty()
-  ..min(5)
-  ..max(100)
-  ..email();
+  .notEmpty()
+  .min(5)
+  .max(100)
+  .email();
 ```
 
 Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `phone`.
@@ -60,9 +60,9 @@ Pre-processing: `trim`, `toLowerCase`, `toUpperCase` — always run before valid
 
 ```dart
 V.int()
-  ..min(0)
-  ..max(100)
-  ..even();
+  .min(0)
+  .max(100)
+  .even();
 ```
 
 Available: `min`, `max`, `positive`, `negative`, `between`, `multipleOf`, `even`, `odd`, `prime`.
@@ -71,8 +71,8 @@ Available: `min`, `max`, `positive`, `negative`, `between`, `multipleOf`, `even`
 
 ```dart
 V.double()
-  ..positive()
-  ..finite();
+  .positive()
+  .finite();
 ```
 
 Available: `min`, `max`, `positive`, `negative`, `between`, `multipleOf`, `finite`, `decimal`, `integer`.
@@ -80,7 +80,7 @@ Available: `min`, `max`, `positive`, `negative`, `between`, `multipleOf`, `finit
 ### Bool
 
 ```dart
-V.bool()..isTrue();
+V.bool().isTrue();
 ```
 
 Available: `isTrue`, `isFalse`.
@@ -89,8 +89,8 @@ Available: `isTrue`, `isFalse`.
 
 ```dart
 V.date()
-  ..after(DateTime(2024, 1, 1))
-  ..weekday();
+  .after(DateTime(2024, 1, 1))
+  .weekday();
 ```
 
 Available: `after`, `before`, `between`, `weekday`, `weekend`.
@@ -101,9 +101,9 @@ Validates `Map<String, dynamic>` with a schema:
 
 ```dart
 final userSchema = V.map({
-  'name': V.string()..min(1),
-  'email': V.string()..email(),
-  'age': V.int()..min(0)..nullable(),
+  'name': V.string().min(1),
+  'email': V.string().email(),
+  'age': V.int().min(0).nullable(),
 });
 
 userSchema.validate({'name': 'Alice', 'email': 'a@b.com'}); // true
@@ -119,11 +119,11 @@ final errors = userSchema.errors({'name': '', 'email': 'bad'});
 ### Schema Composition
 
 ```dart
-final base = V.map({'name': V.string(), 'email': V.string()..email()});
+final base = V.map({'name': V.string(), 'email': V.string().email()});
 
 base.pick(['name']);                          // only name
 base.omit(['email']);                         // everything except email
-base.extend({'password': V.string()..min(8)}); // add fields
+base.extend({'password': V.string().min(8)}); // add fields
 base.merge(otherSchema);                     // combine two schemas
 base.partial();                              // all fields nullable
 base.strict();                               // reject unknown keys
@@ -134,9 +134,9 @@ base.passthrough();                          // allow unknown keys
 
 ```dart
 V.map({
-  'password': V.string()..min(8),
+  'password': V.string().min(8),
   'confirm': V.string(),
-})..equalFields('password', 'confirm');
+}).equalFields('password', 'confirm');
 ```
 
 ### Custom Field Validation
@@ -144,7 +144,7 @@ V.map({
 ```dart
 V.map({
   'age': V.int(),
-})..refineField(
+}).refineField(
   (data) => (data['age'] as int) >= 18,
   path: 'age',
   message: 'Must be at least 18',
@@ -156,16 +156,16 @@ V.map({
 ```dart
 V.map({
   'type': V.string(),
-  'cnpj': V.string()..nullable(),
-})..when('type', equals: 'company', then: {
-  'cnpj': V.string()..min(14),
+  'cnpj': V.string().nullable(),
+}).when('type', equals: 'company', then: {
+  'cnpj': V.string().min(14),
 });
 ```
 
 ### Array of Maps
 
 ```dart
-V.map({'name': V.string()..min(1)}).array();
+V.map({'name': V.string().min(1)}).array();
 ```
 
 ## Object (Entity Validation)
@@ -175,8 +175,8 @@ Validates class instances with type-safe field extraction:
 ```dart
 final schema = V.object<User>(
   configure: (o) => o
-    .field('name', (u) => u.name, V.string()..min(1))
-    .field('email', (u) => u.email, V.string()..email()),
+    .field('name', (u) => u.name, V.string().min(1))
+    .field('email', (u) => u.email, V.string().email()),
 );
 
 schema.validate(user); // true
@@ -186,8 +186,8 @@ schema.validate(user); // true
 
 ```dart
 final schema = V.string().email().array()
-  ..min(1)
-  ..unique();
+  .min(1)
+  .unique();
 
 schema.validate(['a@b.com', 'c@d.com']); // true
 ```
@@ -219,7 +219,7 @@ V.literal('admin').validate('user');  // false
 ### Union
 
 ```dart
-V.union([V.string()..email(), V.int()..min(1)]);
+V.union([V.string().email(), V.int().min(1)]);
 ```
 
 ## Coercion
@@ -244,8 +244,8 @@ The validation pipeline runs in three phases:
 
 ```dart
 // Both are equivalent — trim always runs before email validation:
-V.string()..trim()..email();
-V.string()..email()..trim();
+V.string().trim().email();
+V.string().email().trim();
 ```
 
 ### Transform
@@ -263,7 +263,7 @@ Transform the raw input before type checking — runs before everything else, in
 
 ```dart
 final schema = V.string()
-  ..preprocess((v) => v?.toString().trim() ?? '');
+  .preprocess((v) => v?.toString().trim() ?? '');
 
 schema.parse(42); // '42'
 ```
@@ -273,9 +273,9 @@ schema.parse(42); // '42'
 Available on all types:
 
 ```dart
-V.string()..nullable();          // allows null
-V.string()..defaultValue('N/A'); // uses default when null
-V.string()..refine(             // custom validation
+V.string().nullable();          // allows null
+V.string().defaultValue('N/A'); // uses default when null
+V.string().refine(             // custom validation
   (v) => v.contains('@'),
   message: 'Must contain @',
 );
@@ -317,7 +317,7 @@ V.setLocale(const VLocale()); // reset to English
 Per-validator overrides bypass the locale:
 
 ```dart
-V.string()..min(3, message: (n) => 'At least $n chars');
+V.string().min(3, message: (n) => 'At least $n chars');
 ```
 
 Use `V.t()` to translate manually:
