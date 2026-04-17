@@ -6,7 +6,7 @@
 - `V` static class — no instantiation needed (`V.string()`, `V.int()`, `V.map()`, etc.)
 - `parse()`, `safeParse()`, `validate()`, `errors()` on all types
 - `VResult<T>` sealed class with `VSuccess<T>` and `VFailure<T>` (Dart 3 pattern matching)
-- `VError` with `code`, `message`, and `path` (nested paths like `['address', 'zip']` or `[2, 'name']`)
+- `VError` with `code`, `message`, `path` (nested paths like `['address', 'zip']` or `[2, 'name']`), and optional `context` (`List<List<VError>>?`) populated by `VUnion` to expose each option's failure
 
 **Types:**
 - `VString` — 22 validators + `notEmpty()` + pre-processing transforms (`trim`, `toLowerCase`, `toUpperCase`) that always run before validation
@@ -26,14 +26,16 @@
 **Features:**
 - Coercion: `V.coerce.int()`, `V.coerce.double()`, `V.coerce.string()`, `V.coerce.bool()`, `V.coerce.date()`
 - `transform<O>()` — change output type with chaining support
-- `preprocess()` — transform input before type checking
+- `preprocess()` — transform input before type checking; multiple calls chain in declaration order
 - `equalFields()` — cross-field comparison (password confirmation)
 - `when()` — conditional field validation
+- `refineField()` — targeted cross-field validation whose error attaches to the specified field path
 - `VFailure.toMap()` — convert errors to `Map<String, String>` for Flutter forms
-- `defaultValue(T)` — provide defaults when value is null
+- `defaultValue(T)` — provide defaults when value is null; takes precedence over `nullable()` when both are set
+- Fluent chaining across inherited and concrete methods via covariant returns on every concrete type — e.g. `V.string().nullable().email()`, `V.int().positive().even()`
 
 **i18n:**
-- `VLocale` — `Map<String, String>` with `{param}` interpolation
+- `VLocale` — `Map<String, String>` with `{param}` interpolation; asserts in debug mode when any `{param}` is left unreplaced
 - `V.setLocale()` / `V.t()` — switch locale at runtime
 - `VCode` — static string constants for all error codes (extensible by external packages)
 - Fallback chain: custom translation → English default → code itself
