@@ -117,15 +117,26 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Creates a new schema by adding [extra] fields to the current schema.
   ///
+  /// Preserves all pipeline state from the base schema: validators added via
+  /// `add`/`equalFields`/`refineField`/`refine`, `when` rules, `strict` and
+  /// `passthrough` flags, `nullable`, `defaultValue`, and preprocessors.
+  ///
   /// ```dart
   /// final base = V.map({'name': V.string()});
   /// final extended = base.extend({'age': V.int()});
   /// ```
   VMap extend(Map<String, VType> extra) {
-    return VMap({..._schema, ...extra});
+    final result = VMap({..._schema, ...extra});
+    _copyMapStateTo(result);
+    return result;
   }
 
   /// Creates a new schema by merging with [other]'s fields.
+  ///
+  /// Combines pipeline state from both schemas: `when` rules, validator
+  /// steps, and preprocessors are concatenated (base first, then other).
+  /// Boolean flags (`strict`, `passthrough`, `nullable`) are OR-ed. If both
+  /// sides set `defaultValue`, [other]'s wins.
   ///
   /// ```dart
   /// final a = V.map({'name': V.string()});
@@ -133,7 +144,25 @@ class VMap extends VType<Map<String, dynamic>> {
   /// final merged = a.merge(b);
   /// ```
   VMap merge(VMap other) {
-    return VMap({..._schema, ...other._schema});
+    final result = VMap({..._schema, ...other._schema});
+    _copyMapStateTo(result);
+    other._copyMapStateTo(result);
+    return result;
+  }
+
+  void _copyMapStateTo(VMap target) {
+    target._whenRules.addAll(_whenRules);
+    target._steps.addAll(_steps);
+    target._preprocessors.addAll(_preprocessors);
+
+    if (_isStrict) target._isStrict = true;
+    if (_isPassthrough) target._isPassthrough = true;
+    if (_isNullable) target._isNullable = true;
+
+    if (_hasDefault) {
+      target._defaultValue = _defaultValue;
+      target._hasDefault = true;
+    }
   }
 
   /// Creates a new schema where all fields are nullable.

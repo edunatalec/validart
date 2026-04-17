@@ -334,5 +334,17 @@ void main() {
         expect(schema.validate([5, 6]), isFalse);
       });
     });
+
+    group('coerced elements', () {
+      test('should coerce string elements to int', () {
+        final schema = V.coerce.int().array();
+        expect(schema.parse(['1', '2', '3']), [1, 2, 3]);
+      });
+
+      test('should coerce mixed types to int', () {
+        final schema = V.coerce.int().array();
+        expect(schema.parse([1, '2', 3.7]), [1, 2, 3]);
+      });
+    });
   });
 }

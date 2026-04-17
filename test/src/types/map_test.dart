@@ -188,6 +188,56 @@ void main() {
         final extended = schema.extend({'age': VInt()});
         expect(extended.validate({'name': 'Alice'}), isFalse);
       });
+
+      test('extend should preserve equalFields from base', () {
+        final base = VMap({
+          'password': VString(),
+          'confirm': VString(),
+        })
+          ..equalFields('password', 'confirm');
+
+        final extended = base.extend({'email': VString()});
+
+        expect(
+          extended.validate({
+            'password': 'a',
+            'confirm': 'b',
+            'email': 'x@y.com',
+          }),
+          isFalse,
+        );
+      });
+
+      test('extend should preserve strict flag from base', () {
+        final base = VMap({'name': VString()})..strict();
+        final extended = base.extend({'age': VInt()});
+
+        expect(
+          extended.validate({'name': 'Alice', 'age': 30, 'extra': true}),
+          isFalse,
+        );
+      });
+
+      test('extend should preserve when rules from base', () {
+        final base = VMap({
+          'type': VString(),
+          'cnpj': VString()..nullable(),
+        })
+          ..when('type', equals: 'company', then: {
+            'cnpj': VString()..min(14),
+          });
+
+        final extended = base.extend({'email': VString()});
+
+        expect(
+          extended.validate({
+            'type': 'company',
+            'cnpj': 'short',
+            'email': 'x@y.com',
+          }),
+          isFalse,
+        );
+      });
     });
 
     group('merge', () {
@@ -210,6 +260,66 @@ void main() {
         final schema2 = VMap({'name': VString()..min(5)});
         final merged = schema1.merge(schema2);
         expect(merged.validate({'name': 'Al'}), isFalse);
+      });
+
+      test('merge should preserve equalFields from either side', () {
+        final a = VMap({
+          'password': VString(),
+          'confirm': VString(),
+        })
+          ..equalFields('password', 'confirm');
+        final b = VMap({'email': VString()});
+
+        final merged = a.merge(b);
+
+        expect(
+          merged.validate({
+            'password': 'a',
+            'confirm': 'b',
+            'email': 'x@y.com',
+          }),
+          isFalse,
+        );
+      });
+
+      test('merge should concatenate when rules from both sides', () {
+        final a = VMap({
+          'type': VString(),
+          'cnpj': VString()..nullable(),
+        })
+          ..when('type', equals: 'company', then: {
+            'cnpj': VString()..min(14),
+          });
+
+        final b = VMap({
+          'role': VString(),
+          'permissions': VString()..nullable(),
+        })
+          ..when('role', equals: 'admin', then: {
+            'permissions': VString()..min(1),
+          });
+
+        final merged = a.merge(b);
+
+        expect(
+          merged.validate({
+            'type': 'company',
+            'cnpj': 'short',
+            'role': 'user',
+            'permissions': null,
+          }),
+          isFalse,
+        );
+
+        expect(
+          merged.validate({
+            'type': 'individual',
+            'cnpj': null,
+            'role': 'admin',
+            'permissions': null,
+          }),
+          isFalse,
+        );
       });
     });
 
