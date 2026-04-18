@@ -54,8 +54,7 @@ class VBool extends VType<bool> {
   /// V.bool().isTrue().validate(false); // false
   /// ```
   VBool isTrue({String? message}) {
-    add(const IsTrueValidator(), message: message);
-    return this;
+    return add(const IsTrueValidator(), message: message);
   }
 
   /// Validates that the value is `false`.
@@ -67,8 +66,7 @@ class VBool extends VType<bool> {
   /// V.bool().isFalse().validate(true);  // false
   /// ```
   VBool isFalse({String? message}) {
-    add(const IsFalseValidator(), message: message);
-    return this;
+    return add(const IsFalseValidator(), message: message);
   }
 
   /// Creates a [VArray] schema that validates a `List<bool>`.

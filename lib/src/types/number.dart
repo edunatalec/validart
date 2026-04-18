@@ -6,6 +6,16 @@ part of 'type.dart';
 /// V.int().min(0).max(100).parse(42); // 42
 /// ```
 abstract class VNumber<T extends num> extends VType<T> {
+  @override
+  VNumber<T> add(
+    Validator<T> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    super.add(validator, message: message, path: path);
+    return this;
+  }
+
   /// Validates that the value is at least [value].
   ///
   /// Runs in the validation phase.
@@ -15,8 +25,7 @@ abstract class VNumber<T extends num> extends VType<T> {
   /// V.int().min(5).validate(3);  // false
   /// ```
   VNumber<T> min(T value, {String Function(T)? message}) {
-    add(MinValidator<T>(min: value), message: message?.call(value));
-    return this;
+    return add(MinValidator<T>(min: value), message: message?.call(value));
   }
 
   /// Validates that the value is at most [value].
@@ -28,8 +37,7 @@ abstract class VNumber<T extends num> extends VType<T> {
   /// V.int().max(10).validate(15); // false
   /// ```
   VNumber<T> max(T value, {String Function(T)? message}) {
-    add(MaxValidator<T>(max: value), message: message?.call(value));
-    return this;
+    return add(MaxValidator<T>(max: value), message: message?.call(value));
   }
 
   /// Validates that the value is greater than zero.
@@ -41,8 +49,7 @@ abstract class VNumber<T extends num> extends VType<T> {
   /// V.int().positive().validate(-1); // false
   /// ```
   VNumber<T> positive({String? message}) {
-    add(PositiveValidator<T>(), message: message);
-    return this;
+    return add(PositiveValidator<T>(), message: message);
   }
 
   /// Validates that the value is less than zero.
@@ -54,8 +61,7 @@ abstract class VNumber<T extends num> extends VType<T> {
   /// V.int().negative().validate(1);  // false
   /// ```
   VNumber<T> negative({String? message}) {
-    add(NegativeValidator<T>(), message: message);
-    return this;
+    return add(NegativeValidator<T>(), message: message);
   }
 
   /// Validates that the value is between [min] and [max] (inclusive).
@@ -67,11 +73,10 @@ abstract class VNumber<T extends num> extends VType<T> {
   /// V.int().between(1, 10).validate(15); // false
   /// ```
   VNumber<T> between(T min, T max, {String Function(T, T)? message}) {
-    add(
+    return add(
       BetweenValidator<T>(min: min, max: max),
       message: message?.call(min, max),
     );
-    return this;
   }
 
   /// Validates that the value is a multiple of [factor].
@@ -83,8 +88,10 @@ abstract class VNumber<T extends num> extends VType<T> {
   /// V.int().multipleOf(3).validate(7); // false
   /// ```
   VNumber<T> multipleOf(T factor, {String Function(T)? message}) {
-    add(MultipleOfValidator<T>(factor: factor), message: message?.call(factor));
-    return this;
+    return add(
+      MultipleOfValidator<T>(factor: factor),
+      message: message?.call(factor),
+    );
   }
 }
 
@@ -178,8 +185,7 @@ class VInt extends VNumber<int> {
   /// V.int().even().validate(3); // false
   /// ```
   VInt even({String? message}) {
-    add(const EvenValidator(), message: message);
-    return this;
+    return add(const EvenValidator(), message: message);
   }
 
   /// Validates that the value is odd.
@@ -191,8 +197,7 @@ class VInt extends VNumber<int> {
   /// V.int().odd().validate(4); // false
   /// ```
   VInt odd({String? message}) {
-    add(const OddValidator(), message: message);
-    return this;
+    return add(const OddValidator(), message: message);
   }
 
   /// Validates that the value is a prime number.
@@ -204,8 +209,7 @@ class VInt extends VNumber<int> {
   /// V.int().prime().validate(4); // false
   /// ```
   VInt prime({String? message}) {
-    add(const PrimeValidator(), message: message);
-    return this;
+    return add(const PrimeValidator(), message: message);
   }
 
   /// Creates a [VArray] schema that validates a `List<int>`.
@@ -310,8 +314,7 @@ class VDouble extends VNumber<double> {
   /// V.double().finite().validate(double.infinity);   // false
   /// ```
   VDouble finite({String? message}) {
-    add(const FiniteValidator(), message: message);
-    return this;
+    return add(const FiniteValidator(), message: message);
   }
 
   /// Validates that the value has a fractional part (is not a whole number).
@@ -323,8 +326,7 @@ class VDouble extends VNumber<double> {
   /// V.double().decimal().validate(3.0);  // false
   /// ```
   VDouble decimal({String? message}) {
-    add(const DecimalValidator(), message: message);
-    return this;
+    return add(const DecimalValidator(), message: message);
   }
 
   /// Validates that the value is a whole number (no fractional part).
@@ -336,8 +338,7 @@ class VDouble extends VNumber<double> {
   /// V.double().integer().validate(3.14); // false
   /// ```
   VDouble integer({String? message}) {
-    add(const IntegerDoubleValidator(), message: message);
-    return this;
+    return add(const IntegerDoubleValidator(), message: message);
   }
 
   /// Creates a [VArray] schema that validates a `List<double>`.

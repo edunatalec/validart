@@ -61,8 +61,7 @@ class VDate extends VType<DateTime> {
   /// V.date().after(DateTime(2024)).validate(DateTime(2023)); // false
   /// ```
   VDate after(DateTime date, {String Function(DateTime)? message}) {
-    add(AfterValidator(date: date), message: message?.call(date));
-    return this;
+    return add(AfterValidator(date: date), message: message?.call(date));
   }
 
   /// Validates that the date is before [date].
@@ -74,8 +73,7 @@ class VDate extends VType<DateTime> {
   /// V.date().before(DateTime(2025)).validate(DateTime(2026)); // false
   /// ```
   VDate before(DateTime date, {String Function(DateTime)? message}) {
-    add(BeforeValidator(date: date), message: message?.call(date));
-    return this;
+    return add(BeforeValidator(date: date), message: message?.call(date));
   }
 
   /// Validates that the date is between [min] and [max] (inclusive).
@@ -91,11 +89,10 @@ class VDate extends VType<DateTime> {
     DateTime max, {
     String Function(DateTime, DateTime)? message,
   }) {
-    add(
+    return add(
       BetweenDatesValidator(min: min, max: max),
       message: message?.call(min, max),
     );
-    return this;
   }
 
   /// Validates that the date falls on a weekday (Monday–Friday).
@@ -107,8 +104,7 @@ class VDate extends VType<DateTime> {
   /// V.date().weekday().validate(DateTime(2024, 1, 14)); // false (Sunday)
   /// ```
   VDate weekday({String? message}) {
-    add(const WeekdayValidator(), message: message);
-    return this;
+    return add(const WeekdayValidator(), message: message);
   }
 
   /// Validates that the date falls on a weekend (Saturday–Sunday).
@@ -120,7 +116,6 @@ class VDate extends VType<DateTime> {
   /// V.date().weekend().validate(DateTime(2024, 1, 15)); // false (Monday)
   /// ```
   VDate weekend({String? message}) {
-    add(const WeekendValidator(), message: message);
-    return this;
+    return add(const WeekendValidator(), message: message);
   }
 }

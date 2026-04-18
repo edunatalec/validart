@@ -54,8 +54,7 @@ class VString extends VType<String> {
   /// V.string().notEmpty().validate('');   // false
   /// ```
   VString notEmpty({String? message}) {
-    add(const NotEmptyValidator(), message: message);
-    return this;
+    return add(const NotEmptyValidator(), message: message);
   }
 
   /// Validates that the string has at least [length] characters.
@@ -67,8 +66,7 @@ class VString extends VType<String> {
   /// V.string().min(3).validate('ab');   // false
   /// ```
   VString min(int length, {String Function(int)? message}) {
-    add(MinLengthValidator(min: length), message: message?.call(length));
-    return this;
+    return add(MinLengthValidator(min: length), message: message?.call(length));
   }
 
   /// Validates that the string has at most [length] characters.
@@ -80,8 +78,7 @@ class VString extends VType<String> {
   /// V.string().max(5).validate('toolong'); // false
   /// ```
   VString max(int length, {String Function(int)? message}) {
-    add(MaxLengthValidator(max: length), message: message?.call(length));
-    return this;
+    return add(MaxLengthValidator(max: length), message: message?.call(length));
   }
 
   /// Validates that the string has exactly [len] characters.
@@ -93,8 +90,7 @@ class VString extends VType<String> {
   /// V.string().length(4).validate('no');    // false
   /// ```
   VString length(int len, {String Function(int)? message}) {
-    add(LengthValidator(length: len), message: message?.call(len));
-    return this;
+    return add(LengthValidator(length: len), message: message?.call(len));
   }
 
   /// Validates that the string is a valid email address.
@@ -106,8 +102,7 @@ class VString extends VType<String> {
   /// V.string().email().validate('invalid');        // false
   /// ```
   VString email({String? message}) {
-    add(const EmailValidator(), message: message);
-    return this;
+    return add(const EmailValidator(), message: message);
   }
 
   /// Validates that the string is a valid URL.
@@ -119,8 +114,7 @@ class VString extends VType<String> {
   /// V.string().url().validate('not-a-url');            // false
   /// ```
   VString url({String? message}) {
-    add(const UrlValidator(), message: message);
-    return this;
+    return add(const UrlValidator(), message: message);
   }
 
   /// Validates that the string is a valid UUID.
@@ -131,8 +125,7 @@ class VString extends VType<String> {
   /// V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000'); // true
   /// ```
   VString uuid({String? message}) {
-    add(const UuidValidator(), message: message);
-    return this;
+    return add(const UuidValidator(), message: message);
   }
 
   /// Validates that the string is a valid IP address.
@@ -144,8 +137,7 @@ class VString extends VType<String> {
   /// V.string().ip().validate('999.0.0.1');   // false
   /// ```
   VString ip({String? message}) {
-    add(const IpValidator(), message: message);
-    return this;
+    return add(const IpValidator(), message: message);
   }
 
   /// Validates that the string matches the given [regex] pattern.
@@ -157,8 +149,7 @@ class VString extends VType<String> {
   /// V.string().pattern(r'^\d{3}$').validate('abc'); // false
   /// ```
   VString pattern(String regex, {String? message}) {
-    add(PatternValidator(pattern: regex), message: message);
-    return this;
+    return add(PatternValidator(pattern: regex), message: message);
   }
 
   /// Validates that the string is a valid date in ISO 8601 format.
@@ -170,8 +161,7 @@ class VString extends VType<String> {
   /// V.string().date().validate('not-a-date'); // false
   /// ```
   VString date({String? message}) {
-    add(const DateStringValidator(), message: message);
-    return this;
+    return add(const DateStringValidator(), message: message);
   }
 
   /// Validates that the string is a valid time in `HH:mm` or `HH:mm:ss`
@@ -184,8 +174,7 @@ class VString extends VType<String> {
   /// V.string().time().validate('25:00');    // false
   /// ```
   VString time({String? message}) {
-    add(const TimeValidator(), message: message);
-    return this;
+    return add(const TimeValidator(), message: message);
   }
 
   /// Validates that the string contains [value] as a substring.
@@ -197,8 +186,7 @@ class VString extends VType<String> {
   /// V.string().contains('xyz').validate('hello');         // false
   /// ```
   VString contains(String value, {String? message}) {
-    add(ContainsValidator(substring: value), message: message);
-    return this;
+    return add(ContainsValidator(substring: value), message: message);
   }
 
   /// Validates that the string starts with [prefix].
@@ -210,8 +198,7 @@ class VString extends VType<String> {
   /// V.string().startsWith('http').validate('ftp://x.com');   // false
   /// ```
   VString startsWith(String prefix, {String? message}) {
-    add(StartsWithValidator(prefix: prefix), message: message);
-    return this;
+    return add(StartsWithValidator(prefix: prefix), message: message);
   }
 
   /// Validates that the string ends with [suffix].
@@ -223,8 +210,7 @@ class VString extends VType<String> {
   /// V.string().endsWith('.dart').validate('main.js');   // false
   /// ```
   VString endsWith(String suffix, {String? message}) {
-    add(EndsWithValidator(suffix: suffix), message: message);
-    return this;
+    return add(EndsWithValidator(suffix: suffix), message: message);
   }
 
   /// Validates that the string is exactly equal to [value].
@@ -236,8 +222,7 @@ class VString extends VType<String> {
   /// V.string().equals('yes').validate('no');  // false
   /// ```
   VString equals(String value, {String? message}) {
-    add(EqualsValidator(expected: value), message: message);
-    return this;
+    return add(EqualsValidator(expected: value), message: message);
   }
 
   /// Validates that the string contains only letters (a-z, A-Z).
@@ -249,8 +234,7 @@ class VString extends VType<String> {
   /// V.string().alpha().validate('abc1');  // false
   /// ```
   VString alpha({String? message}) {
-    add(const AlphaValidator(), message: message);
-    return this;
+    return add(const AlphaValidator(), message: message);
   }
 
   /// Validates that the string contains only letters and numbers.
@@ -262,8 +246,7 @@ class VString extends VType<String> {
   /// V.string().alphanumeric().validate('abc!');   // false
   /// ```
   VString alphanumeric({String? message}) {
-    add(const AlphanumericValidator(), message: message);
-    return this;
+    return add(const AlphanumericValidator(), message: message);
   }
 
   /// Validates that the string is a valid URL slug.
@@ -275,8 +258,7 @@ class VString extends VType<String> {
   /// V.string().slug().validate('My Post!');      // false
   /// ```
   VString slug({String? message}) {
-    add(const SlugValidator(), message: message);
-    return this;
+    return add(const SlugValidator(), message: message);
   }
 
   /// Validates that the string meets password strength requirements.
@@ -291,8 +273,7 @@ class VString extends VType<String> {
   /// V.string().password().validate('weak');         // false
   /// ```
   VString password({String? message}) {
-    add(const PasswordValidator(), message: message);
-    return this;
+    return add(const PasswordValidator(), message: message);
   }
 
   /// Validates that the string is a valid JWT token.
@@ -304,8 +285,7 @@ class VString extends VType<String> {
   /// V.string().jwt().validate('not-a-jwt');            // false
   /// ```
   VString jwt({String? message}) {
-    add(const JwtValidator(), message: message);
-    return this;
+    return add(const JwtValidator(), message: message);
   }
 
   /// Validates that the string is a valid credit card number.
@@ -317,8 +297,7 @@ class VString extends VType<String> {
   /// V.string().card().validate('1234');             // false
   /// ```
   VString card({String? message}) {
-    add(const CardValidator(), message: message);
-    return this;
+    return add(const CardValidator(), message: message);
   }
 
   /// Validates that the string is a valid phone number.
@@ -335,11 +314,10 @@ class VString extends VType<String> {
   ///   .validate('(11) 98765-4321');
   /// ```
   VString phone({PhonePattern? pattern, String? message}) {
-    add(
+    return add(
       PhoneValidator(pattern: pattern ?? const E164PhonePattern()),
       message: message,
     );
-    return this;
   }
 
   /// Removes leading and trailing whitespace from the value.

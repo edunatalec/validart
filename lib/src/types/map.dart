@@ -259,8 +259,10 @@ class VMap extends VType<Map<String, dynamic>> {
       _schema.containsKey(other),
       "The provided field '$other' does not exist in the schema.",
     );
-    add(EqualFieldsValidator(field: field, other: other), message: message);
-    return this;
+    return add(
+      EqualFieldsValidator(field: field, other: other),
+      message: message,
+    );
   }
 
   /// Adds a custom validation that targets a specific field path.
@@ -286,7 +288,7 @@ class VMap extends VType<Map<String, dynamic>> {
       "The provided path '$path' does not exist in the schema.",
     );
 
-    add(
+    return add(
       _RefineValidator<Map<String, dynamic>>(
         check: check,
         validatorCode: VCode.custom,
@@ -294,7 +296,6 @@ class VMap extends VType<Map<String, dynamic>> {
       message: message,
       path: [path],
     );
-    return this;
   }
 
   @override

@@ -61,8 +61,10 @@ class VArray<T> extends VType<List<T>> {
   /// V.string().array().min(2).validate(['a']);       // false
   /// ```
   VArray<T> min(int length, {String Function(int)? message}) {
-    add(MinLengthListValidator<T>(min: length), message: message?.call(length));
-    return this;
+    return add(
+      MinLengthListValidator<T>(min: length),
+      message: message?.call(length),
+    );
   }
 
   /// Validates that the list has at most [length] elements.
@@ -74,8 +76,10 @@ class VArray<T> extends VType<List<T>> {
   /// V.string().array().max(1).validate(['a', 'b']); // false
   /// ```
   VArray<T> max(int length, {String Function(int)? message}) {
-    add(MaxLengthListValidator<T>(max: length), message: message?.call(length));
-    return this;
+    return add(
+      MaxLengthListValidator<T>(max: length),
+      message: message?.call(length),
+    );
   }
 
   /// Validates that all elements in the list are unique.
@@ -87,8 +91,7 @@ class VArray<T> extends VType<List<T>> {
   /// V.int().array().unique().validate([1, 1, 2]); // false
   /// ```
   VArray<T> unique({String? message}) {
-    add(UniqueValidator<T>(), message: message);
-    return this;
+    return add(UniqueValidator<T>(), message: message);
   }
 
   /// Validates that the list contains all elements from [required].
@@ -100,8 +103,7 @@ class VArray<T> extends VType<List<T>> {
   /// V.int().array().contains([1, 2]).validate([1, 3]);     // false
   /// ```
   VArray<T> contains(List<T> required, {String? message}) {
-    add(ContainsAllValidator<T>(required: required), message: message);
-    return this;
+    return add(ContainsAllValidator<T>(required: required), message: message);
   }
 
   @override
