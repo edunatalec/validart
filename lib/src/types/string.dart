@@ -290,14 +290,22 @@ class VString extends VType<String> {
 
   /// Validates that the string is a valid credit card number.
   ///
+  /// Accepts digits with or without separators (spaces or dashes). When
+  /// [brands] is provided, the number must match at least one of the given
+  /// [CardBrandPattern]s; otherwise any Luhn-valid number is accepted.
+  ///
   /// Runs in the validation phase.
   ///
   /// ```dart
   /// V.string().card().validate('4111111111111111'); // true
-  /// V.string().card().validate('1234');             // false
+  /// V.string().card().validate('4111 1111 1111 1111'); // true
+  ///
+  /// V.string()
+  ///   .card(brands: [const VisaBrand(), const MastercardBrand()])
+  ///   .validate('4111111111111111'); // true (Visa)
   /// ```
-  VString card({String? message}) {
-    return add(const CardValidator(), message: message);
+  VString card({List<CardBrandPattern>? brands, String? message}) {
+    return add(CardValidator(brands: brands), message: message);
   }
 
   /// Validates that the string is a valid phone number.

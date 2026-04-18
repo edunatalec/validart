@@ -28,6 +28,7 @@ import 'package:validart/src/validators/number/positive_validator.dart';
 import 'package:validart/src/validators/number/prime_validator.dart';
 import 'package:validart/src/validators/string/alpha_validator.dart';
 import 'package:validart/src/validators/string/alphanumeric_validator.dart';
+import 'package:validart/src/validators/string/card_brand_pattern.dart';
 import 'package:validart/src/validators/string/card_validator.dart';
 import 'package:validart/src/validators/string/contains_validator.dart';
 import 'package:validart/src/validators/string/date_string_validator.dart';

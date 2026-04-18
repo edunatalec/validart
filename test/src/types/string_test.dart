@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
+import 'package:validart/src/validators/string/card_brand_pattern.dart';
 import 'package:validart/src/validators/string/phone_pattern.dart';
 
 void main() {
@@ -684,6 +685,96 @@ void main() {
         final schema = VString()..card(message: 'Bad card');
         final errors = schema.errors('1234567890123456');
         expect(errors!.first.message, 'Bad card');
+      });
+
+      test('should accept Visa when brand is Visa', () {
+        final schema = VString()..card(brands: [const VisaBrand()]);
+        expect(schema.validate('4111111111111111'), isTrue);
+      });
+
+      test('should accept Visa with mask when brand is Visa', () {
+        final schema = VString()..card(brands: [const VisaBrand()]);
+        expect(schema.validate('4111 1111 1111 1111'), isTrue);
+      });
+
+      test('should reject Mastercard when brand is Visa', () {
+        final schema = VString()..card(brands: [const VisaBrand()]);
+        expect(schema.validate('5555555555554444'), isFalse);
+      });
+
+      test('should reject Visa when brand is Mastercard', () {
+        final schema = VString()..card(brands: [const MastercardBrand()]);
+        expect(schema.validate('4111111111111111'), isFalse);
+      });
+
+      test('should accept Mastercard (51-55 range)', () {
+        final schema = VString()..card(brands: [const MastercardBrand()]);
+        expect(schema.validate('5555555555554444'), isTrue);
+      });
+
+      test('should accept Mastercard (2221-2720 range)', () {
+        final schema = VString()..card(brands: [const MastercardBrand()]);
+        expect(schema.validate('2223003122003222'), isTrue);
+      });
+
+      test('should accept Amex (34 prefix)', () {
+        final schema = VString()..card(brands: [const AmexBrand()]);
+        expect(schema.validate('378282246310005'), isTrue);
+      });
+
+      test('should accept Amex (37 prefix)', () {
+        final schema = VString()..card(brands: [const AmexBrand()]);
+        expect(schema.validate('371449635398431'), isTrue);
+      });
+
+      test('should reject Amex with 16 digits', () {
+        final schema = VString()..card(brands: [const AmexBrand()]);
+        expect(schema.validate('3400000000000001'), isFalse);
+      });
+
+      test('should accept Diners', () {
+        final schema = VString()..card(brands: [const DinersBrand()]);
+        expect(schema.validate('30569309025904'), isTrue);
+      });
+
+      test('should accept Discover', () {
+        final schema = VString()..card(brands: [const DiscoverBrand()]);
+        expect(schema.validate('6011111111111117'), isTrue);
+      });
+
+      test('should accept JCB', () {
+        final schema = VString()..card(brands: [const JcbBrand()]);
+        expect(schema.validate('3530111333300000'), isTrue);
+      });
+
+      test('should accept when any of multiple brands matches', () {
+        final schema = VString()
+          ..card(brands: [const VisaBrand(), const MastercardBrand()]);
+        expect(schema.validate('4111111111111111'), isTrue);
+        expect(schema.validate('5555555555554444'), isTrue);
+      });
+
+      test('should reject when none of multiple brands matches', () {
+        final schema = VString()
+          ..card(brands: [const VisaBrand(), const MastercardBrand()]);
+        expect(schema.validate('378282246310005'), isFalse);
+      });
+
+      test('should reject when brand matches but Luhn fails', () {
+        final schema = VString()..card(brands: [const VisaBrand()]);
+        expect(schema.validate('4111111111111112'), isFalse);
+      });
+
+      test('should return error code card when brand does not match', () {
+        final schema = VString()..card(brands: [const VisaBrand()]);
+        final errors = schema.errors('5555555555554444');
+        expect(errors!.first.code, 'card');
+      });
+
+      test('should accept any brand when brands is empty', () {
+        final schema = VString()..card(brands: []);
+        expect(schema.validate('4111111111111111'), isTrue);
+        expect(schema.validate('5555555555554444'), isTrue);
       });
     });
 
