@@ -323,14 +323,22 @@ class VString extends VType<String> {
 
   /// Validates that the string is a valid phone number.
   ///
+  /// Defaults to the E.164 international format via [E164PhonePattern].
+  /// Pass a [pattern] to plug in a country-specific rule (for example,
+  /// `BrPhonePattern` from `validart_br`).
+  ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().phone().validate('+5511999999999'); // true
-  /// V.string().phone().validate('123');             // false
+  /// V.string().phone().validate('+5511999999999'); // true (E.164 default)
+  /// V.string().phone(pattern: const MyCountryPhonePattern())
+  ///   .validate('(11) 98765-4321');
   /// ```
-  VString phone({String? message}) {
-    add(const PhoneValidator(), message: message);
+  VString phone({PhonePattern? pattern, String? message}) {
+    add(
+      PhoneValidator(pattern: pattern ?? const E164PhonePattern()),
+      message: message,
+    );
     return this;
   }
 

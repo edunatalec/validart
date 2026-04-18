@@ -42,6 +42,7 @@ import 'package:validart/src/validators/string/min_length_validator.dart';
 import 'package:validart/src/validators/string/not_empty_validator.dart';
 import 'package:validart/src/validators/string/password_validator.dart';
 import 'package:validart/src/validators/string/pattern_validator.dart';
+import 'package:validart/src/validators/string/phone_pattern.dart';
 import 'package:validart/src/validators/string/phone_validator.dart';
 import 'package:validart/src/validators/string/slug_validator.dart';
 import 'package:validart/src/validators/string/starts_with_validator.dart';

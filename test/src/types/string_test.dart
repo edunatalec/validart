@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
+import 'package:validart/src/validators/string/phone_pattern.dart';
 
 void main() {
   setUp(() => V.setLocale(const VLocale()));
@@ -723,6 +724,18 @@ void main() {
         final errors = schema.errors('bad');
         expect(errors!.first.message, 'Bad phone');
       });
+
+      test('should accept a custom PhonePattern', () {
+        final schema = VString()..phone(pattern: const _FakePhonePattern());
+        expect(schema.validate('LOCAL:1234'), isTrue);
+        expect(schema.validate('+5511987654321'), isFalse);
+      });
+
+      test('custom pattern drives the error code', () {
+        final schema = VString()..phone(pattern: const _FakePhonePattern());
+        final errors = schema.errors('bad');
+        expect(errors!.first.code, 'invalid_phone_fake');
+      });
     });
 
     group('trim', () {
@@ -942,4 +955,15 @@ void main() {
       });
     });
   });
+}
+
+class _FakePhonePattern extends PhonePattern {
+  const _FakePhonePattern();
+
+  @override
+  String get code => 'invalid_phone_fake';
+
+  @override
+  Map<String, dynamic>? validate(String value) =>
+      value.startsWith('LOCAL:') ? null : {};
 }
