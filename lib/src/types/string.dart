@@ -152,16 +152,27 @@ class VString extends VType<String> {
     return add(PatternValidator(pattern: regex), message: message);
   }
 
-  /// Validates that the string is a valid date in ISO 8601 format.
+  /// Validates that the string is a real calendar date.
+  ///
+  /// Without [format], accepts any of the known defaults (ISO, BR, US, EU)
+  /// and the string passes if at least one of them parses to a
+  /// calendar-valid date. With [format], the string must match that
+  /// format exactly. Supported tokens: `YYYY`, `MM`, `DD` — any other
+  /// character is a literal separator.
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().date().validate('2024-01-15'); // true
-  /// V.string().date().validate('not-a-date'); // false
+  /// V.string().date().validate('2024-01-15'); // true (ISO)
+  /// V.string().date().validate('15/01/2024'); // true (BR)
+  /// V.string().date().validate('01/15/2024'); // true (US)
+  /// V.string().date().validate('2024-02-30'); // false (invalid)
+  ///
+  /// V.string().date(format: 'DD/MM/YYYY').validate('15/01/2024'); // true
+  /// V.string().date(format: 'DD/MM/YYYY').validate('2024-01-15'); // false
   /// ```
-  VString date({String? message}) {
-    return add(const DateStringValidator(), message: message);
+  VString date({String? format, String? message}) {
+    return add(DateStringValidator(format: format), message: message);
   }
 
   /// Validates that the string is a valid time in `HH:mm` or `HH:mm:ss`

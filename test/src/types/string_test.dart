@@ -286,9 +286,39 @@ void main() {
         expect(schema.validate('2024-01-32'), isFalse);
       });
 
-      test('should fail for wrong format', () {
+      test('should fail for incomplete format', () {
         final schema = VString()..date();
-        expect(schema.validate('01/15/2024'), isFalse);
+        expect(schema.validate('01/15'), isFalse);
+      });
+
+      test('should pass for BR format (DD/MM/YYYY)', () {
+        final schema = VString()..date();
+        expect(schema.validate('15/01/2024'), isTrue);
+      });
+
+      test('should pass for US format (MM/DD/YYYY)', () {
+        final schema = VString()..date();
+        expect(schema.validate('01/15/2024'), isTrue);
+      });
+
+      test('should pass for EU format (DD.MM.YYYY)', () {
+        final schema = VString()..date();
+        expect(schema.validate('15.01.2024'), isTrue);
+      });
+
+      test('should pass for ISO basic (YYYYMMDD)', () {
+        final schema = VString()..date();
+        expect(schema.validate('20240115'), isTrue);
+      });
+
+      test('should pass for ambiguous BR/US date', () {
+        final schema = VString()..date();
+        expect(schema.validate('02/03/2020'), isTrue);
+      });
+
+      test('should fail when no format interprets calendar-validly', () {
+        final schema = VString()..date();
+        expect(schema.validate('30/02/2020'), isFalse);
       });
 
       test('should return error code invalid_date', () {
@@ -301,6 +331,76 @@ void main() {
         final schema = VString()..date(message: 'Bad date');
         final errors = schema.errors('bad');
         expect(errors!.first.message, 'Bad date');
+      });
+
+      test('should fail for calendar-invalid February 30', () {
+        final schema = VString()..date();
+        expect(schema.validate('2024-02-30'), isFalse);
+      });
+
+      test('should fail for calendar-invalid April 31', () {
+        final schema = VString()..date();
+        expect(schema.validate('2024-04-31'), isFalse);
+      });
+
+      test('should fail for Feb 29 on non-leap year', () {
+        final schema = VString()..date();
+        expect(schema.validate('2023-02-29'), isFalse);
+      });
+
+      test('should pass for Feb 29 on leap year', () {
+        final schema = VString()..date();
+        expect(schema.validate('2024-02-29'), isTrue);
+      });
+
+      test('should fail for date with time component', () {
+        final schema = VString()..date();
+        expect(schema.validate('2024-01-15T10:30:00'), isFalse);
+      });
+
+      test('should fail for date with space time', () {
+        final schema = VString()..date();
+        expect(schema.validate('2024-01-15 10:30'), isFalse);
+      });
+
+      test('should pass with strict format DD/MM/YYYY', () {
+        final schema = VString()..date(format: 'DD/MM/YYYY');
+        expect(schema.validate('15/01/2024'), isTrue);
+      });
+
+      test('should fail with strict DD/MM/YYYY for ISO input', () {
+        final schema = VString()..date(format: 'DD/MM/YYYY');
+        expect(schema.validate('2024-01-15'), isFalse);
+      });
+
+      test('should pass with strict MM/DD/YYYY for US input', () {
+        final schema = VString()..date(format: 'MM/DD/YYYY');
+        expect(schema.validate('01/15/2024'), isTrue);
+      });
+
+      test('should fail with strict MM/DD/YYYY for invalid month', () {
+        final schema = VString()..date(format: 'MM/DD/YYYY');
+        expect(schema.validate('15/01/2024'), isFalse);
+      });
+
+      test('should pass with strict YYYY-MM-DD', () {
+        final schema = VString()..date(format: 'YYYY-MM-DD');
+        expect(schema.validate('2024-01-15'), isTrue);
+      });
+
+      test('should fail with strict YYYY-MM-DD for BR input', () {
+        final schema = VString()..date(format: 'YYYY-MM-DD');
+        expect(schema.validate('15/01/2024'), isFalse);
+      });
+
+      test('should fail with strict DD/MM/YYYY for calendar-invalid', () {
+        final schema = VString()..date(format: 'DD/MM/YYYY');
+        expect(schema.validate('31/02/2024'), isFalse);
+      });
+
+      test('should pass with strict DD.MM.YYYY', () {
+        final schema = VString()..date(format: 'DD.MM.YYYY');
+        expect(schema.validate('15.01.2024'), isTrue);
       });
     });
 
