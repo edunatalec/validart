@@ -35,7 +35,7 @@ void main() {
     });
 
     test('should pass for null when nullable', () {
-      final schema = VEnum(Color.values)..nullable();
+      final schema = VEnum(Color.values).nullable();
       expect(schema.validate(null), isTrue);
     });
 
@@ -66,7 +66,7 @@ void main() {
 
     test('should support refine', () {
       final schema = VEnum(Color.values)
-        ..refine((v) => v != Color.red, message: 'Red not allowed');
+          .refine((v) => v != Color.red, message: 'Red not allowed');
       expect(schema.validate(Color.green), isTrue);
       expect(schema.validate(Color.red), isFalse);
     });

@@ -36,7 +36,7 @@ void main() {
     });
 
     test('should pass for null when nullable', () {
-      final schema = VLiteral('admin')..nullable();
+      final schema = VLiteral('admin').nullable();
       expect(schema.validate(null), isTrue);
     });
 

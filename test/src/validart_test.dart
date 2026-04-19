@@ -37,8 +37,8 @@ void main() {
 
     test('should create map schema', () {
       final schema = V.map({
-        'name': V.string()..min(1),
-        'age': V.int()..min(0),
+        'name': V.string().min(1),
+        'age': V.int().min(0),
       });
       expect(schema, isA<VMap>());
       expect(schema.validate({'name': 'Alice', 'age': 25}), isTrue);
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('should create array schema', () {
-      final schema = V.array(V.string()..email());
+      final schema = V.array(V.string().email());
       expect(schema, isA<VArray<String>>());
       expect(schema.validate(['a@b.com']), isTrue);
     });
@@ -60,7 +60,7 @@ void main() {
       V.setLocale(const VLocale({
         'invalid_email': 'Email inválido',
       }));
-      final schema = V.string()..email();
+      final schema = V.string().email();
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Email inválido');
     });

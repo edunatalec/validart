@@ -56,11 +56,9 @@ void main() {
                 .field(
                   'id',
                   (f) => f.id,
-                  VString()
-                    ..uuid()
-                    ..nullable(),
+                  VString().uuid().nullable(),
                 )
-                .field('name', (f) => f.name, VString()..min(1)));
+                .field('name', (f) => f.name, VString().min(1)));
         expect(schema.validate(Folder(name: 'Documents')), isTrue);
       });
 
@@ -69,7 +67,7 @@ void main() {
             configure: (o) => o.field(
                   'name',
                   (f) => f.name,
-                  VString()..min(5),
+                  VString().min(5),
                 ));
         expect(schema.validate(Folder(name: 'Doc')), isFalse);
       });
@@ -79,7 +77,7 @@ void main() {
             configure: (o) => o.field(
                   'name',
                   (f) => f.name,
-                  VString()..min(5),
+                  VString().min(5),
                 ));
         final errors = schema.errors(Folder(name: 'Doc'));
         expect(errors, isNotNull);
@@ -92,7 +90,7 @@ void main() {
             configure: (o) => o.field(
                   'id',
                   (f) => f.id,
-                  VString()..uuid(),
+                  VString().uuid(),
                 ));
         expect(
           schema.validate(Folder(
@@ -108,7 +106,7 @@ void main() {
             configure: (o) => o.field(
                   'id',
                   (f) => f.id,
-                  VString()..uuid(),
+                  VString().uuid(),
                 ));
         final errors = schema.errors(Folder(id: 'not-a-uuid', name: 'Test'));
         expect(errors, isNotNull);
@@ -119,8 +117,8 @@ void main() {
       test('should collect multiple field errors', () {
         final schema = VObject<Folder>(
             configure: (o) => o
-                .field('id', (f) => f.id, VString()..uuid())
-                .field('name', (f) => f.name, VString()..min(10)));
+                .field('id', (f) => f.id, VString().uuid())
+                .field('name', (f) => f.name, VString().min(10)));
         final errors = schema.errors(Folder(id: 'bad', name: 'short'));
         expect(errors, isNotNull);
         expect(errors!.length, 2);
@@ -131,32 +129,29 @@ void main() {
 
     group('refine', () {
       test('should add custom validation', () {
-        final schema = VObject<Folder>()
-          ..refine(
-            (f) => f.name.isNotEmpty,
-            message: 'Name cannot be empty',
-            code: 'empty_name',
-          );
+        final schema = VObject<Folder>().refine(
+          (f) => f.name.isNotEmpty,
+          message: 'Name cannot be empty',
+          code: 'empty_name',
+        );
         expect(schema.validate(Folder(name: 'Documents')), isTrue);
       });
 
       test('should fail custom validation', () {
-        final schema = VObject<Folder>()
-          ..refine(
-            (f) => f.name.length >= 5,
-            message: 'Name too short',
-            code: 'name_too_short',
-          );
+        final schema = VObject<Folder>().refine(
+          (f) => f.name.length >= 5,
+          message: 'Name too short',
+          code: 'name_too_short',
+        );
         expect(schema.validate(Folder(name: 'Doc')), isFalse);
       });
 
       test('should return custom error code', () {
-        final schema = VObject<Folder>()
-          ..refine(
-            (f) => f.id != null,
-            message: 'ID is required',
-            code: 'missing_id',
-          );
+        final schema = VObject<Folder>().refine(
+          (f) => f.id != null,
+          message: 'ID is required',
+          code: 'missing_id',
+        );
         final errors = schema.errors(Folder(name: 'Test'));
         expect(errors, isNotNull);
         expect(errors!.first.code, 'missing_id');
@@ -166,23 +161,23 @@ void main() {
 
     group('nullable and optional', () {
       test('nullable should allow null', () {
-        final schema = VObject<Folder>()..nullable();
+        final schema = VObject<Folder>().nullable();
         expect(schema.validate(null), isTrue);
       });
 
       test('nullable should parse null to null', () {
-        final schema = VObject<Folder>()..nullable();
+        final schema = VObject<Folder>().nullable();
         expect(schema.parse(null), isNull);
       });
 
       test('nullable should allow null', () {
-        final schema = VObject<Folder>()..nullable();
+        final schema = VObject<Folder>().nullable();
         expect(schema.validate(null), isTrue);
       });
 
       test('defaultValue should return default when null', () {
         final fallback = Folder(name: 'Default');
-        final schema = VObject<Folder>()..defaultValue(fallback);
+        final schema = VObject<Folder>().defaultValue(fallback);
         final result = schema.parse(null);
         expect(result, fallback);
       });
@@ -224,7 +219,7 @@ void main() {
               configure: (o) => o.field(
                     'name',
                     (f) => f.name,
-                    VString()..min(1),
+                    VString().min(1),
                   )),
         });
         expect(
@@ -239,7 +234,7 @@ void main() {
               configure: (o) => o.field(
                     'name',
                     (f) => f.name,
-                    VString()..min(10),
+                    VString().min(10),
                   )),
         });
         expect(
@@ -254,7 +249,7 @@ void main() {
               configure: (o) => o.field(
                     'name',
                     (f) => f.name,
-                    VString()..min(10),
+                    VString().min(10),
                   )),
         });
         final errors = schema.errors({'folder': Folder(name: 'Doc')});
@@ -277,8 +272,8 @@ void main() {
       test('should validate object containing a list field', () {
         final schema = VObject<_TaggedFolder>(
           configure: (o) => o
-              .field('name', (f) => f.name, VString()..min(1))
-              .field('tags', (f) => f.tags, VArray<String>(VString()..min(1))),
+              .field('name', (f) => f.name, VString().min(1))
+              .field('tags', (f) => f.tags, VArray<String>(VString().min(1))),
         );
 
         expect(schema.validate(_TaggedFolder('Docs', ['a', 'b'])), isTrue);
@@ -288,7 +283,7 @@ void main() {
       test('should include nested path for array field errors', () {
         final schema = VObject<_TaggedFolder>(
           configure: (o) =>
-              o.field('tags', (f) => f.tags, VArray<String>(VString()..min(3))),
+              o.field('tags', (f) => f.tags, VArray<String>(VString().min(3))),
         );
 
         final errs = schema.errors(_TaggedFolder('Docs', ['hello', 'ab']));

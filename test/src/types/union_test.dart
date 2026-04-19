@@ -30,7 +30,7 @@ void main() {
     });
 
     test('should pass for null when nullable', () {
-      final schema = VUnion([VString(), VInt()])..nullable();
+      final schema = VUnion([VString(), VInt()]).nullable();
       expect(schema.validate(null), isTrue);
     });
 
@@ -42,8 +42,8 @@ void main() {
 
     test('should work with validators on options', () {
       final schema = VUnion([
-        VString()..email(),
-        VInt()..min(0),
+        VString().email(),
+        VInt().min(0),
       ]);
       expect(schema.validate('test@example.com'), isTrue);
       expect(schema.validate(42), isTrue);
@@ -64,8 +64,8 @@ void main() {
 
     test('should expose per-option errors in VError.context', () {
       final schema = VUnion([
-        VString()..email(),
-        VInt()..positive(),
+        VString().email(),
+        VInt().positive(),
       ]);
 
       final errors = schema.errors(3.14);

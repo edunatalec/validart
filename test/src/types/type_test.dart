@@ -105,51 +105,47 @@ void main() {
 
     group('nullable', () {
       test('should allow null when nullable', () {
-        final schema = TestStringType()..nullable();
+        final schema = TestStringType().nullable();
         expect(schema.validate(null), isTrue);
         expect(schema.parse(null), isNull);
       });
 
       test('should still validate type when nullable', () {
-        final schema = TestStringType()..nullable();
+        final schema = TestStringType().nullable();
         expect(schema.validate('hello'), isTrue);
       });
     });
 
     group('defaultValue', () {
       test('should use default when value is null', () {
-        final schema = TestStringType()..defaultValue('fallback');
+        final schema = TestStringType().defaultValue('fallback');
         expect(schema.parse(null), 'fallback');
       });
 
       test('should not use default when value is provided', () {
-        final schema = TestStringType()..defaultValue('fallback');
+        final schema = TestStringType().defaultValue('fallback');
         expect(schema.parse('hello'), 'hello');
       });
 
       test('should take precedence over nullable on null input', () {
-        final a = TestStringType()
-          ..nullable()
-          ..defaultValue('N/A');
+        final a = TestStringType().nullable().defaultValue('N/A');
         expect(a.parse(null), 'N/A');
 
-        final b = TestStringType()
-          ..defaultValue('N/A')
-          ..nullable();
+        final b = TestStringType().defaultValue('N/A').nullable();
         expect(b.parse(null), 'N/A');
       });
     });
 
     group('refine', () {
       test('should pass when refine returns true', () {
-        final schema = TestStringType()
-          ..refine((v) => v.length >= 3, message: 'Too short');
+        final schema =
+            TestStringType().refine((v) => v.length >= 3, message: 'Too short');
         expect(schema.validate('hello'), isTrue);
       });
 
       test('should fail when refine returns false', () {
-        final schema = TestStringType()
-          ..refine((v) => v.length >= 3, message: 'Too short');
+        final schema =
+            TestStringType().refine((v) => v.length >= 3, message: 'Too short');
         expect(schema.validate('hi'), isFalse);
 
         final errs = schema.errors('hi');
@@ -158,17 +154,16 @@ void main() {
       });
 
       test('should use custom code', () {
-        final schema = TestStringType()
-          ..refine((v) => v.isNotEmpty,
-              code: 'not_empty', message: 'Cannot be empty');
+        final schema = TestStringType().refine((v) => v.isNotEmpty,
+            code: 'not_empty', message: 'Cannot be empty');
         final errs = schema.errors('');
         expect(errs!.first.code, 'not_empty');
       });
 
       test('should collect multiple refine errors', () {
         final schema = TestStringType()
-          ..refine((v) => v.length >= 3, message: 'Too short')
-          ..refine((v) => v.contains('@'), message: 'Must contain @');
+            .refine((v) => v.length >= 3, message: 'Too short')
+            .refine((v) => v.contains('@'), message: 'Must contain @');
         final errs = schema.errors('hi');
         expect(errs!.length, 2);
       });
@@ -258,14 +253,14 @@ void main() {
 
   group('add', () {
     test('should add custom validator', () {
-      final schema = TestStringType()..add(const _LengthValidator(min: 3));
+      final schema = TestStringType().add(const _LengthValidator(min: 3));
       expect(schema.validate('hello'), isTrue);
       expect(schema.validate('hi'), isFalse);
     });
 
     test('should add custom validator with message override', () {
       final schema = TestStringType()
-        ..add(const _LengthValidator(min: 3), message: 'Too short');
+          .add(const _LengthValidator(min: 3), message: 'Too short');
       final errs = schema.errors('hi');
       expect(errs!.first.message, 'Too short');
     });
@@ -273,27 +268,27 @@ void main() {
 
   group('preprocess', () {
     test('should transform value before type check', () {
-      final schema = TestStringType()..preprocess((v) => v?.toString() ?? '');
+      final schema = TestStringType().preprocess((v) => v?.toString() ?? '');
       expect(schema.parse(42), '42');
     });
 
     test('should preprocess null into non-null', () {
-      final schema = TestStringType()..preprocess((v) => v ?? 'default');
+      final schema = TestStringType().preprocess((v) => v ?? 'default');
       expect(schema.parse(null), 'default');
     });
 
     test('should preprocess before validation', () {
       final schema = TestStringType()
-        ..preprocess((v) => (v as String?)?.trim())
-        ..refine((v) => v.length >= 3);
+          .preprocess((v) => (v as String?)?.trim())
+          .refine((v) => v.length >= 3);
       expect(schema.validate('  hello  '), isTrue);
       expect(schema.validate('  hi  '), isFalse);
     });
 
     test('should chain multiple preprocess calls', () {
       final schema = TestStringType()
-        ..preprocess((v) => (v as String?)?.trim())
-        ..preprocess((v) => (v as String?)?.toLowerCase());
+          .preprocess((v) => (v as String?)?.trim())
+          .preprocess((v) => (v as String?)?.toLowerCase());
 
       expect(schema.parse('  HELLO  '), 'hello');
     });
@@ -306,9 +301,9 @@ void main() {
     });
 
     test('should propagate errors from inner schema', () {
-      final schema = (TestStringType()
-            ..refine((v) => v.length >= 5, message: 'Too short'))
-          .transform<int>((s) => s.length);
+      final schema =
+          (TestStringType().refine((v) => v.length >= 5, message: 'Too short'))
+              .transform<int>((s) => s.length);
       expect(schema.validate('hi'), isFalse);
     });
 
@@ -321,33 +316,29 @@ void main() {
 
     test('should handle null when inner is nullable', () {
       final schema =
-          (TestStringType()..nullable()).transform<int>((s) => s.length);
+          (TestStringType().nullable()).transform<int>((s) => s.length);
       expect(schema.parse(null), isNull);
     });
   });
 
   group('pipeline order', () {
     test('should run steps in order added', () {
-      final schema = VString()
-        ..trim()
-        ..refine((v) => v.length >= 5, message: 'Too short');
+      final schema =
+          VString().trim().refine((v) => v.length >= 5, message: 'Too short');
 
       expect(schema.validate('  hello  '), isTrue);
       expect(schema.parse('  hello  '), 'hello');
     });
 
     test('should validate trimmed value when trim is first', () {
-      final schema = VString()
-        ..trim()
-        ..refine((v) => v.length >= 5);
+      final schema = VString().trim().refine((v) => v.length >= 5);
 
       expect(schema.validate('  hi  '), isFalse);
     });
 
     test('should not run transforms after validation fails', () {
-      final schema = VString()
-        ..refine((v) => false, message: 'Always fails')
-        ..trim();
+      final schema =
+          VString().refine((v) => false, message: 'Always fails').trim();
       final result = schema.safeParse('  hello  ');
 
       expect(result.isValid, isFalse);

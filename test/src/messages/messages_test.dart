@@ -68,7 +68,7 @@ void main() {
       V.setLocale(const VLocale({
         'invalid_email': 'Email inválido',
       }));
-      final schema = VString()..email();
+      final schema = VString().email();
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Email inválido');
     });
@@ -77,7 +77,7 @@ void main() {
       V.setLocale(const VLocale({
         'positive': 'Deve ser positivo',
       }));
-      final schema = VInt()..positive();
+      final schema = VInt().positive();
       final errs = schema.errors(-1);
       expect(errs!.first.message, 'Deve ser positivo');
     });
@@ -86,7 +86,7 @@ void main() {
       V.setLocale(const VLocale({
         'is_true': 'Deve ser verdadeiro',
       }));
-      final schema = VBool()..isTrue();
+      final schema = VBool().isTrue();
       final errs = schema.errors(false);
       expect(errs!.first.message, 'Deve ser verdadeiro');
     });
@@ -150,14 +150,14 @@ void main() {
       V.setLocale(const VLocale({
         'invalid_email': 'Global email msg',
       }));
-      final schema = VString()..email(message: 'Per-validator msg');
+      final schema = VString().email(message: 'Per-validator msg');
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Per-validator msg');
     });
 
     test('should use default message when no custom provided', () {
       V.setLocale(const VLocale());
-      final schema = VString()..email();
+      final schema = VString().email();
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Invalid email address');
     });
