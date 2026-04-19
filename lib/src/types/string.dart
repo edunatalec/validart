@@ -381,10 +381,119 @@ class VString extends VType<String> {
     return this;
   }
 
+  /// Converts the value to `PascalCase`.
+  ///
+  /// Runs in the pre-processing phase. Words are extracted from the input
+  /// (respecting case boundaries, digits, and separators like ` `, `_`,
+  /// `-`); any character outside letters and digits is dropped.
+  ///
+  /// ```dart
+  /// V.string().toPascalCase().parse('hello world');     // 'HelloWorld'
+  /// V.string().toPascalCase().parse('user_profile_id'); // 'UserProfileId'
+  /// V.string().toPascalCase().parse('XMLHttpRequest');  // 'XmlHttpRequest'
+  /// ```
+  VString toPascalCase() {
+    _preTransform((value) => _splitWords(value).map(_capitalize).join(''));
+    return this;
+  }
+
+  /// Converts the value to `camelCase`.
+  ///
+  /// Runs in the pre-processing phase. Same word-extraction rules as
+  /// [toPascalCase], except the first word is lowercased.
+  ///
+  /// ```dart
+  /// V.string().toCamelCase().parse('hello world');     // 'helloWorld'
+  /// V.string().toCamelCase().parse('user_profile_id'); // 'userProfileId'
+  /// V.string().toCamelCase().parse('HELLO_WORLD');     // 'helloWorld'
+  /// ```
+  VString toCamelCase() {
+    _preTransform((value) {
+      final words = _splitWords(value);
+
+      if (words.isEmpty) return '';
+
+      final first = words.first.toLowerCase();
+      final rest = words.skip(1).map(_capitalize).join('');
+
+      return first + rest;
+    });
+
+    return this;
+  }
+
+  /// Converts the value to `snake_case`.
+  ///
+  /// Runs in the pre-processing phase. Words are extracted and joined with
+  /// `_`; all characters are lowercased.
+  ///
+  /// ```dart
+  /// V.string().toSnakeCase().parse('HelloWorld');      // 'hello_world'
+  /// V.string().toSnakeCase().parse('userProfileID');   // 'user_profile_id'
+  /// V.string().toSnakeCase().parse('hello-world');     // 'hello_world'
+  /// ```
+  VString toSnakeCase() {
+    _preTransform(
+      (value) => _splitWords(value).map((w) => w.toLowerCase()).join('_'),
+    );
+
+    return this;
+  }
+
+  /// Converts the value to `SCREAMING_SNAKE_CASE`.
+  ///
+  /// Runs in the pre-processing phase. Words are extracted and joined with
+  /// `_`; all characters are uppercased.
+  ///
+  /// ```dart
+  /// V.string().toScreamingSnakeCase().parse('helloWorld');  // 'HELLO_WORLD'
+  /// V.string().toScreamingSnakeCase().parse('user-profile'); // 'USER_PROFILE'
+  /// ```
+  VString toScreamingSnakeCase() {
+    _preTransform(
+      (value) => _splitWords(value).map((w) => w.toUpperCase()).join('_'),
+    );
+
+    return this;
+  }
+
+  /// Converts the value to a URL-friendly slug (`kebab-case` lowercase).
+  ///
+  /// Runs in the pre-processing phase. Words are extracted and joined with
+  /// `-`; all characters are lowercased. Non-alphanumeric characters are
+  /// dropped.
+  ///
+  /// ```dart
+  /// V.string().toSlug().parse('My Blog Post!');       // 'my-blog-post'
+  /// V.string().toSlug().parse('helloWorld_2024');     // 'hello-world-2024'
+  /// V.string().toSlug().parse('  foo   bar  baz  ');  // 'foo-bar-baz'
+  /// ```
+  VString toSlug() {
+    _preTransform(
+      (value) => _splitWords(value).map((w) => w.toLowerCase()).join('-'),
+    );
+
+    return this;
+  }
+
   /// Creates a [VArray] schema that validates a `List<String>`.
   ///
   /// ```dart
   /// V.string().email().array().parse(['a@b.com', 'c@d.com']);
   /// ```
   VArray<String> array() => VArray<String>(this);
+}
+
+final RegExp _wordRegex = RegExp(
+  r'[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+',
+);
+
+List<String> _splitWords(String input) {
+  return _wordRegex.allMatches(input).map((m) => m.group(0)!).toList();
+}
+
+String _capitalize(String word) {
+  if (word.isEmpty) return word;
+
+  return word[0].toUpperCase() + word.substring(1).toLowerCase();
 }

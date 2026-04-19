@@ -965,6 +965,277 @@ void main() {
       });
     });
 
+    group('toPascalCase', () {
+      test('should convert space-separated to PascalCase', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('hello world'), 'HelloWorld');
+      });
+
+      test('should convert camelCase to PascalCase', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('helloWorld'), 'HelloWorld');
+      });
+
+      test('should convert snake_case to PascalCase', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('user_profile_id'), 'UserProfileId');
+      });
+
+      test('should convert SCREAMING_SNAKE_CASE to PascalCase', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('HELLO_WORLD'), 'HelloWorld');
+      });
+
+      test('should convert kebab-case to PascalCase', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('hello-world'), 'HelloWorld');
+      });
+
+      test('should split acronyms in XMLHttpRequest', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('XMLHttpRequest'), 'XmlHttpRequest');
+      });
+
+      test('should keep digits as their own segment', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('version2Alpha'), 'Version2Alpha');
+      });
+
+      test('should drop invalid characters', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('hello@world!'), 'HelloWorld');
+      });
+
+      test('should collapse extra whitespace', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('  foo   bar  '), 'FooBar');
+      });
+
+      test('should return empty string for empty input', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse(''), '');
+      });
+
+      test('should return empty string for input with only symbols', () {
+        final schema = VString()..toPascalCase();
+        expect(schema.parse('!@#\$%'), '');
+      });
+    });
+
+    group('toCamelCase', () {
+      test('should convert PascalCase to camelCase', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('HelloWorld'), 'helloWorld');
+      });
+
+      test('should convert snake_case to camelCase', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('hello_world'), 'helloWorld');
+      });
+
+      test('should convert SCREAMING_SNAKE_CASE to camelCase', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('HELLO_WORLD'), 'helloWorld');
+      });
+
+      test('should convert kebab-case to camelCase', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('user-profile-id'), 'userProfileId');
+      });
+
+      test('should convert space-separated to camelCase', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('hello world foo bar'), 'helloWorldFooBar');
+      });
+
+      test('should split acronym in XMLHttpRequest', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('XMLHttpRequest'), 'xmlHttpRequest');
+      });
+
+      test('should handle mixed separators', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('Hello_world-foo bar'), 'helloWorldFooBar');
+      });
+
+      test('should drop invalid characters', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('hello@world!'), 'helloWorld');
+      });
+
+      test('should handle single word', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse('HELLO'), 'hello');
+      });
+
+      test('should return empty string for empty input', () {
+        final schema = VString()..toCamelCase();
+        expect(schema.parse(''), '');
+      });
+    });
+
+    group('toSnakeCase', () {
+      test('should convert PascalCase to snake_case', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('HelloWorld'), 'hello_world');
+      });
+
+      test('should convert camelCase to snake_case', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('userProfileId'), 'user_profile_id');
+      });
+
+      test('should convert SCREAMING_SNAKE_CASE to snake_case', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('HELLO_WORLD'), 'hello_world');
+      });
+
+      test('should convert kebab-case to snake_case', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('hello-world'), 'hello_world');
+      });
+
+      test('should convert space-separated to snake_case', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('Hello World'), 'hello_world');
+      });
+
+      test('should split acronym in XMLHttpRequest', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('XMLHttpRequest'), 'xml_http_request');
+      });
+
+      test('should keep digits as segment', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('version2Alpha'), 'version_2_alpha');
+      });
+
+      test('should drop invalid characters', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse('hello@world!foo'), 'hello_world_foo');
+      });
+
+      test('should return empty string for empty input', () {
+        final schema = VString()..toSnakeCase();
+        expect(schema.parse(''), '');
+      });
+    });
+
+    group('toScreamingSnakeCase', () {
+      test('should convert camelCase to SCREAMING_SNAKE_CASE', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('helloWorld'), 'HELLO_WORLD');
+      });
+
+      test('should convert PascalCase to SCREAMING_SNAKE_CASE', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('HelloWorld'), 'HELLO_WORLD');
+      });
+
+      test('should convert snake_case to SCREAMING_SNAKE_CASE', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('hello_world'), 'HELLO_WORLD');
+      });
+
+      test('should convert kebab-case to SCREAMING_SNAKE_CASE', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('hello-world'), 'HELLO_WORLD');
+      });
+
+      test('should split acronym in XMLHttpRequest', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('XMLHttpRequest'), 'XML_HTTP_REQUEST');
+      });
+
+      test('should convert space-separated', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('hello world'), 'HELLO_WORLD');
+      });
+
+      test('should drop invalid characters', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse('hello@world!'), 'HELLO_WORLD');
+      });
+
+      test('should return empty string for empty input', () {
+        final schema = VString()..toScreamingSnakeCase();
+        expect(schema.parse(''), '');
+      });
+    });
+
+    group('toSlug', () {
+      test('should convert sentence to slug', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('My Blog Post'), 'my-blog-post');
+      });
+
+      test('should drop punctuation', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('My Blog Post!'), 'my-blog-post');
+      });
+
+      test('should convert PascalCase to slug', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('HelloWorld'), 'hello-world');
+      });
+
+      test('should convert camelCase to slug', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('helloWorld'), 'hello-world');
+      });
+
+      test('should convert snake_case to slug', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('hello_world'), 'hello-world');
+      });
+
+      test('should keep digits', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('helloWorld_2024'), 'hello-world-2024');
+      });
+
+      test('should collapse consecutive separators', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('Hello---World'), 'hello-world');
+      });
+
+      test('should collapse extra whitespace', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('  foo   bar  baz  '), 'foo-bar-baz');
+      });
+
+      test('should split acronym in XMLHttpRequest', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('XMLHttpRequest'), 'xml-http-request');
+      });
+
+      test('should drop invalid characters', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse('foo@bar.com'), 'foo-bar-com');
+      });
+
+      test('should return empty string for empty input', () {
+        final schema = VString()..toSlug();
+        expect(schema.parse(''), '');
+      });
+    });
+
+    group('case transforms + validation', () {
+      test('toCamelCase should run before equals validator', () {
+        final schema = VString()
+          ..toCamelCase()
+          ..equals('helloWorld');
+        expect(schema.validate('hello_world'), isTrue);
+      });
+
+      test('toSlug should run before slug validator', () {
+        final schema = VString()
+          ..toSlug()
+          ..slug();
+        expect(schema.validate('Hello World!'), isTrue);
+      });
+    });
+
     group('pre-processing + validation', () {
       test('trim then min should validate after trimming', () {
         final schema = VString()
