@@ -46,12 +46,19 @@ class VBool extends VType<bool> {
   }
 
   @override
+  VBool preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    super.preprocessAsync(fn);
+    return this;
+  }
+
+  @override
   VBool refineAsync(
     Future<bool> Function(bool value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
-    super.refineAsync(check, message: message, code: code);
+    super.refineAsync(check, message: message, code: code, timeout: timeout);
     return this;
   }
 

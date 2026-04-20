@@ -141,12 +141,19 @@ class VInt extends VNumber<int> {
   }
 
   @override
+  VInt preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    super.preprocessAsync(fn);
+    return this;
+  }
+
+  @override
   VInt refineAsync(
     Future<bool> Function(int value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
-    super.refineAsync(check, message: message, code: code);
+    super.refineAsync(check, message: message, code: code, timeout: timeout);
     return this;
   }
 
@@ -276,12 +283,19 @@ class VDouble extends VNumber<double> {
   }
 
   @override
+  VDouble preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    super.preprocessAsync(fn);
+    return this;
+  }
+
+  @override
   VDouble refineAsync(
     Future<bool> Function(double value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
-    super.refineAsync(check, message: message, code: code);
+    super.refineAsync(check, message: message, code: code, timeout: timeout);
     return this;
   }
 

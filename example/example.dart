@@ -501,6 +501,36 @@ Future<void> asyncExamples() async {
 
   // Sync-only schemas still work sync without any overhead.
   print(V.string().email().validate('a@b.com')); // true
+
+  // addAsync — custom AsyncValidator (reusable across schemas)
+  final usernameSchema = V.string().addAsync(const _UsernameAvailable());
+  print(await usernameSchema.validateAsync('new_user')); // true
+  print(await usernameSchema.validateAsync('taken')); // false
+
+  // refineAsync with timeout
+  final slowSchema = V.string().refineAsync(
+    (v) async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      return true;
+    },
+    timeout: const Duration(milliseconds: 50),
+    message: 'Timed out',
+  );
+  print(await slowSchema.validateAsync('x')); // false (timed out)
+
+  // preprocessAsync — transform input before type check
+  final resolvedSchema = V.string().preprocessAsync((raw) async {
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+    return raw.toString().trim();
+  }).min(3);
+  print(await resolvedSchema.validateAsync('  hello  ')); // true
+
+  // transformAsync — change output type asynchronously
+  final lengthSchema = V.string().min(3).transformAsync<int>((v) async {
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+    return v.length;
+  });
+  print(await lengthSchema.parseAsync('hello')); // 5
 }
 
 void localeExamples() {
@@ -549,6 +579,19 @@ class DummyTaxIdPattern extends TaxIdPattern {
 
   @override
   bool matches(String value) => value.startsWith('TAX:');
+}
+
+class _UsernameAvailable extends AsyncValidator<String> {
+  const _UsernameAvailable();
+
+  @override
+  String get code => 'username_taken';
+
+  @override
+  Future<Map<String, dynamic>?> validate(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+    return value == 'taken' ? {} : null;
+  }
 }
 
 class DummyPlatePattern extends LicensePlatePattern {

@@ -99,12 +99,19 @@ class VObject<T> extends VType<T> {
   }
 
   @override
+  VObject<T> preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    super.preprocessAsync(fn);
+    return this;
+  }
+
+  @override
   VObject<T> refineAsync(
     Future<bool> Function(T value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
-    super.refineAsync(check, message: message, code: code);
+    super.refineAsync(check, message: message, code: code, timeout: timeout);
     return this;
   }
 

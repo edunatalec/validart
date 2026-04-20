@@ -36,6 +36,12 @@ class VString extends VType<String> {
   }
 
   @override
+  VString preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    super.preprocessAsync(fn);
+    return this;
+  }
+
+  @override
   VString refine(
     bool Function(String value) check, {
     String? message,
@@ -50,8 +56,9 @@ class VString extends VType<String> {
     Future<bool> Function(String value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
-    super.refineAsync(check, message: message, code: code);
+    super.refineAsync(check, message: message, code: code, timeout: timeout);
     return this;
   }
 

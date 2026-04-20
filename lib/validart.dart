@@ -16,7 +16,8 @@ export 'src/types/type.dart'
         VEnum,
         VLiteral,
         VUnion,
-        VTransformed;
+        VTransformed,
+        VTransformedAsync;
 export 'src/v.dart';
 export 'src/validators/string/card_brand_pattern.dart'
     show

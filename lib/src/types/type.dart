@@ -107,6 +107,7 @@ abstract class VType<T> {
   T Function(Object value)? coercer;
 
   final List<Object? Function(Object?)> _preprocessors = [];
+  final List<Future<Object?> Function(Object?)> _asyncPreprocessors = [];
 
   VType<T> _addStep(_PipelineStep<T> step) {
     _steps.add(step);
@@ -117,7 +118,9 @@ abstract class VType<T> {
   /// the synchronous consumers (`parse`, `validate`, `safeParse`, `errors`)
   /// throw [VAsyncRequiredException] and the caller must use the `*Async`
   /// variants instead.
-  bool get hasAsync => _steps.any((s) => s is _AsyncValidatorStep<T>);
+  bool get hasAsync =>
+      _asyncPreprocessors.isNotEmpty ||
+      _steps.any((s) => s is _AsyncValidatorStep<T>);
 
   /// Adds a [Validator] to the validation phase of the pipeline.
   ///
@@ -137,6 +140,30 @@ abstract class VType<T> {
       messageOverride: message,
       path: path,
     ));
+  }
+
+  /// Adds an [AsyncValidator] to the validation phase.
+  ///
+  /// Makes the schema async-only: sync consumers (`parse`, `validate`,
+  /// `safeParse`, `errors`) will throw `VAsyncRequiredException`; use the
+  /// `*Async` variants.
+  ///
+  /// ```dart
+  /// V.string().addAsync(const UsernameAvailableValidator());
+  /// ```
+  VType<T> addAsync(
+    AsyncValidator<T> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    _addStep(_AsyncValidatorStep<T>(
+      validate: validator.validate,
+      code: validator.code,
+      messageOverride: message,
+      path: path,
+    ));
+
+    return this;
   }
 
   VResult<S?>? _nullCheck<S>(S? defaultVal, bool hasDefault, Object? value) {
@@ -248,6 +275,10 @@ abstract class VType<T> {
 
     for (final fn in _preprocessors) {
       input = fn(input);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      input = await fn(input);
     }
 
     final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, input);
@@ -483,6 +514,22 @@ abstract class VType<T> {
     return this;
   }
 
+  /// Async variant of [preprocess]. The function can return a [Future] —
+  /// the raw input is transformed before type checking.
+  ///
+  /// Adding an async preprocessor makes the schema async-only.
+  ///
+  /// ```dart
+  /// V.string().preprocessAsync((raw) async {
+  ///   return await api.resolveAlias(raw as String);
+  /// });
+  /// ```
+  VType<T> preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    _asyncPreprocessors.add(fn);
+
+    return this;
+  }
+
   /// Creates a [VTransformed] that converts the validated value to type [O].
   ///
   /// Runs in the post-processing phase, after all validations pass.
@@ -493,6 +540,20 @@ abstract class VType<T> {
   /// ```
   VTransformed<T, O> transform<O>(O Function(T value) fn) =>
       VTransformed<T, O>(this, fn);
+
+  /// Async variant of [transform]. The transform function returns a
+  /// [Future] — the schema becomes async-only.
+  ///
+  /// ```dart
+  /// final schema = V.string().uuid().transformAsync<User>(
+  ///   (id) async => await db.loadUser(id),
+  /// );
+  /// await schema.parseAsync('550e8400-...'); // User
+  /// ```
+  VTransformedAsync<T, O> transformAsync<O>(
+    Future<O> Function(T value) fn,
+  ) =>
+      VTransformedAsync<T, O>(this, fn);
 
   /// Adds a custom validation check.
   ///
@@ -519,7 +580,9 @@ abstract class VType<T> {
   /// Adds an async custom validation check.
   ///
   /// Runs in the validation phase. Returns an error if [check] completes
-  /// with `false`.
+  /// with `false`. When [timeout] is provided, the check is bounded by
+  /// that duration — exceeding it counts as a failure (same code/message
+  /// as a regular `false` return).
   ///
   /// A schema with at least one `refineAsync` step becomes async-only —
   /// the sync consumers (`parse`, `validate`, `safeParse`, `errors`) will
@@ -530,15 +593,24 @@ abstract class VType<T> {
   ///   (email) async => !await db.emailExists(email),
   ///   message: 'Email already registered',
   ///   code: 'email_taken',
+  ///   timeout: const Duration(seconds: 5),
   /// );
   /// ```
   VType<T> refineAsync(
     Future<bool> Function(T value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
     _addStep(_AsyncValidatorStep<T>(
-      validate: (value) async => (await check(value)) ? null : {},
+      validate: (value) async {
+        final future = check(value);
+        final result = timeout != null
+            ? await future.timeout(timeout, onTimeout: () => false)
+            : await future;
+
+        return result ? null : {};
+      },
       code: code ?? VCode.custom,
       messageOverride: message,
     ));

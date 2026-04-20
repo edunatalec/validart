@@ -73,12 +73,19 @@ class VMap extends VType<Map<String, dynamic>> {
   }
 
   @override
+  VMap preprocessAsync(Future<Object?> Function(Object? value) fn) {
+    super.preprocessAsync(fn);
+    return this;
+  }
+
+  @override
   VMap refineAsync(
     Future<bool> Function(Map<String, dynamic> value) check, {
     String? message,
     String? code,
+    Duration? timeout,
   }) {
-    super.refineAsync(check, message: message, code: code);
+    super.refineAsync(check, message: message, code: code, timeout: timeout);
     return this;
   }
 

@@ -253,6 +253,140 @@ void main() {
       expect(await schema.validateAsync(42), isTrue);
     });
   });
+
+  group('addAsync (AsyncValidator)', () {
+    test('accepts when validator returns null', () async {
+      final schema = V.string().addAsync(const _AlwaysOkAsync());
+      expect(await schema.validateAsync('anything'), isTrue);
+    });
+
+    test('rejects when validator returns non-null', () async {
+      final schema = V.string().addAsync(const _AlwaysFailAsync());
+      expect(await schema.validateAsync('anything'), isFalse);
+    });
+
+    test('propagates hasAsync', () {
+      final schema = V.string().addAsync(const _AlwaysOkAsync());
+      expect(schema.hasAsync, isTrue);
+    });
+
+    test('uses validator code', () async {
+      final schema = V.string().addAsync(const _AlwaysFailAsync());
+      final errors = await schema.errorsAsync('x');
+      expect(errors!.first.code, 'always_fail');
+    });
+  });
+
+  group('refineAsync timeout', () {
+    test('passes when check completes within timeout', () async {
+      final schema = V.string().refineAsync(
+        (v) async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return true;
+        },
+        timeout: const Duration(milliseconds: 100),
+      );
+      expect(await schema.validateAsync('x'), isTrue);
+    });
+
+    test('fails when check exceeds timeout', () async {
+      final schema = V.string().refineAsync(
+        (v) async {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          return true;
+        },
+        timeout: const Duration(milliseconds: 20),
+        message: 'Timed out',
+      );
+      final errors = await schema.errorsAsync('x');
+      expect(errors, isNotNull);
+      expect(errors!.first.message, 'Timed out');
+    });
+  });
+
+  group('preprocessAsync', () {
+    test('transforms input before validation', () async {
+      final schema = V
+          .string()
+          .preprocessAsync((raw) async => raw.toString().trim())
+          .min(3);
+      expect(await schema.validateAsync('  hi  '), isFalse);
+      expect(await schema.validateAsync('  hello  '), isTrue);
+    });
+
+    test('makes schema async-only', () {
+      final schema = V.string().preprocessAsync((raw) async => raw);
+      expect(schema.hasAsync, isTrue);
+      expect(
+        () => schema.validate('x'),
+        throwsA(isA<VAsyncRequiredException>()),
+      );
+    });
+
+    test('runs after sync preprocessors', () async {
+      final log = <String>[];
+      final schema = V.string().preprocess((raw) {
+        log.add('sync');
+        return raw;
+      }).preprocessAsync((raw) async {
+        log.add('async');
+        return raw;
+      });
+
+      await schema.validateAsync('x');
+      expect(log, ['sync', 'async']);
+    });
+  });
+
+  group('transformAsync', () {
+    test('converts value asynchronously after validation', () async {
+      final schema = V.string().min(3).transformAsync<int>((v) async {
+        await Future<void>.delayed(const Duration(milliseconds: 1));
+        return v.length;
+      });
+      expect(await schema.parseAsync('hello'), 5);
+    });
+
+    test('makes schema async-only', () {
+      final schema = V.string().transformAsync<int>((v) async => v.length);
+      expect(schema.hasAsync, isTrue);
+      expect(
+        () => schema.validate('x'),
+        throwsA(isA<VAsyncRequiredException>()),
+      );
+    });
+
+    test('propagates inner failure', () async {
+      final schema =
+          V.string().min(5).transformAsync<int>((v) async => v.length);
+      final errors = await schema.errorsAsync('ab');
+      expect(errors!.first.code, 'string.too_small');
+    });
+
+    test('chains after refineAsync (async-to-async)', () async {
+      final schema = V
+          .string()
+          .refineAsync((v) async => v.length >= 3)
+          .transformAsync<int>((v) async => v.length);
+      expect(await schema.parseAsync('hello'), 5);
+    });
+  });
+}
+
+class _AlwaysOkAsync extends AsyncValidator<String> {
+  const _AlwaysOkAsync();
+  @override
+  String get code => 'always_ok';
+  @override
+  Future<Map<String, dynamic>?> validate(String value) async => null;
+}
+
+class _AlwaysFailAsync extends AsyncValidator<String> {
+  const _AlwaysFailAsync();
+  @override
+  String get code => 'always_fail';
+  @override
+  Future<Map<String, dynamic>?> validate(String value) async => {};
 }
 
 class _User {
