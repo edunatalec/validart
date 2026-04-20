@@ -3,7 +3,11 @@ import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
 import 'package:validart/src/validators/string/card_brand_pattern.dart';
+import 'package:validart/src/validators/string/license_plate_pattern.dart';
 import 'package:validart/src/validators/string/phone_pattern.dart';
+import 'package:validart/src/validators/string/postal_code_pattern.dart';
+import 'package:validart/src/validators/string/tax_id_pattern.dart';
+import 'package:validart/src/validators/string/uuid_validator.dart';
 
 void main() {
   setUp(() => V.setLocale(const VLocale()));
@@ -192,6 +196,102 @@ void main() {
         final custom = VString().uuid(message: 'Bad uuid');
         final errors = custom.errors('bad');
         expect(errors!.first.message, 'Bad uuid');
+      });
+    });
+
+    group('uuid versions', () {
+      test('should accept v7', () {
+        final schema = VString().uuid();
+        expect(
+          schema.validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9'),
+          isTrue,
+        );
+      });
+
+      test('should accept v6', () {
+        final schema = VString().uuid();
+        expect(
+          schema.validate('1ec9414c-232a-6b00-b3c8-9e6bdeced846'),
+          isTrue,
+        );
+      });
+
+      test('should filter by UuidVersion.v4', () {
+        final schema = VString().uuid(version: UuidVersion.v4);
+        expect(
+          schema.validate('550e8400-e29b-41d4-a716-446655440000'),
+          isTrue,
+        );
+        expect(
+          schema.validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9'),
+          isFalse,
+        ); // v7 rejected
+      });
+
+      test('should filter by UuidVersion.v7', () {
+        final schema = VString().uuid(version: UuidVersion.v7);
+        expect(
+          schema.validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9'),
+          isTrue,
+        );
+        expect(
+          schema.validate('550e8400-e29b-41d4-a716-446655440000'),
+          isFalse,
+        ); // v4 rejected
+      });
+
+      test('should reject version 9 string', () {
+        final schema = VString().uuid();
+        expect(
+          schema.validate('018fcb2e-ea3f-9a3d-b91e-8f2e0c9b33d9'),
+          isFalse,
+        );
+      });
+    });
+
+    group('ulid', () {
+      final schema = VString().ulid();
+
+      test('should accept valid ULID', () {
+        expect(schema.validate('01ARZ3NDEKTSV4RRFFQ69G5FAV'), isTrue);
+      });
+
+      test('should accept lowercase', () {
+        expect(schema.validate('01arz3ndektsv4rrffq69g5fav'), isTrue);
+      });
+
+      test('should reject wrong length', () {
+        expect(schema.validate('01ARZ3NDEK'), isFalse);
+      });
+
+      test('should reject excluded chars (I, L, O, U)', () {
+        expect(schema.validate('01ARZ3NDEKTSV4RRFFQ69G5FAI'), isFalse);
+      });
+
+      test('should reject timestamp overflow (first char > 7)', () {
+        expect(schema.validate('81ARZ3NDEKTSV4RRFFQ69G5FAV'), isFalse);
+      });
+    });
+
+    group('nanoId', () {
+      test('should accept default 21-char NanoID', () {
+        final schema = VString().nanoId();
+        expect(schema.validate('V1StGXR8_Z5jdHi6B-myT'), isTrue);
+      });
+
+      test('should reject wrong length for default', () {
+        final schema = VString().nanoId();
+        expect(schema.validate('short'), isFalse);
+      });
+
+      test('should accept custom length', () {
+        final schema = VString().nanoId(length: 10);
+        expect(schema.validate('V1StGXR8_Z'), isTrue);
+      });
+
+      test('should reject non-URL-safe chars', () {
+        final schema = VString().nanoId();
+        expect(schema.validate('V1St/XR8_Z5jdHi6B+myT'), isFalse);
       });
     });
 
@@ -853,6 +953,388 @@ void main() {
       });
     });
 
+    group('base64', () {
+      final schema = VString().base64();
+
+      test('should pass for valid base64 with padding', () {
+        expect(schema.validate('SGVsbG8='), isTrue);
+      });
+
+      test('should pass for valid base64 without padding needed', () {
+        expect(schema.validate('SGVsbG8h'), isTrue);
+      });
+
+      test('should fail for invalid chars', () {
+        expect(schema.validate('Hello World!'), isFalse);
+      });
+
+      test('should fail for wrong length', () {
+        expect(schema.validate('abc'), isFalse);
+      });
+
+      test('should fail for empty string', () {
+        expect(schema.validate(''), isFalse);
+      });
+    });
+
+    group('hexColor', () {
+      final schema = VString().hexColor();
+
+      test('should pass for 6-digit hex', () {
+        expect(schema.validate('#FF0000'), isTrue);
+      });
+
+      test('should pass for 3-digit hex', () {
+        expect(schema.validate('#F00'), isTrue);
+      });
+
+      test('should pass for lowercase', () {
+        expect(schema.validate('#ff00aa'), isTrue);
+      });
+
+      test('should fail without hash', () {
+        expect(schema.validate('FF0000'), isFalse);
+      });
+
+      test('should fail for invalid hex chars', () {
+        expect(schema.validate('#GG0000'), isFalse);
+      });
+
+      test('should fail for wrong length', () {
+        expect(schema.validate('#FF00'), isFalse);
+      });
+    });
+
+    group('mac', () {
+      final schema = VString().mac();
+
+      test('should pass with colon separator', () {
+        expect(schema.validate('AA:BB:CC:DD:EE:FF'), isTrue);
+      });
+
+      test('should pass with dash separator', () {
+        expect(schema.validate('AA-BB-CC-DD-EE-FF'), isTrue);
+      });
+
+      test('should pass lowercase', () {
+        expect(schema.validate('aa:bb:cc:dd:ee:ff'), isTrue);
+      });
+
+      test('should fail without separators', () {
+        expect(schema.validate('AABBCCDDEEFF'), isFalse);
+      });
+
+      test('should fail with mixed separators', () {
+        expect(schema.validate('AA:BB-CC:DD:EE:FF'), isFalse);
+      });
+
+      test('should fail for wrong length', () {
+        expect(schema.validate('AA:BB:CC'), isFalse);
+      });
+    });
+
+    group('semver', () {
+      final schema = VString().semver();
+
+      test('should pass basic version', () {
+        expect(schema.validate('1.2.3'), isTrue);
+      });
+
+      test('should pass with pre-release', () {
+        expect(schema.validate('1.0.0-alpha.1'), isTrue);
+      });
+
+      test('should pass with build metadata', () {
+        expect(schema.validate('1.0.0+build.123'), isTrue);
+      });
+
+      test('should pass with pre-release and build', () {
+        expect(schema.validate('1.0.0-rc.1+build.456'), isTrue);
+      });
+
+      test('should fail for two segments', () {
+        expect(schema.validate('1.2'), isFalse);
+      });
+
+      test('should fail for leading zero', () {
+        expect(schema.validate('01.2.3'), isFalse);
+      });
+
+      test('should fail for "v" prefix', () {
+        expect(schema.validate('v1.2.3'), isFalse);
+      });
+    });
+
+    group('mongoId', () {
+      final schema = VString().mongoId();
+
+      test('should pass for valid 24-hex id', () {
+        expect(schema.validate('507f1f77bcf86cd799439011'), isTrue);
+      });
+
+      test('should pass uppercase hex', () {
+        expect(schema.validate('507F1F77BCF86CD799439011'), isTrue);
+      });
+
+      test('should fail for wrong length', () {
+        expect(schema.validate('507f1f77bcf86cd79943901'), isFalse);
+      });
+
+      test('should fail for non-hex chars', () {
+        expect(schema.validate('507f1f77bcf86cd79943901Z'), isFalse);
+      });
+    });
+
+    group('iban', () {
+      final schema = VString().iban();
+
+      test('should pass for valid GB IBAN', () {
+        expect(schema.validate('GB82WEST12345698765432'), isTrue);
+      });
+
+      test('should pass with spaces', () {
+        expect(schema.validate('GB82 WEST 1234 5698 7654 32'), isTrue);
+      });
+
+      test('should pass for valid DE IBAN', () {
+        expect(schema.validate('DE89370400440532013000'), isTrue);
+      });
+
+      test('should fail for invalid check digit', () {
+        expect(schema.validate('GB82WEST12345698765433'), isFalse);
+      });
+
+      test('should fail for too short', () {
+        expect(schema.validate('GB82'), isFalse);
+      });
+
+      test('should fail for random string', () {
+        expect(schema.validate('not-an-iban'), isFalse);
+      });
+    });
+
+    group('json', () {
+      final schema = VString().json();
+
+      test('should pass for object', () {
+        expect(schema.validate('{"a": 1}'), isTrue);
+      });
+
+      test('should pass for array', () {
+        expect(schema.validate('[1, 2, 3]'), isTrue);
+      });
+
+      test('should pass for number', () {
+        expect(schema.validate('42'), isTrue);
+      });
+
+      test('should pass for quoted string', () {
+        expect(schema.validate('"hello"'), isTrue);
+      });
+
+      test('should fail for unquoted string', () {
+        expect(schema.validate('hello'), isFalse);
+      });
+
+      test('should fail for broken syntax', () {
+        expect(schema.validate('{"a": }'), isFalse);
+      });
+    });
+
+    group('cvv', () {
+      final schema = VString().cvv();
+
+      test('should pass for 3 digits', () {
+        expect(schema.validate('123'), isTrue);
+      });
+
+      test('should pass for 4 digits', () {
+        expect(schema.validate('1234'), isTrue);
+      });
+
+      test('should fail for 2 digits', () {
+        expect(schema.validate('12'), isFalse);
+      });
+
+      test('should fail for 5 digits', () {
+        expect(schema.validate('12345'), isFalse);
+      });
+
+      test('should fail for non-digits', () {
+        expect(schema.validate('12a'), isFalse);
+      });
+    });
+
+    group('postalCode', () {
+      test('UsZipPattern accepts 5-digit ZIP', () {
+        final schema = VString().postalCode(pattern: const UsZipPattern());
+        expect(schema.validate('94103'), isTrue);
+      });
+
+      test('UsZipPattern accepts ZIP+4', () {
+        final schema = VString().postalCode(pattern: const UsZipPattern());
+        expect(schema.validate('94103-1234'), isTrue);
+      });
+
+      test('UsZipPattern rejects letters', () {
+        final schema = VString().postalCode(pattern: const UsZipPattern());
+        expect(schema.validate('ABC12'), isFalse);
+      });
+
+      test('CaPostalCodePattern accepts A1A 1A1', () {
+        final schema =
+            VString().postalCode(pattern: const CaPostalCodePattern());
+        expect(schema.validate('K1A 0B1'), isTrue);
+      });
+
+      test('CaPostalCodePattern accepts no-space format', () {
+        final schema =
+            VString().postalCode(pattern: const CaPostalCodePattern());
+        expect(schema.validate('K1A0B1'), isTrue);
+      });
+
+      test('CaPostalCodePattern rejects invalid leading letter', () {
+        final schema =
+            VString().postalCode(pattern: const CaPostalCodePattern());
+        expect(schema.validate('D1A 0B1'), isFalse);
+      });
+
+      test('UkPostcodePattern accepts SW1A 1AA', () {
+        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        expect(schema.validate('SW1A 1AA'), isTrue);
+      });
+
+      test('UkPostcodePattern accepts M1 1AE', () {
+        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        expect(schema.validate('M1 1AE'), isTrue);
+      });
+
+      test('UkPostcodePattern rejects invalid', () {
+        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        expect(schema.validate('1ABC 2D'), isFalse);
+      });
+
+      test('should return error code postal_code', () {
+        final schema = VString().postalCode(pattern: const UsZipPattern());
+        final errors = schema.errors('bad');
+        expect(errors!.first.code, 'postal_code');
+      });
+    });
+
+    group('taxId', () {
+      test('accepts when custom pattern matches', () {
+        final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
+        expect(schema.validate('TAX:123'), isTrue);
+      });
+
+      test('rejects when custom pattern does not match', () {
+        final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
+        expect(schema.validate('xyz'), isFalse);
+      });
+
+      test('returns error code tax_id', () {
+        final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
+        final errors = schema.errors('xyz');
+        expect(errors!.first.code, 'tax_id');
+      });
+
+      test('UsSsnPattern accepts formatted', () {
+        final schema = VString().taxId(pattern: const UsSsnPattern());
+        expect(schema.validate('123-45-6789'), isTrue);
+      });
+
+      test('UsSsnPattern accepts unformatted', () {
+        final schema = VString().taxId(pattern: const UsSsnPattern());
+        expect(schema.validate('123456789'), isTrue);
+      });
+
+      test('UsSsnPattern rejects letters', () {
+        final schema = VString().taxId(pattern: const UsSsnPattern());
+        expect(schema.validate('ABC-45-6789'), isFalse);
+      });
+
+      test('UkNiNumberPattern accepts valid', () {
+        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        expect(schema.validate('AB123456C'), isTrue);
+      });
+
+      test('UkNiNumberPattern accepts with spaces', () {
+        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        expect(schema.validate('AB 12 34 56 C'), isTrue);
+      });
+
+      test('UkNiNumberPattern rejects excluded first char', () {
+        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        expect(schema.validate('DB123456C'), isFalse);
+      });
+
+      test('UkNiNumberPattern rejects invalid suffix letter', () {
+        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        expect(schema.validate('AB123456E'), isFalse);
+      });
+
+      test('CaSinPattern accepts valid with Luhn', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('046454286'), isTrue);
+      });
+
+      test('CaSinPattern accepts with spaces/dashes', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('046-454-286'), isTrue);
+      });
+
+      test('CaSinPattern rejects invalid Luhn', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('046454287'), isFalse);
+      });
+
+      test('CaSinPattern rejects wrong length', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('12345'), isFalse);
+      });
+    });
+
+    group('licensePlate', () {
+      test('accepts when custom pattern matches', () {
+        final schema =
+            VString().licensePlate(pattern: const _DummyPlatePattern());
+        expect(schema.validate('ABC-1234'), isTrue);
+      });
+
+      test('rejects when pattern does not match', () {
+        final schema =
+            VString().licensePlate(pattern: const _DummyPlatePattern());
+        expect(schema.validate('nope'), isFalse);
+      });
+
+      test('returns error code license_plate', () {
+        final schema =
+            VString().licensePlate(pattern: const _DummyPlatePattern());
+        final errors = schema.errors('nope');
+        expect(errors!.first.code, 'license_plate');
+      });
+
+      test('UkPlatePattern accepts AB12 CDE', () {
+        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        expect(schema.validate('AB12 CDE'), isTrue);
+      });
+
+      test('UkPlatePattern accepts AB12CDE (no space)', () {
+        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        expect(schema.validate('AB12CDE'), isTrue);
+      });
+
+      test('UkPlatePattern accepts lowercase', () {
+        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        expect(schema.validate('ab12 cde'), isTrue);
+      });
+
+      test('UkPlatePattern rejects wrong format', () {
+        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        expect(schema.validate('123 ABCD'), isFalse);
+      });
+    });
+
     group('trim', () {
       final schema = VString().trim();
 
@@ -1105,6 +1587,55 @@ void main() {
       });
     });
 
+    group('case transforms accents', () {
+      test('toSlug should strip accents by default', () {
+        final schema = VString().toSlug();
+        expect(schema.parse('São João'), 'sao-joao');
+      });
+
+      test('toSlug should keep accents when keepAccents is true', () {
+        final schema = VString().toSlug(keepAccents: true);
+        expect(schema.parse('São João'), 'são-joão');
+      });
+
+      test('toPascalCase should strip accents by default', () {
+        final schema = VString().toPascalCase();
+        expect(schema.parse('maçã fresca'), 'MacaFresca');
+      });
+
+      test('toPascalCase should keep accents when keepAccents is true', () {
+        final schema = VString().toPascalCase(keepAccents: true);
+        expect(schema.parse('maçã fresca'), 'MaçãFresca');
+      });
+
+      test('toCamelCase should strip accents', () {
+        expect(VString().toCamelCase().parse('São Paulo'), 'saoPaulo');
+      });
+
+      test('toSnakeCase should strip accents', () {
+        expect(VString().toSnakeCase().parse('São Paulo'), 'sao_paulo');
+      });
+
+      test('toScreamingSnakeCase should strip accents', () {
+        expect(
+          VString().toScreamingSnakeCase().parse('São Paulo'),
+          'SAO_PAULO',
+        );
+      });
+
+      test('should handle cedilla and tilde', () {
+        expect(VString().toSlug().parse('Coração Ação'), 'coracao-acao');
+      });
+
+      test('should handle German sharp s', () {
+        expect(VString().toSlug().parse('Straße'), 'strasse');
+      });
+
+      test('should handle ñ', () {
+        expect(VString().toSlug().parse('Año Nuevo'), 'ano-nuevo');
+      });
+    });
+
     group('case transforms + validation', () {
       test('toCamelCase should run before equals validator', () {
         final schema = VString().toCamelCase().equals('helloWorld');
@@ -1272,4 +1803,24 @@ class _FakePhonePattern extends PhonePattern {
   @override
   Map<String, dynamic>? validate(String value) =>
       value.startsWith('LOCAL:') ? null : {};
+}
+
+class _DummyTaxIdPattern extends TaxIdPattern {
+  const _DummyTaxIdPattern();
+
+  @override
+  String get name => 'Dummy Tax ID';
+
+  @override
+  bool matches(String value) => value.startsWith('TAX:');
+}
+
+class _DummyPlatePattern extends LicensePlatePattern {
+  const _DummyPlatePattern();
+
+  @override
+  String get name => 'Dummy Plate';
+
+  @override
+  bool matches(String value) => RegExp(r'^[A-Z]{3}-\d{4}$').hasMatch(value);
 }

@@ -118,4 +118,26 @@ class VDate extends VType<DateTime> {
   VDate weekend({String? message}) {
     return add(const WeekendValidator(), message: message);
   }
+
+  /// Validates that the age derived from the value (treated as a date of
+  /// birth) falls within the given range. Age is computed against
+  /// `DateTime.now()` at validation time.
+  ///
+  /// At least one of [min]/[max] must be provided.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().age(min: 18);                  // 18+
+  /// V.date().age(min: 18, max: 65);         // between 18 and 65
+  /// V.date().age(max: 120);                 // at most 120
+  /// ```
+  VDate age({int? min, int? max, String? message}) {
+    assert(
+      min != null || max != null,
+      'At least one of min or max must be provided.',
+    );
+
+    return add(AgeValidator(min: min, max: max), message: message);
+  }
 }

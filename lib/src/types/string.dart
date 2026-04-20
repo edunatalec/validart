@@ -117,15 +117,49 @@ class VString extends VType<String> {
     return add(const UrlValidator(), message: message);
   }
 
-  /// Validates that the string is a valid UUID.
+  /// Validates that the string is a valid UUID (versions 1–8).
+  ///
+  /// Pass [version] to restrict to a specific [UuidVersion] (e.g.
+  /// `UuidVersion.v4` for random, `UuidVersion.v7` for timestamp-ordered).
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000'); // true
+  /// V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000');
+  /// // true (v4)
+  ///
+  /// V.string()
+  ///   .uuid(version: UuidVersion.v7)
+  ///   .validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9'); // true
   /// ```
-  VString uuid({String? message}) {
-    return add(const UuidValidator(), message: message);
+  VString uuid({UuidVersion? version, String? message}) {
+    return add(UuidValidator(version: version), message: message);
+  }
+
+  /// Validates that the string is a valid ULID (26 chars Crockford Base32).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().ulid().validate('01ARZ3NDEKTSV4RRFFQ69G5FAV'); // true
+  /// ```
+  VString ulid({String? message}) {
+    return add(const UlidValidator(), message: message);
+  }
+
+  /// Validates that the string is a valid NanoID.
+  ///
+  /// Uses the URL-safe alphabet (`A-Z`, `a-z`, `0-9`, `_`, `-`) with the
+  /// given [length] (default 21 — the NanoID library default).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().nanoId().validate('V1StGXR8_Z5jdHi6B-myT');      // true
+  /// V.string().nanoId(length: 10).validate('V1StGXR8_Z'); // true
+  /// ```
+  VString nanoId({int length = 21, String? message}) {
+    return add(NanoIdValidator(length: length), message: message);
   }
 
   /// Validates that the string is a valid IP address.
@@ -319,6 +353,160 @@ class VString extends VType<String> {
     return add(CardValidator(brands: brands), message: message);
   }
 
+  /// Validates that the string is a valid CVV/CVC (3 or 4 digits).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().cvv().validate('123');  // true
+  /// V.string().cvv().validate('1234'); // true
+  /// V.string().cvv().validate('12');   // false
+  /// ```
+  VString cvv({String? message}) {
+    return add(const CvvValidator(), message: message);
+  }
+
+  /// Validates that the string is valid Base64 (RFC 4648).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().base64().validate('SGVsbG8='); // true
+  /// ```
+  VString base64({String? message}) {
+    return add(const Base64Validator(), message: message);
+  }
+
+  /// Validates that the string is a valid hex color (`#FFF` or `#FFFFFF`).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().hexColor().validate('#FF0000'); // true
+  /// V.string().hexColor().validate('#F00');    // true
+  /// V.string().hexColor().validate('red');     // false
+  /// ```
+  VString hexColor({String? message}) {
+    return add(const HexColorValidator(), message: message);
+  }
+
+  /// Validates that the string is a valid MAC address.
+  ///
+  /// Accepts colon or dash separators (`AA:BB:CC:DD:EE:FF` or
+  /// `AA-BB-CC-DD-EE-FF`), consistent within the value.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().mac().validate('AA:BB:CC:DD:EE:FF'); // true
+  /// V.string().mac().validate('AA-BB-CC-DD-EE-FF'); // true
+  /// ```
+  VString mac({String? message}) {
+    return add(const MacValidator(), message: message);
+  }
+
+  /// Validates that the string is a valid Semantic Version (SemVer 2.0).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().semver().validate('1.2.3');           // true
+  /// V.string().semver().validate('1.0.0-alpha.1');   // true
+  /// V.string().semver().validate('1.0.0+build.123'); // true
+  /// ```
+  VString semver({String? message}) {
+    return add(const SemverValidator(), message: message);
+  }
+
+  /// Validates that the string is a valid MongoDB ObjectId (24 hex chars).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().mongoId().validate('507f1f77bcf86cd799439011'); // true
+  /// ```
+  VString mongoId({String? message}) {
+    return add(const MongoIdValidator(), message: message);
+  }
+
+  /// Validates that the string is a valid IBAN (ISO 13616).
+  ///
+  /// Uses the mod-97 check-digit algorithm; accepts values with or
+  /// without spaces.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().iban().validate('GB82 WEST 1234 5698 7654 32'); // true
+  /// ```
+  VString iban({String? message}) {
+    return add(const IbanValidator(), message: message);
+  }
+
+  /// Validates that the string parses as valid JSON.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().json().validate('{"a": 1}'); // true
+  /// V.string().json().validate('not json'); // false
+  /// ```
+  VString json({String? message}) {
+    return add(const JsonValidator(), message: message);
+  }
+
+  /// Validates that the string is a valid postal code for [pattern].
+  ///
+  /// Built-in patterns: [UsZipPattern], [CaPostalCodePattern],
+  /// [UkPostcodePattern]. External packages can extend
+  /// [PostalCodePattern] to add country-specific rules (e.g. BR CEP in
+  /// `validart_br`).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().postalCode(pattern: const UsZipPattern())
+  ///   .validate('94103-1234'); // true
+  /// ```
+  VString postalCode({
+    required PostalCodePattern pattern,
+    String? message,
+  }) {
+    return add(PostalCodeValidator(pattern: pattern), message: message);
+  }
+
+  /// Validates that the string is a valid tax ID for [pattern].
+  ///
+  /// The core does not ship built-in patterns (tax IDs are heavily
+  /// country-specific). Implement [TaxIdPattern] in an extension package
+  /// (e.g. CPF/CNPJ in `validart_br`).
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().taxId(pattern: const CpfPattern());
+  /// ```
+  VString taxId({required TaxIdPattern pattern, String? message}) {
+    return add(TaxIdValidator(pattern: pattern), message: message);
+  }
+
+  /// Validates that the string is a valid license plate for [pattern].
+  ///
+  /// The core does not ship built-in patterns (plates vary heavily by
+  /// country). Implement [LicensePlatePattern] in an extension package.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().licensePlate(pattern: const BrMercosulPattern());
+  /// ```
+  VString licensePlate({
+    required LicensePlatePattern pattern,
+    String? message,
+  }) {
+    return add(LicensePlateValidator(pattern: pattern), message: message);
+  }
+
   /// Validates that the string is a valid phone number.
   ///
   /// Defaults to the E.164 international format via [E164PhonePattern].
@@ -385,31 +573,41 @@ class VString extends VType<String> {
   ///
   /// Runs in the pre-processing phase. Words are extracted from the input
   /// (respecting case boundaries, digits, and separators like ` `, `_`,
-  /// `-`); any character outside letters and digits is dropped.
+  /// `-`); any character outside letters and digits is dropped. By default,
+  /// accented characters are transliterated (`á`→`a`, `ç`→`c`); pass
+  /// `keepAccents: true` to preserve them.
   ///
   /// ```dart
   /// V.string().toPascalCase().parse('hello world');     // 'HelloWorld'
-  /// V.string().toPascalCase().parse('user_profile_id'); // 'UserProfileId'
-  /// V.string().toPascalCase().parse('XMLHttpRequest');  // 'XmlHttpRequest'
+  /// V.string().toPascalCase().parse('maçã fresca');     // 'MacaFresca'
+  /// V.string().toPascalCase(keepAccents: true).parse('maçã fresca');
+  /// // 'MaçãFresca'
   /// ```
-  VString toPascalCase() {
-    _preTransform((value) => _splitWords(value).map(_capitalize).join(''));
+  VString toPascalCase({bool keepAccents = false}) {
+    _preTransform((value) {
+      final normalized = keepAccents ? value : _stripAccents(value);
+
+      return _splitWords(normalized).map(_capitalize).join('');
+    });
+
     return this;
   }
 
   /// Converts the value to `camelCase`.
   ///
   /// Runs in the pre-processing phase. Same word-extraction rules as
-  /// [toPascalCase], except the first word is lowercased.
+  /// [toPascalCase], except the first word is lowercased. Use
+  /// `keepAccents: true` to preserve accented characters (default strips
+  /// them).
   ///
   /// ```dart
   /// V.string().toCamelCase().parse('hello world');     // 'helloWorld'
-  /// V.string().toCamelCase().parse('user_profile_id'); // 'userProfileId'
-  /// V.string().toCamelCase().parse('HELLO_WORLD');     // 'helloWorld'
+  /// V.string().toCamelCase().parse('São Paulo');       // 'saoPaulo'
   /// ```
-  VString toCamelCase() {
+  VString toCamelCase({bool keepAccents = false}) {
     _preTransform((value) {
-      final words = _splitWords(value);
+      final normalized = keepAccents ? value : _stripAccents(value);
+      final words = _splitWords(normalized);
 
       if (words.isEmpty) return '';
 
@@ -425,17 +623,19 @@ class VString extends VType<String> {
   /// Converts the value to `snake_case`.
   ///
   /// Runs in the pre-processing phase. Words are extracted and joined with
-  /// `_`; all characters are lowercased.
+  /// `_`; all characters are lowercased. Use `keepAccents: true` to
+  /// preserve accented characters (default strips them).
   ///
   /// ```dart
-  /// V.string().toSnakeCase().parse('HelloWorld');      // 'hello_world'
-  /// V.string().toSnakeCase().parse('userProfileID');   // 'user_profile_id'
-  /// V.string().toSnakeCase().parse('hello-world');     // 'hello_world'
+  /// V.string().toSnakeCase().parse('HelloWorld');  // 'hello_world'
+  /// V.string().toSnakeCase().parse('Maçã Fresca'); // 'maca_fresca'
   /// ```
-  VString toSnakeCase() {
-    _preTransform(
-      (value) => _splitWords(value).map((w) => w.toLowerCase()).join('_'),
-    );
+  VString toSnakeCase({bool keepAccents = false}) {
+    _preTransform((value) {
+      final normalized = keepAccents ? value : _stripAccents(value);
+
+      return _splitWords(normalized).map((w) => w.toLowerCase()).join('_');
+    });
 
     return this;
   }
@@ -443,16 +643,19 @@ class VString extends VType<String> {
   /// Converts the value to `SCREAMING_SNAKE_CASE`.
   ///
   /// Runs in the pre-processing phase. Words are extracted and joined with
-  /// `_`; all characters are uppercased.
+  /// `_`; all characters are uppercased. Use `keepAccents: true` to
+  /// preserve accented characters (default strips them).
   ///
   /// ```dart
-  /// V.string().toScreamingSnakeCase().parse('helloWorld');  // 'HELLO_WORLD'
-  /// V.string().toScreamingSnakeCase().parse('user-profile'); // 'USER_PROFILE'
+  /// V.string().toScreamingSnakeCase().parse('helloWorld');
+  /// // 'HELLO_WORLD'
   /// ```
-  VString toScreamingSnakeCase() {
-    _preTransform(
-      (value) => _splitWords(value).map((w) => w.toUpperCase()).join('_'),
-    );
+  VString toScreamingSnakeCase({bool keepAccents = false}) {
+    _preTransform((value) {
+      final normalized = keepAccents ? value : _stripAccents(value);
+
+      return _splitWords(normalized).map((w) => w.toUpperCase()).join('_');
+    });
 
     return this;
   }
@@ -460,18 +663,21 @@ class VString extends VType<String> {
   /// Converts the value to a URL-friendly slug (`kebab-case` lowercase).
   ///
   /// Runs in the pre-processing phase. Words are extracted and joined with
-  /// `-`; all characters are lowercased. Non-alphanumeric characters are
-  /// dropped.
+  /// `-`; all characters are lowercased. By default, accented characters
+  /// are transliterated (`São Paulo` → `sao-paulo`); pass
+  /// `keepAccents: true` to preserve them.
   ///
   /// ```dart
-  /// V.string().toSlug().parse('My Blog Post!');       // 'my-blog-post'
-  /// V.string().toSlug().parse('helloWorld_2024');     // 'hello-world-2024'
-  /// V.string().toSlug().parse('  foo   bar  baz  ');  // 'foo-bar-baz'
+  /// V.string().toSlug().parse('My Blog Post!'); // 'my-blog-post'
+  /// V.string().toSlug().parse('São João');      // 'sao-joao'
+  /// V.string().toSlug(keepAccents: true).parse('São João'); // 'são-joão'
   /// ```
-  VString toSlug() {
-    _preTransform(
-      (value) => _splitWords(value).map((w) => w.toLowerCase()).join('-'),
-    );
+  VString toSlug({bool keepAccents = false}) {
+    _preTransform((value) {
+      final normalized = keepAccents ? value : _stripAccents(value);
+
+      return _splitWords(normalized).map((w) => w.toLowerCase()).join('-');
+    });
 
     return this;
   }
@@ -485,7 +691,8 @@ class VString extends VType<String> {
 }
 
 final RegExp _wordRegex = RegExp(
-  r'[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+',
+  r'\p{Lu}+(?=\p{Lu}\p{Ll})|\p{Lu}?\p{Ll}+|\p{Lu}+|\d+',
+  unicode: true,
 );
 
 List<String> _splitWords(String input) {
@@ -496,4 +703,79 @@ String _capitalize(String word) {
   if (word.isEmpty) return word;
 
   return word[0].toUpperCase() + word.substring(1).toLowerCase();
+}
+
+const Map<String, String> _accentMap = {
+  'à': 'a',
+  'á': 'a',
+  'â': 'a',
+  'ã': 'a',
+  'ä': 'a',
+  'å': 'a',
+  'æ': 'ae',
+  'ç': 'c',
+  'è': 'e',
+  'é': 'e',
+  'ê': 'e',
+  'ë': 'e',
+  'ì': 'i',
+  'í': 'i',
+  'î': 'i',
+  'ï': 'i',
+  'ð': 'd',
+  'ñ': 'n',
+  'ò': 'o',
+  'ó': 'o',
+  'ô': 'o',
+  'õ': 'o',
+  'ö': 'o',
+  'ø': 'o',
+  'ù': 'u',
+  'ú': 'u',
+  'û': 'u',
+  'ü': 'u',
+  'ý': 'y',
+  'ÿ': 'y',
+  'ß': 'ss',
+  'þ': 'th',
+  'À': 'A',
+  'Á': 'A',
+  'Â': 'A',
+  'Ã': 'A',
+  'Ä': 'A',
+  'Å': 'A',
+  'Æ': 'AE',
+  'Ç': 'C',
+  'È': 'E',
+  'É': 'E',
+  'Ê': 'E',
+  'Ë': 'E',
+  'Ì': 'I',
+  'Í': 'I',
+  'Î': 'I',
+  'Ï': 'I',
+  'Ð': 'D',
+  'Ñ': 'N',
+  'Ò': 'O',
+  'Ó': 'O',
+  'Ô': 'O',
+  'Õ': 'O',
+  'Ö': 'O',
+  'Ø': 'O',
+  'Ù': 'U',
+  'Ú': 'U',
+  'Û': 'U',
+  'Ü': 'U',
+  'Ý': 'Y',
+  'Þ': 'TH',
+};
+
+String _stripAccents(String input) {
+  final buffer = StringBuffer();
+
+  for (final char in input.split('')) {
+    buffer.write(_accentMap[char] ?? char);
+  }
+
+  return buffer.toString();
 }

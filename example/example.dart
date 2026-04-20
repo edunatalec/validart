@@ -83,6 +83,76 @@ void stringExamples() {
   print(localPhone.validate('LOCAL:1234')); // true
   print(localPhone.validate('+5511999999999')); // false
 
+  // cvv / base64 / hex color / mac / semver / mongoId / iban / json
+  print(V.string().cvv().validate('123')); // true
+  print(V.string().base64().validate('SGVsbG8=')); // true
+  print(V.string().hexColor().validate('#FF0000')); // true
+  print(V.string().mac().validate('AA:BB:CC:DD:EE:FF')); // true
+  print(V.string().semver().validate('1.2.3-alpha+build')); // true
+  print(V.string().mongoId().validate('507f1f77bcf86cd799439011')); // true
+  print(V.string().iban().validate('GB82 WEST 1234 5698 7654 32')); // true
+  print(V.string().json().validate('{"a":1}')); // true
+
+  // ULID / NanoID
+  print(V.string().ulid().validate('01ARZ3NDEKTSV4RRFFQ69G5FAV')); // true
+  print(V.string().nanoId().validate('V1StGXR8_Z5jdHi6B-myT')); // true
+  print(V.string().nanoId(length: 10).validate('V1StGXR8_Z')); // true
+
+  // UUID version filter — v7 is timestamp-ordered (popular in modern APIs)
+  print(
+    V
+        .string()
+        .uuid(version: UuidVersion.v7)
+        .validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9'),
+  ); // true
+
+  // postal code (pluggable — built-ins US, CA, UK)
+  print(
+    V.string().postalCode(pattern: const UsZipPattern()).validate('94103'),
+  ); // true
+  print(
+    V
+        .string()
+        .postalCode(pattern: const CaPostalCodePattern())
+        .validate('K1A 0B1'),
+  ); // true
+  print(
+    V
+        .string()
+        .postalCode(pattern: const UkPostcodePattern())
+        .validate('SW1A 1AA'),
+  ); // true
+
+  // tax ID built-ins
+  print(
+    V.string().taxId(pattern: const UsSsnPattern()).validate('123-45-6789'),
+  ); // true
+  print(
+    V.string().taxId(pattern: const UkNiNumberPattern()).validate('AB123456C'),
+  ); // true
+  print(
+    V.string().taxId(pattern: const CaSinPattern()).validate('046-454-286'),
+  ); // true
+
+  // license plate built-in (UK post-2001)
+  print(
+    V
+        .string()
+        .licensePlate(pattern: const UkPlatePattern())
+        .validate('AB12 CDE'),
+  ); // true
+
+  // Extend with your own patterns for country-specific needs:
+  print(
+    V.string().taxId(pattern: const DummyTaxIdPattern()).validate('TAX:123'),
+  ); // true
+  print(
+    V
+        .string()
+        .licensePlate(pattern: const DummyPlatePattern())
+        .validate('ABC-1234'),
+  ); // true
+
   // transforms (pre-processing — always run before validators)
   print(V.string().trim().parse('  hello  ')); // 'hello'
   print(V.string().toLowerCase().parse('HELLO')); // 'hello'
@@ -92,6 +162,11 @@ void stringExamples() {
   print(V.string().toSnakeCase().parse('HelloWorld')); // 'hello_world'
   print(V.string().toScreamingSnakeCase().parse('helloWorld')); // 'HELLO_WORLD'
   print(V.string().toSlug().parse('My Blog Post!')); // 'my-blog-post'
+
+  // accents — stripped by default, preserved with keepAccents: true
+  print(V.string().toSlug().parse('São João')); // 'sao-joao'
+  print(V.string().toSlug(keepAccents: true).parse('São João')); // 'são-joão'
+  print(V.string().toPascalCase().parse('maçã fresca')); // 'MacaFresca'
 }
 
 void intExamples() {
@@ -158,6 +233,12 @@ void dateExamples() {
   print(V.date().weekday().validate(DateTime(2024, 1, 15))); // true
   // 2024-01-06 is Saturday
   print(V.date().weekend().validate(DateTime(2024, 1, 6))); // true
+
+  // age — computed against DateTime.now()
+  final now = DateTime.now();
+  final thirty = DateTime(now.year - 30, now.month, now.day);
+  print(V.date().age(min: 18).validate(thirty)); // true
+  print(V.date().age(min: 18, max: 65).validate(thirty)); // true
 }
 
 void arrayExamples() {
@@ -428,4 +509,24 @@ class LocalPhonePattern extends PhonePattern {
   @override
   Map<String, dynamic>? validate(String value) =>
       value.startsWith('LOCAL:') ? null : {};
+}
+
+class DummyTaxIdPattern extends TaxIdPattern {
+  const DummyTaxIdPattern();
+
+  @override
+  String get name => 'Dummy Tax ID';
+
+  @override
+  bool matches(String value) => value.startsWith('TAX:');
+}
+
+class DummyPlatePattern extends LicensePlatePattern {
+  const DummyPlatePattern();
+
+  @override
+  String get name => 'Dummy Plate';
+
+  @override
+  bool matches(String value) => RegExp(r'^[A-Z]{3}-\d{4}$').hasMatch(value);
 }

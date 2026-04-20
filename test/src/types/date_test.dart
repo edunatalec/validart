@@ -199,6 +199,76 @@ void main() {
       });
     });
 
+    group('age', () {
+      final now = DateTime.now();
+
+      DateTime birthAgedYears(int years) {
+        return DateTime(now.year - years, now.month, now.day);
+      }
+
+      test('should pass when age meets min', () {
+        final schema = VDate().age(min: 18);
+        expect(schema.validate(birthAgedYears(18)), isTrue);
+        expect(schema.validate(birthAgedYears(40)), isTrue);
+      });
+
+      test('should fail when age below min', () {
+        final schema = VDate().age(min: 18);
+        expect(schema.validate(birthAgedYears(17)), isFalse);
+      });
+
+      test('should pass when age meets max', () {
+        final schema = VDate().age(max: 65);
+        expect(schema.validate(birthAgedYears(30)), isTrue);
+      });
+
+      test('should fail when age above max', () {
+        final schema = VDate().age(max: 65);
+        expect(schema.validate(birthAgedYears(70)), isFalse);
+      });
+
+      test('should accept within range', () {
+        final schema = VDate().age(min: 18, max: 65);
+        expect(schema.validate(birthAgedYears(30)), isTrue);
+      });
+
+      test('should reject outside range', () {
+        final schema = VDate().age(min: 18, max: 65);
+        expect(schema.validate(birthAgedYears(17)), isFalse);
+        expect(schema.validate(birthAgedYears(66)), isFalse);
+      });
+
+      test('should count birthday today as full year', () {
+        final schema = VDate().age(min: 18);
+        final todayMinus18 = DateTime(now.year - 18, now.month, now.day);
+        expect(schema.validate(todayMinus18), isTrue);
+      });
+
+      test('should not count years when birthday is later this year', () {
+        final schema = VDate().age(min: 18);
+        final tomorrow = now.add(const Duration(days: 1));
+        final todayMinus18ButTomorrow = DateTime(
+          now.year - 18,
+          tomorrow.month,
+          tomorrow.day,
+        );
+
+        if (todayMinus18ButTomorrow.year == now.year - 18 &&
+            (todayMinus18ButTomorrow.month > now.month ||
+                (todayMinus18ButTomorrow.month == now.month &&
+                    todayMinus18ButTomorrow.day > now.day))) {
+          expect(schema.validate(todayMinus18ButTomorrow), isFalse);
+        }
+      });
+
+      test('should return error with code age', () {
+        final schema = VDate().age(min: 18);
+        final errs = schema.errors(birthAgedYears(10));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'age');
+      });
+    });
+
     group('array', () {
       test('should create array of dates', () {
         final now = DateTime.now();

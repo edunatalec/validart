@@ -83,6 +83,45 @@ abstract class VCode {
   /// String is not a valid phone number.
   static const invalidPhone = 'invalid_phone';
 
+  /// String is not valid Base64.
+  static const base64 = 'base64';
+
+  /// String is not a valid hex color.
+  static const hexColor = 'hex_color';
+
+  /// String is not a valid MAC address.
+  static const mac = 'mac';
+
+  /// String is not a valid Semantic Version (SemVer).
+  static const semver = 'semver';
+
+  /// String is not a valid MongoDB ObjectId.
+  static const mongoId = 'mongo_id';
+
+  /// String is not a valid ULID.
+  static const ulid = 'ulid';
+
+  /// String is not a valid NanoID.
+  static const nanoId = 'nano_id';
+
+  /// String is not a valid IBAN.
+  static const iban = 'iban';
+
+  /// String is not valid JSON.
+  static const json = 'json';
+
+  /// String is not a valid CVV.
+  static const cvv = 'cvv';
+
+  /// String is not a valid postal code for the given pattern.
+  static const postalCode = 'postal_code';
+
+  /// String is not a valid tax ID for the given pattern.
+  static const taxId = 'tax_id';
+
+  /// String is not a valid license plate for the given pattern.
+  static const licensePlate = 'license_plate';
+
   // Number
 
   /// Number is below the minimum value.
@@ -145,6 +184,9 @@ abstract class VCode {
 
   /// Date is not a weekend.
   static const weekend = 'weekend';
+
+  /// Age derived from date is outside the required range.
+  static const age = 'age';
 
   // Array
 
