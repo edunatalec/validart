@@ -43,6 +43,8 @@ External packages (e.g. `validart_br` with CPF, CNPJ, CEP, Mercosul) can extend 
 - **`keepAccents`** parameter on all case transformers. Default `false` (accents transliterated: `São João` → `sao-joao`, `ç` → `c`, `ñ` → `n`, `ß` → `ss`). Pass `true` to preserve.
 - **`VDate.age({int? min, int? max, String? message})`** — validates age derived from a birthdate (computed against `DateTime.now()` at validation time). At least one of `min`/`max` is required.
 - **`UuidVersion` enum** — `UuidVersion.v1` through `UuidVersion.v8`. `V.string().uuid({UuidVersion? version, String? message})` accepts an optional version filter — e.g. `V.string().uuid(version: UuidVersion.v7)` for timestamp-ordered only.
+- **`VString.url({Set<String>? schemes})`** — optional `schemes` set. Default `{http, https}` (backwards compatible); pass `{http, https, ftp, ws}` etc. to accept other protocols.
+- **`VString.password({String? specialChars})`** — optional `specialChars` string. Default `!@#$%^&*(),.?":{}|<>` (backwards compatible); pass a custom string to expand (e.g. `r'!@#$%^&*()-_+=<>?'` to accept `-` and `_`).
 
 ### Changed
 
