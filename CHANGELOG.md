@@ -45,6 +45,7 @@ External packages (e.g. `validart_br` with CPF, CNPJ, CEP, Mercosul) can extend 
 - **`UuidVersion` enum** — `UuidVersion.v1` through `UuidVersion.v8`. `V.string().uuid({UuidVersion? version, String? message})` accepts an optional version filter — e.g. `V.string().uuid(version: UuidVersion.v7)` for timestamp-ordered only.
 - **`VString.url({Set<String>? schemes})`** — optional `schemes` set. Default `{http, https}` (backwards compatible); pass `{http, https, ftp, ws}` etc. to accept other protocols.
 - **`VString.password({String? specialChars})`** — optional `specialChars` string. Default `!@#$%^&*(),.?":{}|<>` (backwards compatible); pass a custom string to expand (e.g. `r'!@#$%^&*()-_+=<>?'` to accept `-` and `_`).
+- **Factory-level `message` on every factory** — `V.string()`, `V.int()`, `V.double()`, `V.bool()`, `V.date()`, `V.map()`, `V.array()`, `V.object()`, `V.enm()`, `V.literal()`, `V.union()` all accept an optional `message` to customize the `required` error per schema without changing the global locale. Example: `V.bool(message: 'You must accept the terms').isTrue()`. Fallback: custom → locale → default English. Same parameter name as the validator-level `message` (`.email(message: ...)`, `.min(n, message: ...)`, `.refine(fn, message: ...)`, ...) but different scope: the factory-level one fires only on null input (pre-validation `required` error), the validator-level one fires only when that validator rejects a non-null value. Both can coexist on the same schema.
 
 ### Changed
 
