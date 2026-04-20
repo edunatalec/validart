@@ -33,6 +33,12 @@ void stringExamples() {
   // email / url / uuid / ip
   print(V.string().email().validate('user@example.com')); // true
   print(V.string().url().validate('https://example.com')); // true
+  print(V.string().url().validate('ftp://example.com')); // false (default)
+  print(
+    V
+        .string()
+        .url(schemes: {'http', 'https', 'ftp'}).validate('ftp://example.com'),
+  ); // true
   print(V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000'));
   print(V.string().ip().validate('192.168.1.1')); // true
 
@@ -62,6 +68,16 @@ void stringExamples() {
 
   // password / jwt
   print(V.string().password().validate('Str0ng!Pass')); // true
+  print(V
+      .string()
+      .password()
+      .validate('Str0ng_Pass')); // false ('_' not in default)
+  print(
+    V
+        .string()
+        .password(specialChars: r'!@#$%^&*()-_+=<>?')
+        .validate('Str0ng_Pass'),
+  ); // true
   print(V.string().jwt().validate('eyJh.eyJz.SflKx')); // true
 
   // card (default — any Luhn-valid)
