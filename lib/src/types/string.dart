@@ -124,14 +124,22 @@ class VString extends VType<String> {
 
   /// Validates that the string is a valid URL.
   ///
+  /// Accepts `http` and `https` by default. Pass [schemes] to allow other
+  /// protocols (`ftp`, `ws`, `file`, etc.).
+  ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().url().validate('https://example.com'); // true
-  /// V.string().url().validate('not-a-url');            // false
+  /// V.string().url().validate('https://example.com');       // true
+  /// V.string().url().validate('ftp://example.com');          // false
+  /// V.string().url(schemes: {'http', 'https', 'ftp'})
+  ///   .validate('ftp://example.com');                        // true
   /// ```
-  VString url({String? message}) {
-    return add(const UrlValidator(), message: message);
+  VString url({Set<String>? schemes, String? message}) {
+    return add(
+      schemes == null ? const UrlValidator() : UrlValidator(schemes: schemes),
+      message: message,
+    );
   }
 
   /// Validates that the string is a valid UUID (versions 1–8).
@@ -326,16 +334,25 @@ class VString extends VType<String> {
   /// Validates that the string meets password strength requirements.
   ///
   /// Requires at least 8 characters, including uppercase, lowercase, digit,
-  /// and special character.
+  /// and a special character. Default accepted special chars are
+  /// `!@#$%^&*(),.?":{}|<>`; pass [specialChars] to override (each
+  /// character in the string is treated as an allowed special).
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().password().validate('Str0ng!Pass'); // true
-  /// V.string().password().validate('weak');         // false
+  /// V.string().password().validate('Str0ng!Pass');           // true
+  /// V.string().password().validate('Str0ng_Pass');           // false ('_' not in default set)
+  /// V.string().password(specialChars: r'!@#$%^&*()-_+=<>?')
+  ///   .validate('Str0ng_Pass');                              // true
   /// ```
-  VString password({String? message}) {
-    return add(const PasswordValidator(), message: message);
+  VString password({String? specialChars, String? message}) {
+    return add(
+      specialChars == null
+          ? const PasswordValidator()
+          : PasswordValidator(specialChars: specialChars),
+      message: message,
+    );
   }
 
   /// Validates that the string is a valid JWT token.

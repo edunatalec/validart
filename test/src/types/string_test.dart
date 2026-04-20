@@ -170,6 +170,22 @@ void main() {
         final errors = custom.errors('bad');
         expect(errors!.first.message, 'Bad url');
       });
+
+      test('should reject ftp by default', () {
+        expect(schema.validate('ftp://example.com'), isFalse);
+      });
+
+      test('should accept ftp when included in schemes', () {
+        final ftpSchema = VString().url(schemes: {'http', 'https', 'ftp'});
+        expect(ftpSchema.validate('ftp://example.com'), isTrue);
+      });
+
+      test('should accept only schemes in the custom set', () {
+        final wsOnly = VString().url(schemes: {'ws', 'wss'});
+        expect(wsOnly.validate('ws://example.com'), isTrue);
+        expect(wsOnly.validate('wss://example.com'), isTrue);
+        expect(wsOnly.validate('http://example.com'), isFalse);
+      });
     });
 
     group('uuid', () {
@@ -751,6 +767,26 @@ void main() {
       test('should return error code password', () {
         final errors = schema.errors('weak');
         expect(errors!.first.code, 'password');
+      });
+
+      test('should reject underscore with default specialChars', () {
+        expect(schema.validate('Abcdefg1_'), isFalse);
+      });
+
+      test('should accept underscore when specialChars includes it', () {
+        final custom = VString().password(specialChars: r'!@#$%^&*()-_+=<>?');
+        expect(custom.validate('Abcdefg1_'), isTrue);
+      });
+
+      test('should accept dash with custom specialChars', () {
+        final custom = VString().password(specialChars: r'!@#$%^&*()-_+=<>?');
+        expect(custom.validate('Abcdefg1-'), isTrue);
+      });
+
+      test('should reject chars not in custom specialChars', () {
+        final onlyBang = VString().password(specialChars: '!');
+        expect(onlyBang.validate('Abcdefg1!'), isTrue);
+        expect(onlyBang.validate('Abcdefg1@'), isFalse);
       });
 
       test('should support custom message', () {
