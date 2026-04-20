@@ -451,6 +451,31 @@ void coreExamples() {
   // defaultValue
   print(V.string().defaultValue('fallback').parse(null)); // 'fallback'
 
+  // message — custom per-schema message for null input (required error).
+  final terms = V.bool(message: 'You must accept the terms').isTrue();
+  print(terms.errors(null)?.first.message); // 'You must accept the terms'
+
+  // Custom messages: factory-level `message` vs validator-level `message`.
+  //
+  // Same parameter name, different scopes:
+  //   - Factory `V.string(message: ...)` → only fires on null input
+  //     (pre-validation `required` error).
+  //   - Validator `.email(message: ...)` / `.min(n, message: ...)` →
+  //     only fires when that specific validator rejects a non-null value.
+  // The two never overlap and can coexist on the same schema.
+
+  final onlyRequired = V.string(message: 'Name is required').min(3);
+  print(onlyRequired.errors(null)?.first.message); // 'Name is required'
+
+  final onlyValidator = V.string().email(message: 'Invalid email format');
+  print(onlyValidator.errors('bad')?.first.message); // 'Invalid email format'
+
+  final both = V
+      .string(message: 'Name is required')
+      .min(3, message: (n) => 'At least $n chars');
+  print(both.errors(null)?.first.message); // 'Name is required'
+  print(both.errors('ab')?.first.message); // 'At least 3 chars'
+
   // refine (custom validation)
   final evenLen = V.string().refine(
         (v) => v.length.isEven,

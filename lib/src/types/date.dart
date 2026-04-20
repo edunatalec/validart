@@ -7,6 +7,10 @@ part of 'type.dart';
 /// schema.parse(DateTime(2025)); // DateTime(2025)
 /// ```
 class VDate extends VType<DateTime> {
+  /// Creates a [VDate]. Pass [message] to override the default
+  /// translation used when the input is `null`.
+  VDate({super.message});
+
   @override
   VDate add(
     Validator<DateTime> validator, {

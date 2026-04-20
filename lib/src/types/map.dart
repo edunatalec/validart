@@ -30,7 +30,10 @@ class VMap extends VType<Map<String, dynamic>> {
   bool _isPassthrough = false;
 
   /// Creates a map validator with the given field [_schema].
-  VMap(this._schema) {
+  ///
+  /// Pass [message] to override the default translation used
+  /// when the input is `null`.
+  VMap(this._schema, {super.message}) {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
   }
 

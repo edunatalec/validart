@@ -36,47 +36,73 @@ class V {
 
   /// Creates a [VString] schema.
   ///
+  /// Pass [message] to override the default translation for the `required`
+  /// error (when input is `null` and the schema is neither `nullable()`
+  /// nor has a `defaultValue`). The factory-level [message] only applies
+  /// to the `required` error — it is consumed before the validation
+  /// pipeline starts.
+  ///
+  /// Individual validator methods (`.email(message: ...)`,
+  /// `.min(n, message: ...)`, `.refine(fn, message: ...)`, ...) accept
+  /// their own [message] parameter which customizes the error produced by
+  /// that specific validator inside the pipeline. The two never overlap:
+  /// the factory-level one fires on null input, the validator-level one
+  /// fires when that validator rejects a non-null value.
+  ///
   /// ```dart
   /// V.string().email().min(5);
+  /// V.string(message: 'Name is required').min(1);
+  ///
+  /// // Both levels on the same schema — each fires in its own scenario.
+  /// V.string(message: 'Name is required')
+  ///     .min(3, message: (n) => 'At least $n chars');
   /// ```
-  static VString string() => VString();
+  static VString string({String? message}) => VString(message: message);
 
-  /// Creates a [VBool] schema.
+  /// Creates a [VBool] schema. See [string] for [message].
   ///
   /// ```dart
   /// V.bool().isTrue();
+  /// V.bool(message: 'You must accept the terms').isTrue();
   /// ```
-  static VBool bool() => VBool();
+  static VBool bool({String? message}) => VBool(message: message);
 
-  /// Creates a [VInt] schema.
+  /// Creates a [VInt] schema. See [string] for [message].
   ///
   /// ```dart
   /// V.int().positive().min(1);
+  /// V.int(message: 'Age is required').between(0, 150);
   /// ```
-  static VInt int() => VInt();
+  static VInt int({String? message}) => VInt(message: message);
 
-  /// Creates a [VDouble] schema.
+  /// Creates a [VDouble] schema. See [string] for [message].
   ///
   /// ```dart
   /// V.double().finite().positive();
   /// ```
-  static VDouble double() => VDouble();
+  static VDouble double({String? message}) => VDouble(message: message);
 
-  /// Creates a [VDate] schema.
+  /// Creates a [VDate] schema. See [string] for [message].
   ///
   /// ```dart
   /// V.date().after(DateTime(2024));
   /// ```
-  static VDate date() => VDate();
+  static VDate date({String? message}) => VDate(message: message);
 
-  /// Creates a [VMap] schema with the given field [schema].
+  /// Creates a [VMap] schema with the given field [schema]. See [string]
+  /// for [message].
   ///
   /// ```dart
   /// V.map({'name': V.string(), 'age': V.int()});
   /// ```
-  static VMap map(Map<String, VType> schema) => VMap(schema);
+  static VMap map(
+    Map<String, VType> schema, {
+    String? message,
+  }) =>
+      VMap(schema, message: message);
 
-  /// Creates a [VObject] schema for type-safe entity validation.
+  /// Creates a [VObject] schema for type-safe entity validation. See
+  /// [string] for [message].
   ///
   /// ```dart
   /// V.object<User>(configure: (o) {
@@ -85,36 +111,54 @@ class V {
   /// ```
   static VObject<T> object<T>({
     void Function(VObjectBuilder<T> o)? configure,
+    String? message,
   }) =>
-      VObject<T>(configure: configure);
+      VObject<T>(
+        configure: configure,
+        message: message,
+      );
 
-  /// Creates a [VArray] schema for the given [element] type.
+  /// Creates a [VArray] schema for the given [element] type. See [string]
+  /// for [message].
   ///
   /// ```dart
   /// V.array(V.string().email());
   /// ```
-  static VArray<T> array<T>(VType<T> element) => VArray<T>(element);
+  static VArray<T> array<T>(VType<T> element, {String? message}) =>
+      VArray<T>(element, message: message);
 
-  /// Creates a [VEnum] schema accepting the given enum [values].
+  /// Creates a [VEnum] schema accepting the given enum [values]. See
+  /// [string] for [message].
   ///
   /// ```dart
   /// V.enm(Color.values);
   /// ```
-  static VEnum<T> enm<T extends Enum>(List<T> values) => VEnum<T>(values);
+  static VEnum<T> enm<T extends Enum>(
+    List<T> values, {
+    String? message,
+  }) =>
+      VEnum<T>(values, message: message);
 
-  /// Creates a [VLiteral] schema accepting only the given [value].
+  /// Creates a [VLiteral] schema accepting only the given [value]. See
+  /// [string] for [message].
   ///
   /// ```dart
   /// V.literal('active');
   /// ```
-  static VLiteral<T> literal<T>(T value) => VLiteral<T>(value);
+  static VLiteral<T> literal<T>(T value, {String? message}) =>
+      VLiteral<T>(value, message: message);
 
-  /// Creates a [VUnion] schema accepting any of the given [options].
+  /// Creates a [VUnion] schema accepting any of the given [options]. See
+  /// [string] for [message].
   ///
   /// ```dart
   /// V.union([V.string(), V.int()]);
   /// ```
-  static VUnion union(List<VType> options) => VUnion(options);
+  static VUnion union(
+    List<VType> options, {
+    String? message,
+  }) =>
+      VUnion(options, message: message);
 }
 
 /// Provides coercion schemas that convert input values to the target type.

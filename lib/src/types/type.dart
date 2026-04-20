@@ -98,10 +98,23 @@ part 'transformed.dart';
 ///   ..email();     // phase 2: validation
 /// ```
 abstract class VType<T> {
+  /// Creates a [VType]. [message] overrides the default translation for
+  /// the `required` error when input is `null` and the schema is neither
+  /// `nullable()` nor has a `defaultValue`.
+  ///
+  /// Not to be confused with the `message` parameter on individual
+  /// validator methods (`.email(message: ...)`, `.min(n, message: ...)`,
+  /// `.refine(fn, message: ...)`, ...): that one customizes the error of
+  /// a specific validator inside the pipeline; this one customizes the
+  /// pre-validation `required` error fired by `_resolveNull`. Both can
+  /// coexist on the same schema.
+  VType({String? message}) : _message = message;
+
   final List<_PipelineStep<T>> _steps = [];
   bool _isNullable = false;
   T? _defaultValue;
   bool _hasDefault = false;
+  final String? _message;
 
   /// Optional coercion function to convert input to the expected type.
   T Function(Object value)? coercer;
@@ -190,7 +203,10 @@ abstract class VType<T> {
 
     return (
       earlyReturn: VFailure<S?>([
-        VError(code: VCode.required, message: V.t(VCode.required)),
+        VError(
+          code: VCode.required,
+          message: _message ?? V.t(VCode.required),
+        ),
       ]),
       input: null,
     );

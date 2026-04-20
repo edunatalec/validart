@@ -369,4 +369,89 @@ void main() {
       expect(V.t('test_code'), 'Simple message');
     });
   });
+
+  group('factory-level message override (required error)', () {
+    test('VString required error uses custom message', () {
+      final schema = V.string(message: 'Name is required');
+      final errs = schema.errors(null);
+      expect(errs!.first.code, 'required');
+      expect(errs.first.message, 'Name is required');
+    });
+
+    test('VBool required error uses custom message', () {
+      final schema = V.bool(message: 'You must accept the terms');
+      final errs = schema.errors(null);
+      expect(errs!.first.message, 'You must accept the terms');
+    });
+
+    test('VInt required error uses custom message', () {
+      final schema = V.int(message: 'Age is required');
+      expect(schema.errors(null)!.first.message, 'Age is required');
+    });
+
+    test('VDouble required error uses custom message', () {
+      final schema = V.double(message: 'Height needed');
+      expect(schema.errors(null)!.first.message, 'Height needed');
+    });
+
+    test('VDate required error uses custom message', () {
+      final schema = V.date(message: 'Birthday needed');
+      expect(schema.errors(null)!.first.message, 'Birthday needed');
+    });
+
+    test('VMap required error uses custom message', () {
+      final schema = V.map(
+        {'name': V.string()},
+        message: 'Payload missing',
+      );
+      expect(schema.errors(null)!.first.message, 'Payload missing');
+    });
+
+    test('VArray required error uses custom message', () {
+      final schema = V.array(V.string(), message: 'List is required');
+      expect(schema.errors(null)!.first.message, 'List is required');
+    });
+
+    test('VObject required error uses custom message', () {
+      final schema = V.object<_Dummy>(message: 'Entity needed');
+      expect(schema.errors(null)!.first.message, 'Entity needed');
+    });
+
+    test('custom message overrides locale global', () {
+      V.setLocale(const VLocale({'required': 'Globally required'}));
+      final schema = V.string(message: 'Name specifically required');
+      expect(
+        schema.errors(null)!.first.message,
+        'Name specifically required',
+      );
+    });
+
+    test('without message, locale is still used', () {
+      V.setLocale(const VLocale({'required': 'Campo obrigatório'}));
+      final schema = V.string();
+      expect(schema.errors(null)!.first.message, 'Campo obrigatório');
+    });
+
+    test('message only applies to null input, not other errors', () {
+      final schema = V.string(message: 'X').min(3, message: (_) => 'Too short');
+      // null → custom required message
+      expect(schema.errors(null)!.first.message, 'X');
+      // 'ab' → min error, not required
+      expect(schema.errors('ab')!.first.message, 'Too short');
+    });
+
+    test('does not apply when nullable() is set', () {
+      final schema = V.string(message: 'X').nullable();
+      expect(schema.validate(null), isTrue);
+    });
+
+    test('does not apply when defaultValue is set and input is null', () {
+      final schema = V.string(message: 'X').defaultValue('fallback');
+      expect(schema.parse(null), 'fallback');
+    });
+  });
+}
+
+class _Dummy {
+  const _Dummy();
 }

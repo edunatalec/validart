@@ -7,6 +7,10 @@ part of 'type.dart';
 /// schema.parse(true); // true
 /// ```
 class VBool extends VType<bool> {
+  /// Creates a [VBool]. Pass [message] to override the default
+  /// translation used when the input is `null`.
+  VBool({super.message});
+
   @override
   VBool add(
     Validator<bool> validator, {

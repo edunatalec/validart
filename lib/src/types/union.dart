@@ -13,7 +13,10 @@ class VUnion extends VType<Object> {
 
   /// Creates a union validator that accepts values matching any of the
   /// [_options]. Must have at least 2 options.
-  VUnion(this._options) {
+  ///
+  /// Pass [message] to override the default translation used
+  /// when the input is `null`.
+  VUnion(this._options, {super.message}) {
     assert(_options.length >= 2, 'Union must have at least 2 options.');
   }
 

@@ -6,6 +6,10 @@ part of 'type.dart';
 /// V.int().min(0).max(100).parse(42); // 42
 /// ```
 abstract class VNumber<T extends num> extends VType<T> {
+  /// Creates a [VNumber]. Pass [message] to override the default
+  /// translation used when the input is `null`.
+  VNumber({super.message});
+
   @override
   VNumber<T> add(
     Validator<T> validator, {
@@ -102,6 +106,10 @@ abstract class VNumber<T extends num> extends VType<T> {
 /// schema.parse(4); // 4
 /// ```
 class VInt extends VNumber<int> {
+  /// Creates a [VInt]. Pass [message] to override the default
+  /// translation used when the input is `null`.
+  VInt({super.message});
+
   @override
   VInt add(
     Validator<int> validator, {
@@ -244,6 +252,10 @@ class VInt extends VNumber<int> {
 /// schema.parse(3.14); // 3.14
 /// ```
 class VDouble extends VNumber<double> {
+  /// Creates a [VDouble]. Pass [message] to override the default
+  /// translation used when the input is `null`.
+  VDouble({super.message});
+
   @override
   VDouble add(
     Validator<double> validator, {

@@ -11,7 +11,10 @@ class VLiteral<T> extends VType<T> {
   final T _expected;
 
   /// Creates a literal validator that only accepts [_expected].
-  VLiteral(this._expected);
+  ///
+  /// Pass [message] to override the default translation used
+  /// when the input is `null`.
+  VLiteral(this._expected, {super.message});
 
   @override
   VResult<T?> safeParse(Object? value) {

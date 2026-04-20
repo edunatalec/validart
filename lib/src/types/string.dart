@@ -7,6 +7,10 @@ part of 'type.dart';
 /// schema.parse('user@mail.com'); // 'user@mail.com'
 /// ```
 class VString extends VType<String> {
+  /// Creates a [VString]. Pass [message] to override the default
+  /// translation used when the input is `null`.
+  VString({super.message});
+
   @override
   VString add(
     Validator<String> validator, {

@@ -12,7 +12,10 @@ class VEnum<T extends Enum> extends VType<T> {
   final List<T> _values;
 
   /// Creates an enum validator that accepts only the given [_values].
-  VEnum(this._values);
+  ///
+  /// Pass [message] to override the default translation used
+  /// when the input is `null`.
+  VEnum(this._values, {super.message});
 
   @override
   VResult<T?> safeParse(Object? value) {

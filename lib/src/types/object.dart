@@ -58,7 +58,8 @@ class VObjectBuilder<T> {
 class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields;
 
-  VObject._({required List<_FieldEntry<T>> fields}) : _fields = fields;
+  VObject._({required List<_FieldEntry<T>> fields, super.message})
+      : _fields = fields;
 
   @override
   VObject<T> add(
@@ -135,7 +136,10 @@ class VObject<T> extends VType<T> {
   ///   o.field('name', (u) => u.name, V.string());
   /// });
   /// ```
-  factory VObject({void Function(VObjectBuilder<T> o)? configure}) {
+  factory VObject({
+    void Function(VObjectBuilder<T> o)? configure,
+    String? message,
+  }) {
     final List<_FieldEntry<T>> fields;
     if (configure != null) {
       final builder = VObjectBuilder<T>();
@@ -144,7 +148,7 @@ class VObject<T> extends VType<T> {
     } else {
       fields = [];
     }
-    return VObject._(fields: fields);
+    return VObject._(fields: fields, message: message);
   }
 
   @override
