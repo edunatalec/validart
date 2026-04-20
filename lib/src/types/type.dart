@@ -122,6 +122,9 @@ abstract class VType<T> {
       _asyncPreprocessors.isNotEmpty ||
       _steps.any((s) => s is _AsyncValidatorStep<T>);
 
+  /// Returns `true` if `null` is accepted by this schema (set via [nullable]).
+  bool get isNullable => _isNullable;
+
   /// Adds a [Validator] to the validation phase of the pipeline.
   ///
   /// Use [message] to override the default error message. Use [path] to
