@@ -135,18 +135,19 @@ class VArray<T> extends VType<List<T>> {
       );
     }
 
-    final nullResult = _nullCheck<List<T>>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<List<T>>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
-    if (value is! List) {
-      return _typeError<List<T>>('List<${T.toString()}>', value!);
+    if (input is! List) {
+      return _typeError<List<T>>('List<${T.toString()}>', input!);
     }
 
     final errors = <VError>[];
     final List<T> parsed = [];
 
-    for (int i = 0; i < value.length; i++) {
-      final result = _element.safeParse(value[i]);
+    for (int i = 0; i < input.length; i++) {
+      final result = _element.safeParse(input[i]);
 
       switch (result) {
         case VSuccess():
@@ -165,20 +166,21 @@ class VArray<T> extends VType<List<T>> {
 
   @override
   Future<VResult<List<T>?>> safeParseAsync(Object? value) async {
-    final nullResult = _nullCheck<List<T>>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<List<T>>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
-    if (value is! List) {
-      return _typeError<List<T>>('List<${T.toString()}>', value!);
+    if (input is! List) {
+      return _typeError<List<T>>('List<${T.toString()}>', input!);
     }
 
     final errors = <VError>[];
     final List<T> parsed = [];
 
-    for (int i = 0; i < value.length; i++) {
+    for (int i = 0; i < input.length; i++) {
       final result = _element.hasAsync
-          ? await _element.safeParseAsync(value[i])
-          : _element.safeParse(value[i]);
+          ? await _element.safeParseAsync(input[i])
+          : _element.safeParse(input[i]);
 
       switch (result) {
         case VSuccess():

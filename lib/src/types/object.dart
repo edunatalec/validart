@@ -167,15 +167,16 @@ class VObject<T> extends VType<T> {
       );
     }
 
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
     final T typed;
 
     try {
-      typed = value as T;
+      typed = input as T;
     } catch (_) {
-      return _typeError<T>(T.toString(), value!);
+      return _typeError<T>(T.toString(), input!);
     }
 
     final errors = <VError>[];
@@ -201,15 +202,16 @@ class VObject<T> extends VType<T> {
 
   @override
   Future<VResult<T?>> safeParseAsync(Object? value) async {
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
     final T typed;
 
     try {
-      typed = value as T;
+      typed = input as T;
     } catch (_) {
-      return _typeError<T>(T.toString(), value!);
+      return _typeError<T>(T.toString(), input!);
     }
 
     final errors = <VError>[];

@@ -1275,12 +1275,28 @@ void main() {
 
       test('CaSinPattern accepts valid with Luhn', () {
         final schema = VString().taxId(pattern: const CaSinPattern());
-        expect(schema.validate('046454286'), isTrue);
+        expect(schema.validate('130692544'), isTrue);
       });
 
       test('CaSinPattern accepts with spaces/dashes', () {
         final schema = VString().taxId(pattern: const CaSinPattern());
-        expect(schema.validate('046-454-286'), isTrue);
+        expect(schema.validate('130-692-544'), isTrue);
+      });
+
+      test('CaSinPattern rejects SIN starting with 0 (per CRA spec)', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('046454286'), isFalse);
+      });
+
+      test('CaSinPattern rejects SIN starting with 8 (per CRA spec)', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        // Passes Luhn but starts with 8 — CRA forbids.
+        expect(schema.validate('800000006'), isFalse);
+      });
+
+      test('CaSinPattern accepts 9 prefix (temporary residents)', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('930692546'), isTrue);
       });
 
       test('CaSinPattern rejects invalid Luhn', () {

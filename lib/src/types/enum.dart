@@ -16,11 +16,12 @@ class VEnum<T extends Enum> extends VType<T> {
 
   @override
   VResult<T?> safeParse(Object? value) {
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
-    if (value is T && _values.contains(value)) {
-      return _runPipeline(value);
+    if (input is T && _values.contains(input)) {
+      return _runPipeline(input);
     }
 
     return VFailure<T?>([

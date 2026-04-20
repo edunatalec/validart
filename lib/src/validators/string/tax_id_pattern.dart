@@ -65,6 +65,10 @@ class UkNiNumberPattern extends TaxIdPattern {
 }
 
 /// Matches Canadian Social Insurance Numbers — 9 digits with Luhn check.
+///
+/// Follows the CRA specification: the first digit must not be `0` or `8`.
+/// Numbers beginning with `9` represent temporary residents; the others
+/// cover provincial issuance ranges.
 class CaSinPattern extends TaxIdPattern {
   /// Creates a [CaSinPattern].
   const CaSinPattern();
@@ -76,7 +80,7 @@ class CaSinPattern extends TaxIdPattern {
   bool matches(String value) {
     final digits = value.replaceAll(RegExp(r'[\s-]'), '');
 
-    if (!RegExp(r'^\d{9}$').hasMatch(digits)) return false;
+    if (!RegExp(r'^[1-79]\d{8}$').hasMatch(digits)) return false;
 
     var sum = 0;
     var alternate = false;

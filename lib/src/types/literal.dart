@@ -15,10 +15,11 @@ class VLiteral<T> extends VType<T> {
 
   @override
   VResult<T?> safeParse(Object? value) {
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
-    if (value == _expected) {
+    if (input == _expected) {
       return VSuccess<T?>(_expected);
     }
 
@@ -27,7 +28,7 @@ class VLiteral<T> extends VType<T> {
         code: VCode.invalidLiteral,
         message: V.t(VCode.invalidLiteral, {
           'expected': _expected,
-          'received': value,
+          'received': input,
         }),
       ),
     ]);

@@ -166,15 +166,31 @@ abstract class VType<T> {
     return this;
   }
 
-  VResult<S?>? _nullCheck<S>(S? defaultVal, bool hasDefault, Object? value) {
-    if (value != null) return null;
+  /// Resolves null input against `_hasDefault` / `_isNullable`.
+  ///
+  /// Returns a record with `earlyReturn` (if the pipeline should return
+  /// immediately — either with null for nullable, or a required error)
+  /// and `input` (the effective input to continue with — either the
+  /// original value or the substituted default).
+  ({VResult<S?>? earlyReturn, Object? input}) _resolveNull<S>(
+    S? defaultVal,
+    bool hasDefault,
+    Object? value,
+  ) {
+    if (value != null) return (earlyReturn: null, input: value);
 
-    if (hasDefault) return VSuccess<S?>(defaultVal);
-    if (_isNullable) return VSuccess<S?>(null);
+    if (hasDefault) return (earlyReturn: null, input: defaultVal);
 
-    return VFailure<S?>([
-      VError(code: VCode.required, message: V.t(VCode.required)),
-    ]);
+    if (_isNullable) {
+      return (earlyReturn: VSuccess<S?>(null), input: null);
+    }
+
+    return (
+      earlyReturn: VFailure<S?>([
+        VError(code: VCode.required, message: V.t(VCode.required)),
+      ]),
+      input: null,
+    );
   }
 
   VFailure<S?> _typeError<S>(String expected, Object value) {
@@ -242,8 +258,9 @@ abstract class VType<T> {
       input = fn(input);
     }
 
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, input);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, input);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    input = resolution.input;
 
     final T typed;
 
@@ -281,8 +298,9 @@ abstract class VType<T> {
       input = await fn(input);
     }
 
-    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, input);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, input);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    input = resolution.input;
 
     final T typed;
 

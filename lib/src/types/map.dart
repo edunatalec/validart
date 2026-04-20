@@ -341,17 +341,18 @@ class VMap extends VType<Map<String, dynamic>> {
       );
     }
 
-    final nullResult = _nullCheck<Map<String, dynamic>>(
+    final resolution = _resolveNull<Map<String, dynamic>>(
       _defaultValue,
       _hasDefault,
       value,
     );
-    if (nullResult != null) return nullResult;
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
-    if (value is! Map<String, dynamic>) {
+    if (input is! Map<String, dynamic>) {
       return _typeError<Map<String, dynamic>>(
         'Map<String, dynamic>',
-        value!,
+        input!,
       );
     }
 
@@ -359,7 +360,7 @@ class VMap extends VType<Map<String, dynamic>> {
     final parsed = <String, dynamic>{};
 
     if (_isStrict) {
-      for (final key in value.keys) {
+      for (final key in input.keys) {
         if (!_schema.containsKey(key)) {
           errors.add(VError(
             code: VCode.unrecognizedKey,
@@ -371,7 +372,7 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     for (final entry in _schema.entries) {
-      final fieldValue = value[entry.key];
+      final fieldValue = input[entry.key];
       final result = entry.value.safeParse(fieldValue);
 
       switch (result) {
@@ -387,9 +388,9 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     for (final rule in _whenRules) {
-      if (value[rule.field] == rule.equals) {
+      if (input[rule.field] == rule.equals) {
         for (final entry in rule.then.entries) {
-          final fieldValue = value[entry.key];
+          final fieldValue = input[entry.key];
           final result = entry.value.safeParse(fieldValue);
 
           switch (result) {
@@ -407,7 +408,7 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     if (_isPassthrough) {
-      for (final entry in value.entries) {
+      for (final entry in input.entries) {
         if (!_schema.containsKey(entry.key)) {
           parsed[entry.key] = entry.value;
         }
@@ -423,17 +424,18 @@ class VMap extends VType<Map<String, dynamic>> {
 
   @override
   Future<VResult<Map<String, dynamic>?>> safeParseAsync(Object? value) async {
-    final nullResult = _nullCheck<Map<String, dynamic>>(
+    final resolution = _resolveNull<Map<String, dynamic>>(
       _defaultValue,
       _hasDefault,
       value,
     );
-    if (nullResult != null) return nullResult;
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
-    if (value is! Map<String, dynamic>) {
+    if (input is! Map<String, dynamic>) {
       return _typeError<Map<String, dynamic>>(
         'Map<String, dynamic>',
-        value!,
+        input!,
       );
     }
 
@@ -441,7 +443,7 @@ class VMap extends VType<Map<String, dynamic>> {
     final parsed = <String, dynamic>{};
 
     if (_isStrict) {
-      for (final key in value.keys) {
+      for (final key in input.keys) {
         if (!_schema.containsKey(key)) {
           errors.add(VError(
             code: VCode.unrecognizedKey,
@@ -453,7 +455,7 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     for (final entry in _schema.entries) {
-      final fieldValue = value[entry.key];
+      final fieldValue = input[entry.key];
       final result = entry.value.hasAsync
           ? await entry.value.safeParseAsync(fieldValue)
           : entry.value.safeParse(fieldValue);
@@ -471,9 +473,9 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     for (final rule in _whenRules) {
-      if (value[rule.field] == rule.equals) {
+      if (input[rule.field] == rule.equals) {
         for (final entry in rule.then.entries) {
-          final fieldValue = value[entry.key];
+          final fieldValue = input[entry.key];
           final result = entry.value.hasAsync
               ? await entry.value.safeParseAsync(fieldValue)
               : entry.value.safeParse(fieldValue);
@@ -493,7 +495,7 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     if (_isPassthrough) {
-      for (final entry in value.entries) {
+      for (final entry in input.entries) {
         if (!_schema.containsKey(entry.key)) {
           parsed[entry.key] = entry.value;
         }

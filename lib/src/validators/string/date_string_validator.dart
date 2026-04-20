@@ -50,6 +50,12 @@ class DateStringValidator extends Validator<String> {
   ];
 
   bool _matches(String value, String format) {
+    if (!format.contains('YYYY') ||
+        !format.contains('MM') ||
+        !format.contains('DD')) {
+      return false;
+    }
+
     final regex = _formatToRegex(format);
     final match = regex.firstMatch(value);
 

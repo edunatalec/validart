@@ -30,15 +30,16 @@ class VUnion extends VType<Object> {
       );
     }
 
-    final nullResult = _nullCheck<Object>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<Object>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
     final optionErrors = <List<VError>>[];
 
     for (final option in _options) {
-      final result = option.safeParse(value);
+      final result = option.safeParse(input);
 
-      if (result.isValid) return VSuccess<Object?>(value);
+      if (result.isValid) return VSuccess<Object?>(input);
 
       optionErrors.add((result as VFailure).errors);
     }
@@ -54,17 +55,18 @@ class VUnion extends VType<Object> {
 
   @override
   Future<VResult<Object?>> safeParseAsync(Object? value) async {
-    final nullResult = _nullCheck<Object>(_defaultValue, _hasDefault, value);
-    if (nullResult != null) return nullResult;
+    final resolution = _resolveNull<Object>(_defaultValue, _hasDefault, value);
+    if (resolution.earlyReturn != null) return resolution.earlyReturn!;
+    final input = resolution.input;
 
     final optionErrors = <List<VError>>[];
 
     for (final option in _options) {
       final result = option.hasAsync
-          ? await option.safeParseAsync(value)
-          : option.safeParse(value);
+          ? await option.safeParseAsync(input)
+          : option.safeParse(input);
 
-      if (result.isValid) return VSuccess<Object?>(value);
+      if (result.isValid) return VSuccess<Object?>(input);
 
       optionErrors.add((result as VFailure).errors);
     }
