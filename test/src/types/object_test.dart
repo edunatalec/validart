@@ -15,6 +15,32 @@ class _TaggedFolder {
   _TaggedFolder(this.name, this.tags);
 }
 
+enum _AccountStatus { active, suspended, deleted }
+
+class _KitchenSinkEntity {
+  final String name;
+  final int age;
+  final double balance;
+  final bool active;
+  final DateTime joined;
+  final List<String> tags;
+  final Map<String, dynamic> prefs;
+  final _AccountStatus status;
+  final Object id; // String UUID or int
+
+  _KitchenSinkEntity({
+    required this.name,
+    required this.age,
+    required this.balance,
+    required this.active,
+    required this.joined,
+    required this.tags,
+    required this.prefs,
+    required this.status,
+    required this.id,
+  });
+}
+
 void main() {
   setUp(() => V.setLocale(const VLocale()));
 
@@ -289,6 +315,154 @@ void main() {
         final errs = schema.errors(_TaggedFolder('Docs', ['hello', 'ab']));
         expect(errs, isNotNull);
         expect(errs!.first.path, ['tags', 1]);
+      });
+    });
+
+    group('kitchen sink (all types combined)', () {
+      final schema = V.object<_KitchenSinkEntity>(
+        configure: (o) => o
+            .field('name', (e) => e.name, V.string().min(1))
+            .field('age', (e) => e.age, V.int().between(0, 150))
+            .field('balance', (e) => e.balance, V.double().finite())
+            .field('active', (e) => e.active, V.bool().isTrue())
+            .field(
+              'joined',
+              (e) => e.joined,
+              V.date().before(DateTime(2030)),
+            )
+            .field(
+              'tags',
+              (e) => e.tags,
+              V.string().min(2).array().min(1).unique(),
+            )
+            .field(
+              'prefs',
+              (e) => e.prefs,
+              V.map({
+                'theme': V.literal('dark'),
+                'notifications': V.bool(),
+              }),
+            )
+            .field(
+              'status',
+              (e) => e.status,
+              V.enm(_AccountStatus.values),
+            )
+            .field(
+              'id',
+              (e) => e.id,
+              V.union([V.string().uuid(), V.int().min(1)]),
+            ),
+      );
+
+      _KitchenSinkEntity goodEntity() => _KitchenSinkEntity(
+            name: 'Alice',
+            age: 30,
+            balance: 1234.56,
+            active: true,
+            joined: DateTime(2024, 1, 15),
+            tags: ['dev', 'ops'],
+            prefs: {'theme': 'dark', 'notifications': true},
+            status: _AccountStatus.active,
+            id: 42,
+          );
+
+      test('accepts an entity with every field valid', () {
+        expect(schema.validate(goodEntity()), isTrue);
+      });
+
+      test('accepts UUID string in the union id field', () {
+        final entity = _KitchenSinkEntity(
+          name: goodEntity().name,
+          age: goodEntity().age,
+          balance: goodEntity().balance,
+          active: goodEntity().active,
+          joined: goodEntity().joined,
+          tags: goodEntity().tags,
+          prefs: goodEntity().prefs,
+          status: goodEntity().status,
+          id: '550e8400-e29b-41d4-a716-446655440000',
+        );
+        expect(schema.validate(entity), isTrue);
+      });
+
+      test('reports path-precise errors for every failing field', () {
+        final bad = _KitchenSinkEntity(
+          name: '',
+          age: 200,
+          balance: double.infinity,
+          active: false,
+          joined: DateTime(2040),
+          tags: <String>[],
+          prefs: {'theme': 'light', 'notifications': true},
+          status: _AccountStatus.active,
+          id: 'not-a-uuid',
+        );
+
+        final errors = schema.errors(bad);
+        expect(errors, isNotNull);
+
+        final paths = errors!.map((e) => e.path.first).toSet();
+        expect(
+          paths,
+          containsAll(<Object>[
+            'name',
+            'age',
+            'balance',
+            'active',
+            'joined',
+            'tags',
+            'prefs',
+            'id',
+          ]),
+        );
+      });
+
+      test('nested map field error keeps nested path', () {
+        final bad = _KitchenSinkEntity(
+          name: goodEntity().name,
+          age: goodEntity().age,
+          balance: goodEntity().balance,
+          active: goodEntity().active,
+          joined: goodEntity().joined,
+          tags: goodEntity().tags,
+          prefs: {'theme': 'light', 'notifications': true},
+          status: goodEntity().status,
+          id: goodEntity().id,
+        );
+
+        final errors = schema.errors(bad);
+        expect(
+          errors!.any(
+            (e) =>
+                e.path.length == 2 &&
+                e.path[0] == 'prefs' &&
+                e.path[1] == 'theme',
+          ),
+          isTrue,
+        );
+      });
+
+      test('array field error carries index in path', () {
+        final bad = _KitchenSinkEntity(
+          name: goodEntity().name,
+          age: goodEntity().age,
+          balance: goodEntity().balance,
+          active: goodEntity().active,
+          joined: goodEntity().joined,
+          tags: ['ok', 'x'],
+          prefs: goodEntity().prefs,
+          status: goodEntity().status,
+          id: goodEntity().id,
+        );
+
+        final errors = schema.errors(bad);
+        expect(
+          errors!.any(
+            (e) => e.path.length == 2 && e.path[0] == 'tags' && e.path[1] == 1,
+          ),
+          isTrue,
+        );
       });
     });
   });

@@ -2,6 +2,9 @@ import 'package:test/test.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
+import 'package:validart/src/validators/string/postal_code_pattern.dart';
+
+enum _Role { admin, user, guest }
 
 void main() {
   setUp(() => V.setLocale(const VLocale()));
@@ -676,6 +679,174 @@ void main() {
           },
         });
         expect(errs!.first.path, ['level1', 'level2', 'level3']);
+      });
+    });
+
+    group('kitchen sink (all types combined)', () {
+      final schema = V.map({
+        'name': V.string().min(1),
+        'age': V.int().between(0, 150),
+        'height': V.double().positive(),
+        'active': V.bool().isTrue(),
+        'joined': V.date().before(DateTime(2030)),
+        'tags': V.string().min(2).array().min(1).unique(),
+        'address': V.map({
+          'zip': V.string().postalCode(pattern: const UsZipPattern()),
+          'country': V.literal('US'),
+        }),
+        'role': V.enm(_Role.values),
+        'id': V.union([V.string().uuid(), V.int().min(1)]),
+      });
+
+      final good = {
+        'name': 'Alice',
+        'age': 30,
+        'height': 1.65,
+        'active': true,
+        'joined': DateTime(2024, 1, 15),
+        'tags': ['dev', 'ops'],
+        'address': {'zip': '94103', 'country': 'US'},
+        'role': _Role.admin,
+        'id': 42,
+      };
+
+      test('accepts a valid full-shape map', () {
+        expect(schema.validate(good), isTrue);
+      });
+
+      test('accepts UUID in the union id field', () {
+        final withUuid = {
+          ...good,
+          'id': '550e8400-e29b-41d4-a716-446655440000',
+        };
+        expect(schema.validate(withUuid), isTrue);
+      });
+
+      test('reports path-precise errors for every failing field', () {
+        final bad = {
+          'name': '',
+          'age': 200,
+          'height': -1.0,
+          'active': false,
+          'joined': DateTime(2040),
+          'tags': <String>[],
+          'address': {'zip': 'invalid', 'country': 'BR'},
+          'role': 'not-an-enum',
+          'id': 'not-a-uuid',
+        };
+
+        final errors = schema.errors(bad);
+        expect(errors, isNotNull);
+
+        final paths = errors!.map((e) => e.path.first).toSet();
+        expect(
+          paths,
+          containsAll(<Object>[
+            'name',
+            'age',
+            'height',
+            'active',
+            'joined',
+            'tags',
+            'address',
+            'role',
+            'id',
+          ]),
+        );
+      });
+
+      test('nested map error keeps the nested path', () {
+        final bad = {
+          ...good,
+          'address': {'zip': 'nope', 'country': 'US'},
+        };
+        final errors = schema.errors(bad);
+        expect(errors!.first.path, ['address', 'zip']);
+      });
+
+      test('rejects missing required field', () {
+        final missing = {...good}..remove('name');
+        expect(schema.validate(missing), isFalse);
+      });
+    });
+
+    group('when advanced combinations', () {
+      test('when toggles enum-valued field validation', () {
+        final schema = V.map({
+          'type': V.enm(_Role.values),
+          'perks': V.string().array().nullable(),
+        }).when('type', equals: _Role.admin, then: {
+          'perks': V.string().array().min(1),
+        });
+
+        expect(
+          schema.validate({
+            'type': _Role.admin,
+            'perks': ['pagerduty']
+          }),
+          isTrue,
+        );
+        expect(
+          schema.validate({'type': _Role.admin, 'perks': <String>[]}),
+          isFalse,
+        );
+        expect(
+          schema.validate({'type': _Role.user}),
+          isTrue,
+        );
+      });
+
+      test('when field is itself a union schema', () {
+        final schema = V.map({
+          'kind': V.literal('premium'),
+          'payment': V.union([
+            V.string().min(5),
+            V.int().min(1),
+          ]).nullable(),
+        }).when('kind', equals: 'premium', then: {
+          'payment': V.union([V.string().min(5), V.int().min(1)]),
+        });
+
+        expect(
+          schema.validate({'kind': 'premium', 'payment': 'credit-card'}),
+          isTrue,
+        );
+        expect(schema.validate({'kind': 'premium', 'payment': 5}), isTrue);
+        expect(
+          schema.validate({'kind': 'premium', 'payment': null}),
+          isFalse,
+        );
+      });
+
+      test('when combined with strict still rejects unknown keys', () {
+        final schema = V.map({
+          'type': V.string(),
+          'data': V.string().nullable(),
+        }).when('type', equals: 'x', then: {
+          'data': V.string().min(3),
+        }).strict();
+
+        expect(
+          schema.validate({'type': 'x', 'data': 'foo', 'extra': 1}),
+          isFalse,
+        );
+        expect(schema.validate({'type': 'x', 'data': 'foo'}), isTrue);
+      });
+
+      test('when combined with passthrough keeps extras', () {
+        final schema = V.map({
+          'type': V.string(),
+          'data': V.string().nullable(),
+        }).when('type', equals: 'x', then: {
+          'data': V.string().min(3),
+        }).passthrough();
+
+        final result = schema.parse({
+          'type': 'x',
+          'data': 'foo',
+          'extra': 'keep me',
+        });
+        expect(result, {'type': 'x', 'data': 'foo', 'extra': 'keep me'});
       });
     });
   });
