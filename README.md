@@ -52,9 +52,100 @@ V.string()
   .email();
 ```
 
-Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `phone`.
+Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ulid`, `nanoId`, `mongoId`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `cvv`, `phone`, `base64`, `hexColor`, `mac`, `semver`, `iban`, `json`, `postalCode`, `taxId`, `licensePlate`.
 
-Pre-processing: `trim`, `toLowerCase`, `toUpperCase` — always run before validation, regardless of chain order.
+`uuid()` accepts RFC 4122 v1–v5 and RFC 9562 v6–v8. Pass `version: UuidVersion.vN` (enum) to restrict — e.g. `V.string().uuid(version: UuidVersion.v7)` for timestamp-ordered only.
+
+Pre-processing: `trim`, `toLowerCase`, `toUpperCase`, `toPascalCase`, `toCamelCase`, `toSnakeCase`, `toScreamingSnakeCase`, `toSlug` — always run before validation, regardless of chain order.
+
+```dart
+V.string().toSlug().parse('My Blog Post!');    // 'my-blog-post'
+V.string().toCamelCase().parse('hello_world'); // 'helloWorld'
+```
+
+Accents are transliterated by default (`São João` → `sao-joao`). Pass `keepAccents: true` to preserve them:
+
+```dart
+V.string().toSlug().parse('São João');                  // 'sao-joao'
+V.string().toSlug(keepAccents: true).parse('São João'); // 'são-joão'
+```
+
+#### Date
+
+Without `format`, accepts multiple known layouts (ISO extended/basic, BR `DD/MM/YYYY`, US `MM/DD/YYYY`, EU `DD.MM.YYYY`, dashed variants). Calendar-invalid dates are rejected.
+
+```dart
+V.string().date().validate('2024-01-15'); // true (ISO)
+V.string().date().validate('15/01/2024'); // true (BR)
+V.string().date().validate('2024-02-30'); // false (calendar-invalid)
+
+// Strict format — tokens: YYYY, MM, DD. Any other char is a literal separator.
+V.string().date(format: 'DD/MM/YYYY').validate('15/01/2024'); // true
+V.string().date(format: 'DD/MM/YYYY').validate('2024-01-15'); // false
+```
+
+#### Card
+
+Without `brands`, any Luhn-valid number (with or without mask) is accepted. Pass a list of `CardBrandPattern` to restrict:
+
+```dart
+V.string().card().validate('4532 0151 1283 0366'); // true
+
+V.string()
+  .card(brands: [const VisaBrand(), const MastercardBrand()])
+  .validate('4111111111111111'); // true (Visa)
+```
+
+Built-in brands: `VisaBrand`, `MastercardBrand`, `AmexBrand`, `DinersBrand`, `DiscoverBrand`, `JcbBrand`. External packages can extend `CardBrandPattern` to add more (e.g. `EloBrand`, `HipercardBrand` in `validart_br`).
+
+#### Phone
+
+Defaults to E.164. Pass a `PhonePattern` to plug in country-specific rules:
+
+```dart
+V.string().phone().validate('+14155552671'); // true (E.164 default)
+
+class BrPhonePattern extends PhonePattern {
+  const BrPhonePattern();
+
+  @override
+  String get code => 'invalid_phone_br';
+
+  @override
+  Map<String, dynamic>? validate(String value) =>
+      RegExp(r'^\+?55\d{10,11}$').hasMatch(value) ? null : {};
+}
+
+V.string().phone(pattern: const BrPhonePattern());
+```
+
+#### Postal code
+
+Pluggable pattern. Core ships with `UsZipPattern`, `CaPostalCodePattern`, `UkPostcodePattern`. Others (BR CEP, etc.) come from extension packages:
+
+```dart
+V.string().postalCode(pattern: const UsZipPattern()).validate('94103-1234');
+V.string().postalCode(pattern: const CaPostalCodePattern()).validate('K1A 0B1');
+V.string().postalCode(pattern: const UkPostcodePattern()).validate('SW1A 1AA');
+```
+
+#### Tax ID
+
+Pluggable pattern. Core ships with `UsSsnPattern`, `UkNiNumberPattern`, `CaSinPattern` (SIN with Luhn check). Country-specific IDs with custom check digits (e.g. BR CPF/CNPJ) come from extension packages:
+
+```dart
+V.string().taxId(pattern: const UsSsnPattern()).validate('123-45-6789');
+V.string().taxId(pattern: const UkNiNumberPattern()).validate('AB123456C');
+V.string().taxId(pattern: const CaSinPattern()).validate('046-454-286');
+```
+
+#### License plate
+
+Pluggable pattern. Core ships with `UkPlatePattern` (post-2001 format — stable nationwide). US and Canada plates vary heavily by state/province and are not built in; implement them per your needs or use an extension package:
+
+```dart
+V.string().licensePlate(pattern: const UkPlatePattern()).validate('AB12 CDE');
+```
 
 ### Int
 
@@ -93,7 +184,15 @@ V.date()
   .weekday();
 ```
 
-Available: `after`, `before`, `between`, `weekday`, `weekend`.
+Available: `after`, `before`, `between`, `weekday`, `weekend`, `age`.
+
+`age` validates the age derived from a birthdate (computed against `DateTime.now()` at validation time):
+
+```dart
+V.date().age(min: 18);          // 18 or older
+V.date().age(min: 18, max: 65); // between 18 and 65
+V.date().age(max: 120);         // sanity check on claimed birthdate
+```
 
 ## Map (Structured Objects)
 
@@ -281,6 +380,61 @@ V.string().refine(             // custom validation
 );
 ```
 
+The default is **validated** by the rest of the pipeline — if it doesn't satisfy the schema, parsing fails:
+
+```dart
+V.string().defaultValue('').min(3).parse(null); // throws VException
+V.string().defaultValue('hello').min(3).parse(null); // 'hello'
+```
+
+## Async Validation
+
+For checks that need IO (uniqueness in a database, remote token verification), use `refineAsync`:
+
+```dart
+final schema = V.string().email().refineAsync(
+  (email) async => !(await db.emailExists(email)),
+  message: 'Email already registered',
+  code: 'email_taken',
+);
+
+await schema.validateAsync('a@b.com');   // Future<bool>
+await schema.parseAsync('a@b.com');      // Future<String?>
+await schema.safeParseAsync('a@b.com');  // Future<VResult<String?>>
+await schema.errorsAsync('a@b.com');     // Future<List<VError>?>
+```
+
+Any schema containing `refineAsync` becomes async-only — calling the sync consumers (`validate`, `parse`, etc.) throws `VAsyncRequiredException`, pointing to the `*Async` variant. Schemas without `refineAsync` stay fully sync with zero overhead. Async propagates through `VMap`, `VArray`, `VObject`, `VUnion`, and `VTransformed`.
+
+### More async primitives
+
+```dart
+// Timeout on a slow check — exceeding counts as failure
+V.string().refineAsync(
+  check,
+  timeout: const Duration(seconds: 5),
+);
+
+// Custom AsyncValidator for reuse across schemas
+class UsernameAvailable extends AsyncValidator<String> {
+  const UsernameAvailable();
+  @override String get code => 'username_taken';
+  @override Future<Map<String, dynamic>?> validate(String value) async =>
+      (await db.usernameExists(value)) ? {} : null;
+}
+
+V.string().addAsync(const UsernameAvailable());
+
+// Async pre-processing (before type check)
+V.string().preprocessAsync((raw) async => await api.resolveAlias(raw as String));
+
+// Async post-processing (change output type)
+final loader = V.string().uuid().transformAsync<User>(
+  (id) async => await db.loadUser(id),
+);
+final user = await loader.parseAsync('550e8400-...'); // User
+```
+
 ## Form Errors
 
 Convert errors to a map for Flutter forms:
@@ -338,10 +492,9 @@ VCode.numberTooSmall  // 'number.too_small'
 
 ## Extensibility
 
-The `add()` method is public, so external packages can add validators:
+The `add()` method is public, so any code — your own project or an external package — can plug custom validators into a schema. Write a `Validator<T>` once and you have two ways to use it.
 
 ```dart
-// In a package like validart_br:
 class CpfValidator extends Validator<String> {
   const CpfValidator();
 
@@ -352,12 +505,56 @@ class CpfValidator extends Validator<String> {
   Map<String, dynamic>? validate(String value) =>
       _isValid(value) ? null : {};
 }
+```
 
+**Use it directly** — no extension needed:
+
+```dart
+final cpfSchema = V.string().add(const CpfValidator());
+
+cpfSchema.validate('529.982.247-25'); // true
+cpfSchema.validate('111.111.111-11'); // false
+
+// Chains normally with other validators:
+V.string().min(11).add(const CpfValidator());
+```
+
+**Or wrap it in an extension** for nicer ergonomics when you reuse the same validator across the codebase (or ship a package):
+
+```dart
 extension VStringBr on VString {
-  VString cpf({String? message}) {
-    add(const CpfValidator(), message: message);
-    return this;
-  }
+  VString cpf({String? message}) =>
+      add(const CpfValidator(), message: message);
+}
+
+V.string().cpf();
+```
+
+### Pluggable patterns
+
+For `phone()` and `card()`, external packages can plug new patterns without forking the core:
+
+```dart
+// Custom phone pattern
+class BrPhonePattern extends PhonePattern {
+  const BrPhonePattern();
+
+  @override
+  String get code => 'invalid_phone_br';
+
+  @override
+  Map<String, dynamic>? validate(String value) { ... }
+}
+
+// Custom card brand
+class EloBrand extends CardBrandPattern {
+  const EloBrand();
+
+  @override
+  String get name => 'Elo';
+
+  @override
+  bool matches(String digits) { ... } // digits already stripped of spaces/dashes
 }
 ```
 
