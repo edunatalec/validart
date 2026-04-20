@@ -1807,6 +1807,198 @@ void main() {
         expect(schema.validate(['bad']), isFalse);
       });
     });
+
+    group('case transforms accent edge cases', () {
+      test('empty string stays empty', () {
+        expect(VString().toSlug().parse(''), '');
+      });
+
+      test('only accented chars', () {
+        expect(VString().toSlug().parse('áéí'), 'aei');
+      });
+
+      test('only invalid chars yields empty', () {
+        expect(VString().toSlug().parse('!@#\$%'), '');
+        expect(VString().toPascalCase().parse('!@#'), '');
+      });
+
+      test('preserves unknown non-Latin chars in keepAccents mode', () {
+        expect(
+          VString().toSlug(keepAccents: true).parse('Привет'),
+          'привет',
+        );
+      });
+
+      test('non-Latin letters recognized by \\p{L} tokenizer', () {
+        expect(VString().toSlug().parse('Привет Мир'), 'привет-мир');
+      });
+
+      test('mixed Latin accented + ASCII', () {
+        expect(
+          VString().toSnakeCase().parse('Café Quente 123'),
+          'cafe_quente_123',
+        );
+      });
+    });
+
+    group('uuid version round-trip', () {
+      test('every version from v1 to v8 round-trips', () {
+        const samples = {
+          UuidVersion.v1: 'a1cc3d48-3d8a-11ee-be56-0242ac120002',
+          UuidVersion.v2: 'a1cc3d48-3d8a-21ee-be56-0242ac120002',
+          UuidVersion.v3: 'a1cc3d48-3d8a-31ee-be56-0242ac120002',
+          UuidVersion.v4: '550e8400-e29b-41d4-a716-446655440000',
+          UuidVersion.v5: 'a1cc3d48-3d8a-51ee-be56-0242ac120002',
+          UuidVersion.v6: '1ec9414c-232a-6b00-b3c8-9e6bdeced846',
+          UuidVersion.v7: '018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9',
+          UuidVersion.v8: 'a1cc3d48-3d8a-81ee-be56-0242ac120002',
+        };
+
+        for (final entry in samples.entries) {
+          final schema = VString().uuid(version: entry.key);
+          expect(
+            schema.validate(entry.value),
+            isTrue,
+            reason: '${entry.key.name} should accept ${entry.value}',
+          );
+        }
+      });
+
+      test('v0 rejected (regex allows 1-8 only)', () {
+        final schema = VString().uuid();
+        expect(
+          schema.validate('550e8400-e29b-01d4-a716-446655440000'),
+          isFalse,
+        );
+      });
+
+      test('v9 rejected', () {
+        final schema = VString().uuid();
+        expect(
+          schema.validate('550e8400-e29b-91d4-a716-446655440000'),
+          isFalse,
+        );
+      });
+    });
+
+    group('card edge cases', () {
+      test('accepts dashes as mask', () {
+        final schema = VString().card();
+        expect(schema.validate('4532-0151-1283-0366'), isTrue);
+      });
+
+      test('rejects 20-digit number', () {
+        final schema = VString().card();
+        expect(schema.validate('45320151128303664532'), isFalse);
+      });
+
+      test('rejects 12-digit number', () {
+        final schema = VString().card();
+        expect(schema.validate('453201511283'), isFalse);
+      });
+
+      test('empty brands list acts like no filter', () {
+        final schema = VString().card(brands: []);
+        expect(schema.validate('378282246310005'), isTrue);
+      });
+    });
+
+    group('postalCode edge cases', () {
+      test('UK postcode accepts single-digit area', () {
+        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        expect(schema.validate('M1 1AA'), isTrue);
+      });
+
+      test('US ZIP rejects letters in ZIP+4', () {
+        final schema = VString().postalCode(pattern: const UsZipPattern());
+        expect(schema.validate('94103-AAAA'), isFalse);
+      });
+
+      test('CA postal accepts lowercase', () {
+        final schema =
+            VString().postalCode(pattern: const CaPostalCodePattern());
+        expect(schema.validate('k1a 0b1'), isTrue);
+      });
+    });
+
+    group('taxId edge cases', () {
+      test('CA SIN rejects all-zero (first-digit rule)', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('000000000'), isFalse);
+      });
+
+      test('CA SIN handles unicode dashes gracefully (invalid)', () {
+        final schema = VString().taxId(pattern: const CaSinPattern());
+        expect(schema.validate('046—454—286'), isFalse);
+      });
+
+      test('UK NI rejects with suffix outside A-D', () {
+        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        expect(schema.validate('AB123456E'), isFalse);
+        expect(schema.validate('AB123456F'), isFalse);
+      });
+    });
+
+    group('iban edge cases', () {
+      test('accepts lowercase (case-insensitive)', () {
+        final schema = VString().iban();
+        expect(schema.validate('gb82west12345698765432'), isTrue);
+      });
+
+      test('rejects wrong check digit by 1', () {
+        final schema = VString().iban();
+        expect(schema.validate('GB82WEST12345698765433'), isFalse);
+      });
+
+      test('rejects all-digits string (missing country letters)', () {
+        final schema = VString().iban();
+        expect(schema.validate('12345678901234567890'), isFalse);
+      });
+    });
+
+    group('nanoId edge cases', () {
+      test('empty string fails default length', () {
+        final schema = VString().nanoId();
+        expect(schema.validate(''), isFalse);
+      });
+
+      test('length=1 requires exactly one char', () {
+        final schema = VString().nanoId(length: 1);
+        expect(schema.validate('a'), isTrue);
+        expect(schema.validate('ab'), isFalse);
+      });
+    });
+
+    group('ulid edge cases', () {
+      test('all 7s in first char (max valid timestamp prefix)', () {
+        final schema = VString().ulid();
+        expect(schema.validate('7ZZZZZZZZZZZZZZZZZZZZZZZZZ'), isTrue);
+      });
+
+      test('lowercase valid', () {
+        final schema = VString().ulid();
+        expect(schema.validate('01arz3ndektsv4rrffq69g5fav'), isTrue);
+      });
+    });
+
+    group('date validator edge cases', () {
+      test('format with no tokens rejects everything', () {
+        final schema = VString().date(format: 'static-string');
+        expect(schema.validate('static-string'), isFalse);
+        expect(schema.validate('2024-01-15'), isFalse);
+      });
+
+      test('format with only YYYY-MM rejects everything (no day group)', () {
+        final schema = VString().date(format: 'YYYY-MM');
+        expect(schema.validate('2024-01'), isFalse);
+      });
+
+      test('leap year Feb 29 accepted with strict format', () {
+        final schema = VString().date(format: 'YYYY-MM-DD');
+        expect(schema.validate('2024-02-29'), isTrue);
+        expect(schema.validate('2023-02-29'), isFalse);
+      });
+    });
   });
 }
 

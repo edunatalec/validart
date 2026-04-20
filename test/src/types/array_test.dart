@@ -333,5 +333,12 @@ void main() {
         expect(schema.parse([1, '2', 3.7]), [1, 2, 3]);
       });
     });
+
+    group('nullable element', () {
+      test('VArray<String?> with nullable element accepts null entries', () {
+        final schema = VArray<String?>(V.string().nullable());
+        expect(schema.validate(['ok', null, 'also']), isTrue);
+      });
+    });
   });
 }

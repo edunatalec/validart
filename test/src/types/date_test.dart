@@ -282,5 +282,28 @@ void main() {
         );
       });
     });
+
+    group('age edge cases', () {
+      test('future birthdate yields negative age, fails age(min: 0)', () {
+        final schema = VDate().age(min: 0);
+        final future = DateTime.now().add(const Duration(days: 365));
+        expect(schema.validate(future), isFalse);
+      });
+
+      test('very old birthdate passes reasonable max', () {
+        final schema = VDate().age(max: 150);
+        final oldDate = DateTime(1900, 1, 1);
+        expect(schema.validate(oldDate), isTrue);
+      });
+
+      test('today birthdate = age 0', () {
+        final schema = VDate().age(min: 0);
+        expect(schema.validate(DateTime.now()), isTrue);
+      });
+
+      test('asserts when both min and max are null', () {
+        expect(() => VDate().age(), throwsA(isA<AssertionError>()));
+      });
+    });
   });
 }
