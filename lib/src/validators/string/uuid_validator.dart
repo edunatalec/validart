@@ -4,6 +4,12 @@ import 'package:validart/src/validators/validator.dart';
 /// Supported UUID versions for filtering validation.
 ///
 /// Covers RFC 4122 (`v1`–`v5`) and RFC 9562 drafts (`v6`–`v8`).
+///
+/// ```dart
+/// V.string().uuid();                                // any version
+/// V.string().uuid(version: UuidVersion.v4);         // random only
+/// V.string().uuid(version: UuidVersion.v7);         // timestamp-sorted only
+/// ```
 enum UuidVersion {
   /// Timestamp + MAC address (RFC 4122).
   v1,

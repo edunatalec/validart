@@ -322,6 +322,10 @@ abstract class VType<T> {
   }
 
   /// Async variant of [parse]. Throws [VException] on failure.
+  ///
+  /// ```dart
+  /// final email = await schema.parseAsync('user@mail.com');
+  /// ```
   Future<T?> parseAsync(Object? value) async {
     final result = await safeParseAsync(value);
 
@@ -333,11 +337,20 @@ abstract class VType<T> {
   }
 
   /// Async variant of [validate]. Returns `true` if the value passes.
+  ///
+  /// ```dart
+  /// final ok = await schema.validateAsync('user@mail.com');
+  /// ```
   Future<bool> validateAsync(Object? value) async =>
       (await safeParseAsync(value)).isValid;
 
   /// Async variant of [errors]. Returns the list of errors, or `null`
   /// when valid.
+  ///
+  /// ```dart
+  /// final errs = await schema.errorsAsync('bad');
+  /// if (errs != null) print(errs.first.message);
+  /// ```
   Future<List<VError>?> errorsAsync(Object? value) async {
     final result = await safeParseAsync(value);
 

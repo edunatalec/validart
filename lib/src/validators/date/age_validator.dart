@@ -5,6 +5,12 @@ import 'package:validart/src/validators/validator.dart';
 /// birth) falls within the given `[min, max]` range. The comparison is
 /// made against `DateTime.now()` at validation time, so the validator
 /// stays `const` and reflects the current date on every call.
+///
+/// ```dart
+/// V.date().age(min: 18);          // must be 18 or older
+/// V.date().age(min: 18, max: 65); // between 18 and 65
+/// V.date().age(max: 120);         // sanity check on claimed birthdate
+/// ```
 class AgeValidator extends Validator<DateTime> {
   /// Minimum age (in full years). `null` means no lower bound.
   final int? min;
