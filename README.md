@@ -84,6 +84,28 @@ V.string().date(format: 'DD/MM/YYYY').validate('15/01/2024'); // true
 V.string().date(format: 'DD/MM/YYYY').validate('2024-01-15'); // false
 ```
 
+#### URL
+
+Defaults to `http` and `https`. Pass a custom `schemes` set to accept other protocols:
+
+```dart
+V.string().url().validate('https://example.com');                       // true
+V.string().url().validate('ftp://example.com');                         // false
+V.string().url(schemes: {'http', 'https', 'ftp'}).validate('ftp://x');  // true
+V.string().url(schemes: {'ws', 'wss'}).validate('wss://x.io');          // WebSocket-only
+```
+
+#### Password
+
+Default policy: minimum 8 characters, one uppercase, one lowercase, one digit, one special from `!@#$%^&*(),.?":{}|<>`. Pass `specialChars` to expand the accepted set:
+
+```dart
+V.string().password().validate('Str0ng!Pass');                       // true
+V.string().password().validate('Str0ng_Pass');                       // false ('_' not in default)
+V.string().password(specialChars: r'!@#$%^&*()-_+=<>?')
+  .validate('Str0ng_Pass');                                          // true
+```
+
 #### Card
 
 Without `brands`, any Luhn-valid number (with or without mask) is accepted. Pass a list of `CardBrandPattern` to restrict:
