@@ -72,6 +72,16 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
+  @override
+  VMap refineAsync(
+    Future<bool> Function(Map<String, dynamic> value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
   /// Returns an unmodifiable view of the field schema.
   Map<String, VType> get schema => Map.unmodifiable(_schema);
 
@@ -299,7 +309,31 @@ class VMap extends VType<Map<String, dynamic>> {
   }
 
   @override
+  bool get hasAsync {
+    if (super.hasAsync) return true;
+
+    for (final field in _schema.values) {
+      if (field.hasAsync) return true;
+    }
+
+    for (final rule in _whenRules) {
+      for (final field in rule.then.values) {
+        if (field.hasAsync) return true;
+      }
+    }
+
+    return false;
+  }
+
+  @override
   VResult<Map<String, dynamic>?> safeParse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
+    }
+
     final nullResult = _nullCheck<Map<String, dynamic>>(
       _defaultValue,
       _hasDefault,
@@ -378,5 +412,91 @@ class VMap extends VType<Map<String, dynamic>> {
     }
 
     return _runPipeline(parsed);
+  }
+
+  @override
+  Future<VResult<Map<String, dynamic>?>> safeParseAsync(Object? value) async {
+    final nullResult = _nullCheck<Map<String, dynamic>>(
+      _defaultValue,
+      _hasDefault,
+      value,
+    );
+    if (nullResult != null) return nullResult;
+
+    if (value is! Map<String, dynamic>) {
+      return _typeError<Map<String, dynamic>>(
+        'Map<String, dynamic>',
+        value!,
+      );
+    }
+
+    final errors = <VError>[];
+    final parsed = <String, dynamic>{};
+
+    if (_isStrict) {
+      for (final key in value.keys) {
+        if (!_schema.containsKey(key)) {
+          errors.add(VError(
+            code: VCode.unrecognizedKey,
+            message: V.t(VCode.unrecognizedKey, {'key': key}),
+            path: [key],
+          ));
+        }
+      }
+    }
+
+    for (final entry in _schema.entries) {
+      final fieldValue = value[entry.key];
+      final result = entry.value.hasAsync
+          ? await entry.value.safeParseAsync(fieldValue)
+          : entry.value.safeParse(fieldValue);
+
+      switch (result) {
+        case VSuccess():
+          parsed[entry.key] = result.value;
+        case VFailure():
+          for (final error in result.errors) {
+            errors.add(error.copyWith(
+              path: [entry.key, ...error.path],
+            ));
+          }
+      }
+    }
+
+    for (final rule in _whenRules) {
+      if (value[rule.field] == rule.equals) {
+        for (final entry in rule.then.entries) {
+          final fieldValue = value[entry.key];
+          final result = entry.value.hasAsync
+              ? await entry.value.safeParseAsync(fieldValue)
+              : entry.value.safeParse(fieldValue);
+
+          switch (result) {
+            case VSuccess():
+              parsed[entry.key] = result.value;
+            case VFailure():
+              for (final error in result.errors) {
+                errors.add(error.copyWith(
+                  path: [entry.key, ...error.path],
+                ));
+              }
+          }
+        }
+      }
+    }
+
+    if (_isPassthrough) {
+      for (final entry in value.entries) {
+        if (!_schema.containsKey(entry.key)) {
+          parsed[entry.key] = entry.value;
+        }
+      }
+    }
+
+    if (errors.isNotEmpty) {
+      return VFailure<Map<String, dynamic>?>(errors);
+    }
+
+    return _runPipelineAsync(parsed);
   }
 }

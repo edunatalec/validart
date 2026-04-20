@@ -98,6 +98,16 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
+  @override
+  VObject<T> refineAsync(
+    Future<bool> Function(T value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
   /// Returns an unmodifiable map of field names to their validators.
   Map<String, VType> get schema =>
       Map.fromEntries(_fields.map((f) => MapEntry(f.name, f.validator)));
@@ -131,7 +141,25 @@ class VObject<T> extends VType<T> {
   }
 
   @override
+  bool get hasAsync {
+    if (super.hasAsync) return true;
+
+    for (final field in _fields) {
+      if (field.validator.hasAsync) return true;
+    }
+
+    return false;
+  }
+
+  @override
   VResult<T?> safeParse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
+    }
+
     final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
     if (nullResult != null) return nullResult;
 
@@ -162,5 +190,41 @@ class VObject<T> extends VType<T> {
     if (errors.isNotEmpty) return VFailure<T?>(errors);
 
     return _runPipeline(typed);
+  }
+
+  @override
+  Future<VResult<T?>> safeParseAsync(Object? value) async {
+    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
+
+    final T typed;
+
+    try {
+      typed = value as T;
+    } catch (_) {
+      return _typeError<T>(T.toString(), value!);
+    }
+
+    final errors = <VError>[];
+
+    for (final field in _fields) {
+      final fieldValue = field.extractor(typed);
+      final result = field.validator.hasAsync
+          ? await field.validator.safeParseAsync(fieldValue)
+          : field.validator.safeParse(fieldValue);
+
+      switch (result) {
+        case VSuccess():
+          break;
+        case VFailure():
+          for (final error in result.errors) {
+            errors.add(error.copyWith(path: [field.name, ...error.path]));
+          }
+      }
+    }
+
+    if (errors.isNotEmpty) return VFailure<T?>(errors);
+
+    return _runPipelineAsync(typed);
   }
 }

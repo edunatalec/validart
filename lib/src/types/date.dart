@@ -45,6 +45,16 @@ class VDate extends VType<DateTime> {
     return this;
   }
 
+  @override
+  VDate refineAsync(
+    Future<bool> Function(DateTime value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
   /// Creates a [VArray] schema that validates a `List<DateTime>`.
   ///
   /// ```dart

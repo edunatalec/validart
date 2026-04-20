@@ -45,6 +45,16 @@ class VBool extends VType<bool> {
     return this;
   }
 
+  @override
+  VBool refineAsync(
+    Future<bool> Function(bool value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
   /// Validates that the value is `true`.
   ///
   /// Runs in the validation phase.

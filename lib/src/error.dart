@@ -126,3 +126,36 @@ class VException implements Exception {
     return 'VException([$messages])';
   }
 }
+
+/// Thrown by synchronous consumers (`parse`, `validate`, `safeParse`,
+/// `errors`) when the schema contains async steps (added via
+/// `refineAsync`).
+///
+/// Use the `*Async` variants instead (`parseAsync`, `validateAsync`,
+/// `safeParseAsync`, `errorsAsync`).
+///
+/// ```dart
+/// try {
+///   schema.validate(value); // schema has refineAsync
+/// } on VAsyncRequiredException catch (e) {
+///   await schema.validateAsync(value);
+/// }
+/// ```
+class VAsyncRequiredException implements Exception {
+  /// Name of the sync method that was called.
+  final String methodName;
+
+  /// Name of the async variant the caller should use instead.
+  final String suggestion;
+
+  /// Creates a [VAsyncRequiredException].
+  const VAsyncRequiredException({
+    required this.methodName,
+    required this.suggestion,
+  });
+
+  @override
+  String toString() =>
+      'VAsyncRequiredException: schema contains async validators; '
+      'use `$suggestion` instead of `$methodName`.';
+}

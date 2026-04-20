@@ -1,6 +1,6 @@
 import 'package:validart/validart.dart';
 
-void main() {
+Future<void> main() async {
   stringExamples();
   intExamples();
   doubleExamples();
@@ -14,6 +14,7 @@ void main() {
   unionExamples();
   coercionExamples();
   coreExamples();
+  await asyncExamples();
   localeExamples();
 }
 
@@ -471,6 +472,35 @@ void coreExamples() {
     print(form.toMap());
     // {email: Invalid email address, name: String must be at least 3 ...}
   }
+}
+
+Future<void> asyncExamples() async {
+  print('--- async ---');
+
+  // Simulate an async uniqueness check.
+  Future<bool> isEmailAvailable(String email) async {
+    await Future.delayed(const Duration(milliseconds: 10));
+    return email != 'taken@example.com';
+  }
+
+  final schema = V.string().email().refineAsync(
+        isEmailAvailable,
+        message: 'Email already registered',
+        code: 'email_taken',
+      );
+
+  print(await schema.validateAsync('new@example.com')); // true
+  print(await schema.validateAsync('taken@example.com')); // false
+
+  // Sync consumers on an async schema throw VAsyncRequiredException.
+  try {
+    schema.validate('x');
+  } on VAsyncRequiredException catch (e) {
+    print('caught: ${e.suggestion}'); // caught: validateAsync
+  }
+
+  // Sync-only schemas still work sync without any overhead.
+  print(V.string().email().validate('a@b.com')); // true
 }
 
 void localeExamples() {

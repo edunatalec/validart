@@ -45,6 +45,16 @@ class VString extends VType<String> {
     return this;
   }
 
+  @override
+  VString refineAsync(
+    Future<bool> Function(String value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
   /// Validates that the string is not empty.
   ///
   /// Runs in the validation phase.

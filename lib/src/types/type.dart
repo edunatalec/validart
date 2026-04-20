@@ -113,6 +113,12 @@ abstract class VType<T> {
     return this;
   }
 
+  /// Returns `true` if the pipeline contains any async step. When `true`,
+  /// the synchronous consumers (`parse`, `validate`, `safeParse`, `errors`)
+  /// throw [VAsyncRequiredException] and the caller must use the `*Async`
+  /// variants instead.
+  bool get hasAsync => _steps.any((s) => s is _AsyncValidatorStep<T>);
+
   /// Adds a [Validator] to the validation phase of the pipeline.
   ///
   /// Use [message] to override the default error message. Use [path] to
@@ -164,6 +170,13 @@ abstract class VType<T> {
   /// V.string().min(5).parse('Jo'); // throws VException
   /// ```
   T? parse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'parse',
+        suggestion: 'parseAsync',
+      );
+    }
+
     final result = safeParse(value);
 
     if (result case VFailure(:final errors)) {
@@ -189,6 +202,13 @@ abstract class VType<T> {
   /// }
   /// ```
   VResult<T?> safeParse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
+    }
+
     Object? input = value;
 
     for (final fn in _preprocessors) {
@@ -215,6 +235,66 @@ abstract class VType<T> {
     }
 
     return _runPipeline(typed);
+  }
+
+  /// Async variant of [safeParse]. Use this when the schema has async
+  /// validators (added via `refineAsync`).
+  ///
+  /// ```dart
+  /// final result = await schema.safeParseAsync(value);
+  /// ```
+  Future<VResult<T?>> safeParseAsync(Object? value) async {
+    Object? input = value;
+
+    for (final fn in _preprocessors) {
+      input = fn(input);
+    }
+
+    final nullResult = _nullCheck<T>(_defaultValue, _hasDefault, input);
+    if (nullResult != null) return nullResult;
+
+    final T typed;
+
+    if (coercer != null) {
+      try {
+        typed = coercer!(input!);
+      } catch (_) {
+        return _typeError<T>(T.toString(), input!);
+      }
+    } else {
+      try {
+        typed = input as T;
+      } catch (_) {
+        return _typeError<T>(T.toString(), input!);
+      }
+    }
+
+    return _runPipelineAsync(typed);
+  }
+
+  /// Async variant of [parse]. Throws [VException] on failure.
+  Future<T?> parseAsync(Object? value) async {
+    final result = await safeParseAsync(value);
+
+    if (result case VFailure(:final errors)) {
+      throw VException(errors);
+    }
+
+    return (result as VSuccess<T?>).value;
+  }
+
+  /// Async variant of [validate]. Returns `true` if the value passes.
+  Future<bool> validateAsync(Object? value) async =>
+      (await safeParseAsync(value)).isValid;
+
+  /// Async variant of [errors]. Returns the list of errors, or `null`
+  /// when valid.
+  Future<List<VError>?> errorsAsync(Object? value) async {
+    final result = await safeParseAsync(value);
+
+    if (result case VFailure(:final errors)) return errors;
+
+    return null;
   }
 
   VResult<T?> _runPipeline(T value) {
@@ -259,13 +339,81 @@ abstract class VType<T> {
     return VSuccess<T?>(current);
   }
 
+  Future<VResult<T?>> _runPipelineAsync(T value) async {
+    T current = value;
+
+    for (final step in _steps) {
+      if (step case _PreTransformStep<T>(:final transform)) {
+        current = transform(current);
+      }
+    }
+
+    final errors = <VError>[];
+
+    for (final step in _steps) {
+      if (step
+          case _ValidatorStep<T>(
+            :final validator,
+            :final messageOverride,
+            :final path
+          )) {
+        final params = validator.validate(current);
+
+        if (params != null) {
+          final message = messageOverride ?? V.t(validator.code, params);
+          errors.add(VError(
+            code: validator.code,
+            message: message,
+            path: path ?? const [],
+          ));
+        }
+      } else if (step
+          case _AsyncValidatorStep<T>(
+            :final validate,
+            :final code,
+            :final messageOverride,
+            :final path
+          )) {
+        final params = await validate(current);
+
+        if (params != null) {
+          final message = messageOverride ?? V.t(code, params);
+          errors.add(VError(
+            code: code,
+            message: message,
+            path: path ?? const [],
+          ));
+        }
+      }
+    }
+
+    if (errors.isNotEmpty) return VFailure<T?>(errors);
+
+    for (final step in _steps) {
+      if (step case _TransformStep<T>(:final transform)) {
+        current = transform(current);
+      }
+    }
+
+    return VSuccess<T?>(current);
+  }
+
   /// Returns `true` if [value] passes all validations.
   ///
   /// ```dart
   /// V.string().email().validate('user@mail.com'); // true
   /// V.string().email().validate('invalid');        // false
   /// ```
-  bool validate(Object? value) => safeParse(value).isValid;
+  bool validate(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'validate',
+        suggestion: 'validateAsync',
+      );
+    }
+
+    return safeParse(value).isValid;
+  }
 
   /// Maps this type through a generic function, preserving the inner type.
   R mapType<R>(R Function<U>(VType<U> type) fn) => fn<T>(this);
@@ -277,6 +425,13 @@ abstract class VType<T> {
   /// // [VError(invalid_email: Invalid email address)]
   /// ```
   List<VError>? errors(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'errors',
+        suggestion: 'errorsAsync',
+      );
+    }
+
     final result = safeParse(value);
 
     if (result case VFailure(:final errors)) return errors;
@@ -361,6 +516,36 @@ abstract class VType<T> {
     );
   }
 
+  /// Adds an async custom validation check.
+  ///
+  /// Runs in the validation phase. Returns an error if [check] completes
+  /// with `false`.
+  ///
+  /// A schema with at least one `refineAsync` step becomes async-only —
+  /// the sync consumers (`parse`, `validate`, `safeParse`, `errors`) will
+  /// throw [VAsyncRequiredException]; use the `*Async` variants.
+  ///
+  /// ```dart
+  /// V.string().email().refineAsync(
+  ///   (email) async => !await db.emailExists(email),
+  ///   message: 'Email already registered',
+  ///   code: 'email_taken',
+  /// );
+  /// ```
+  VType<T> refineAsync(
+    Future<bool> Function(T value) check, {
+    String? message,
+    String? code,
+  }) {
+    _addStep(_AsyncValidatorStep<T>(
+      validate: (value) async => (await check(value)) ? null : {},
+      code: code ?? VCode.custom,
+      messageOverride: message,
+    ));
+
+    return this;
+  }
+
   VType<T> _preTransform(T Function(T value) fn) {
     _addStep(_PreTransformStep<T>(transform: fn));
     return this;
@@ -412,6 +597,20 @@ final class _ValidatorStep<T> extends _PipelineStep<T> {
   final List<Object>? path;
 
   const _ValidatorStep(this.validator, {this.messageOverride, this.path});
+}
+
+final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
+  final Future<Map<String, dynamic>?> Function(T value) validate;
+  final String code;
+  final String? messageOverride;
+  final List<Object>? path;
+
+  const _AsyncValidatorStep({
+    required this.validate,
+    required this.code,
+    this.messageOverride,
+    this.path,
+  });
 }
 
 final class _TransformStep<T> extends _PipelineStep<T> {

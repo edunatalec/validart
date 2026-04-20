@@ -141,6 +141,16 @@ class VInt extends VNumber<int> {
   }
 
   @override
+  VInt refineAsync(
+    Future<bool> Function(int value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
+  @override
   VInt min(int value, {String Function(int)? message}) {
     super.min(value, message: message);
     return this;
@@ -262,6 +272,16 @@ class VDouble extends VNumber<double> {
     String? code,
   }) {
     super.refine(check, message: message, code: code);
+    return this;
+  }
+
+  @override
+  VDouble refineAsync(
+    Future<bool> Function(double value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
     return this;
   }
 

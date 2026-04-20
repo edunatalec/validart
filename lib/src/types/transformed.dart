@@ -17,8 +17,33 @@ class VTransformed<I, O> extends VType<O> {
   VTransformed(this._inner, this._transformFn);
 
   @override
+  bool get hasAsync => super.hasAsync || _inner.hasAsync;
+
+  @override
   VResult<O?> safeParse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
+    }
+
     final result = _inner.safeParse(value);
+
+    switch (result) {
+      case VSuccess(:final value):
+        if (value == null) return VSuccess<O?>(null);
+        return VSuccess<O?>(_transformFn(value as I));
+      case VFailure(:final errors):
+        return VFailure<O?>(errors);
+    }
+  }
+
+  @override
+  Future<VResult<O?>> safeParseAsync(Object? value) async {
+    final result = _inner.hasAsync
+        ? await _inner.safeParseAsync(value)
+        : _inner.safeParse(value);
 
     switch (result) {
       case VSuccess(:final value):

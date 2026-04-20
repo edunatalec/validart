@@ -52,6 +52,16 @@ class VArray<T> extends VType<List<T>> {
     return this;
   }
 
+  @override
+  VArray<T> refineAsync(
+    Future<bool> Function(List<T> value) check, {
+    String? message,
+    String? code,
+  }) {
+    super.refineAsync(check, message: message, code: code);
+    return this;
+  }
+
   /// Validates that the list has at least [length] elements.
   ///
   /// Runs in the validation phase.
@@ -107,7 +117,17 @@ class VArray<T> extends VType<List<T>> {
   }
 
   @override
+  bool get hasAsync => super.hasAsync || _element.hasAsync;
+
+  @override
   VResult<List<T>?> safeParse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
+    }
+
     final nullResult = _nullCheck<List<T>>(_defaultValue, _hasDefault, value);
     if (nullResult != null) return nullResult;
 
@@ -134,5 +154,37 @@ class VArray<T> extends VType<List<T>> {
     if (errors.isNotEmpty) return VFailure<List<T>?>(errors);
 
     return _runPipeline(parsed);
+  }
+
+  @override
+  Future<VResult<List<T>?>> safeParseAsync(Object? value) async {
+    final nullResult = _nullCheck<List<T>>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
+
+    if (value is! List) {
+      return _typeError<List<T>>('List<${T.toString()}>', value!);
+    }
+
+    final errors = <VError>[];
+    final List<T> parsed = [];
+
+    for (int i = 0; i < value.length; i++) {
+      final result = _element.hasAsync
+          ? await _element.safeParseAsync(value[i])
+          : _element.safeParse(value[i]);
+
+      switch (result) {
+        case VSuccess():
+          parsed.add(result.value as T);
+        case VFailure():
+          for (final error in result.errors) {
+            errors.add(error.copyWith(path: [i, ...error.path]));
+          }
+      }
+    }
+
+    if (errors.isNotEmpty) return VFailure<List<T>?>(errors);
+
+    return _runPipelineAsync(parsed);
   }
 }

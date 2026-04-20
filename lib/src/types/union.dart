@@ -18,7 +18,18 @@ class VUnion extends VType<Object> {
   }
 
   @override
+  bool get hasAsync =>
+      super.hasAsync || _options.any((option) => option.hasAsync);
+
+  @override
   VResult<Object?> safeParse(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
+    }
+
     final nullResult = _nullCheck<Object>(_defaultValue, _hasDefault, value);
     if (nullResult != null) return nullResult;
 
@@ -26,6 +37,32 @@ class VUnion extends VType<Object> {
 
     for (final option in _options) {
       final result = option.safeParse(value);
+
+      if (result.isValid) return VSuccess<Object?>(value);
+
+      optionErrors.add((result as VFailure).errors);
+    }
+
+    return VFailure<Object?>([
+      VError(
+        code: VCode.invalidUnion,
+        message: V.t(VCode.invalidUnion),
+        context: optionErrors,
+      ),
+    ]);
+  }
+
+  @override
+  Future<VResult<Object?>> safeParseAsync(Object? value) async {
+    final nullResult = _nullCheck<Object>(_defaultValue, _hasDefault, value);
+    if (nullResult != null) return nullResult;
+
+    final optionErrors = <List<VError>>[];
+
+    for (final option in _options) {
+      final result = option.hasAsync
+          ? await option.safeParseAsync(value)
+          : option.safeParse(value);
 
       if (result.isValid) return VSuccess<Object?>(value);
 
