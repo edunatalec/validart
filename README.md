@@ -409,6 +409,25 @@ V.string().defaultValue('').min(3).parse(null); // throws VException
 V.string().defaultValue('hello').min(3).parse(null); // 'hello'
 ```
 
+### Custom `required` message per schema
+
+Every factory (`V.string()`, `V.int()`, `V.bool()`, `V.date()`, `V.map()`, `V.array()`, `V.object()`, `V.enm()`, `V.literal()`, `V.union()`) accepts an optional `message` that customizes the `required` error (fired on `null` input) without touching the locale:
+
+```dart
+V.bool(message: 'You must accept the terms').isTrue();
+V.string(message: 'Name is required').min(1);
+V.int(message: 'Age is required').between(0, 150);
+```
+
+Fallback chain for the `required` error: factory `message` (per schema) → locale translation → default English.
+
+Individual validators (`.email(message: ...)`, `.min(n, message: ...)`, `.refine(fn, message: ...)`, ...) accept their own `message` for the error they produce. The factory-level one fires only on `null` input; the validator-level one fires only when that validator rejects a non-null value — both can coexist on the same schema:
+
+```dart
+V.string(message: 'Name is required')
+    .min(3, message: (n) => 'At least $n chars');
+```
+
 ## Async Validation
 
 For checks that need IO (uniqueness in a database, remote token verification), use `refineAsync`:
