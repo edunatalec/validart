@@ -50,12 +50,10 @@ External packages (e.g. `validart_br` with CPF, CNPJ, CEP, Mercosul) can extend 
 - **`DateStringValidator`** gained an optional `format` constructor parameter and, without it, now accepts multiple formats (ISO extended/basic, BR `DD/MM/YYYY`, US `MM/DD/YYYY`, EU `DD.MM.YYYY`, and dashed variants). Ambiguous strings like `02/03/2020` pass when at least one interpretation is calendar-valid.
 - **Breaking — `defaultValue` is now validated by the pipeline.** When input is `null` and a default is set, the default is substituted for the input and runs through preprocessors, validators and refines (sync or async). Previously it short-circuited with `VSuccess(default)` regardless of whether the default satisfied the schema. This prevents silent bugs like `V.string().defaultValue('').min(3).parse(null)` returning `''`. Upgrade: ensure your `defaultValue(x)` satisfies the chained validators.
 - **Breaking — `DateStringValidator` multi-format mode.** Callers that relied on the previous ISO-only semantics need to either use `date(format: 'YYYY-MM-DD')` explicitly or accept that BR/US/EU strings now pass.
-- **Breaking — `CaSinPattern` enforces the CRA first-digit rule.** SINs starting with `0` or `8` are rejected even when they would pass Luhn (e.g. `000000000`, `800000006`). The `9` prefix (temporary residents) is accepted. Previously only Luhn was checked.
 
 ### Fixed
 
 - **`DateStringValidator`** now rejects calendar-invalid dates such as `2024-02-30`, `2024-04-31`, or `2023-02-29` that the previous regex-only implementation accepted. The validator reconstructs the date via `DateTime` and compares each component to guard against rollover (`2024-13-01` → `2025-01-01`).
-- **Case transformers dropped accented characters** — `toSlug('João')` returned `'jo-o'` because the ASCII-only tokenizer treated accents as invalid separators. The tokenizer now uses Unicode categories (`\p{L}`) and accents are either transliterated (default) or preserved (`keepAccents: true`).
 
 ## [1.0.0] - 2026-04-18
 
