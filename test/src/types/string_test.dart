@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:validart/src/error.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
@@ -1802,6 +1803,21 @@ void main() {
       test('defaultValue should return default when null', () {
         final schema = VString().defaultValue('fallback');
         expect(schema.parse(null), 'fallback');
+      });
+
+      test('default that violates a downstream validator fails', () {
+        final schema = VString().defaultValue('').min(3);
+
+        expect(schema.validate(null), isFalse);
+        expect(() => schema.parse(null), throwsA(isA<VException>()));
+        expect(schema.errors(null)!.first.code, 'string.too_small');
+      });
+
+      test('default that satisfies validators passes', () {
+        final schema = VString().defaultValue('hello').min(3);
+
+        expect(schema.validate(null), isTrue);
+        expect(schema.parse(null), 'hello');
       });
 
       test('refine should add custom validation', () {
