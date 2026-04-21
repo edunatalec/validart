@@ -138,6 +138,15 @@ abstract class VType<T> {
   /// Returns `true` if `null` is accepted by this schema (set via [nullable]).
   bool get isNullable => _isNullable;
 
+  /// Returns `true` if a default value was configured via [defaultValue].
+  /// When `true`, [defaultValueOrNull] holds the configured value.
+  bool get hasDefault => _hasDefault;
+
+  /// The configured default value, or `null` when none was set.
+  /// Check [hasDefault] first to distinguish "no default" from
+  /// `defaultValue(null)` (which is nonsensical but allowed by the type).
+  T? get defaultValueOrNull => _hasDefault ? _defaultValue : null;
+
   /// Adds a [Validator] to the validation phase of the pipeline.
   ///
   /// Use [message] to override the default error message. Use [path] to
