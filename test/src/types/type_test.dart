@@ -134,6 +134,16 @@ void main() {
         final b = TestStringType().defaultValue('N/A').nullable();
         expect(b.parse(null), 'N/A');
       });
+
+      test('hasDefault reflects whether defaultValue was configured', () {
+        expect(TestStringType().hasDefault, isFalse);
+        expect(TestStringType().defaultValue('x').hasDefault, isTrue);
+      });
+
+      test('defaultValueOrNull returns the configured value or null', () {
+        expect(TestStringType().defaultValueOrNull, isNull);
+        expect(TestStringType().defaultValue('x').defaultValueOrNull, 'x');
+      });
     });
 
     group('refine', () {
