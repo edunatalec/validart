@@ -666,6 +666,23 @@ void localeExamples() {
   print(V.int().positive().errors(-1)?.first.message);
   // 'Deve ser positivo'
 
+  // Type-specific overrides — flat and nested forms coexist.
+  // Emitted codes are prefixed (e.g. 'string.required', 'int.required').
+  V.setLocale(const VLocale({
+    // Generic fallback.
+    'required': 'Campo obrigatório',
+
+    // Nested — affects VString only.
+    'string': {'required': 'Texto obrigatório'},
+
+    // Flat — affects VInt only.
+    'int.required': 'Número obrigatório',
+  }));
+
+  print(V.string().errors(null)?.first.message); // 'Texto obrigatório'
+  print(V.int().errors(null)?.first.message); // 'Número obrigatório'
+  print(V.bool().errors(null)?.first.message); // 'Campo obrigatório' (fallback)
+
   // Reset to default
   V.setLocale(const VLocale());
 }
