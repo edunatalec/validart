@@ -44,3 +44,5 @@ export 'src/validators/string/uuid_validator.dart' show UuidVersion;
 export 'src/validators/validator.dart';
 export 'src/v_code.dart';
 export 'src/v_locale.dart';
+export 'src/validation_mode.dart';
+export 'src/phone_format.dart';

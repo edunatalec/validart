@@ -2,6 +2,7 @@ import 'package:validart/src/error.dart';
 import 'package:validart/src/result.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_code.dart';
+import 'package:validart/src/validation_mode.dart';
 import 'package:validart/src/validators/array/contains_all_validator.dart';
 import 'package:validart/src/validators/array/max_length_list_validator.dart';
 import 'package:validart/src/validators/array/min_length_list_validator.dart';

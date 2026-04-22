@@ -373,9 +373,11 @@ class VString extends VType<String> {
 
   /// Validates that the string is a valid credit card number.
   ///
-  /// Accepts digits with or without separators (spaces or dashes). When
-  /// [brands] is provided, the number must match at least one of the given
-  /// [CardBrandPattern]s; otherwise any Luhn-valid number is accepted.
+  /// Accepts digits with or without separators (spaces or dashes) by
+  /// default. When [brands] is provided, the number must match at least
+  /// one of the given [CardBrandPattern]s; otherwise any Luhn-valid number
+  /// is accepted. The [mode] field narrows which input shape is accepted
+  /// — see [ValidationMode].
   ///
   /// Runs in the validation phase.
   ///
@@ -386,9 +388,17 @@ class VString extends VType<String> {
   /// V.string()
   ///   .card(brands: [const VisaBrand(), const MastercardBrand()])
   ///   .validate('4111111111111111'); // true (Visa)
+  ///
+  /// V.string()
+  ///   .card(mode: ValidationMode.unformatted)
+  ///   .validate('4111 1111 1111 1111'); // false (has spaces)
   /// ```
-  VString card({List<CardBrandPattern>? brands, String? message}) {
-    return add(CardValidator(brands: brands), message: message);
+  VString card({
+    List<CardBrandPattern>? brands,
+    ValidationMode mode = ValidationMode.any,
+    String? message,
+  }) {
+    return add(CardValidator(brands: brands, mode: mode), message: message);
   }
 
   /// Validates that the string is a valid CVV/CVC (3 or 4 digits).

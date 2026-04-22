@@ -3,6 +3,7 @@ import 'package:validart/src/error.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
+import 'package:validart/src/validation_mode.dart';
 import 'package:validart/src/validators/string/card_brand_pattern.dart';
 import 'package:validart/src/validators/string/license_plate_pattern.dart';
 import 'package:validart/src/validators/string/phone_pattern.dart';
@@ -942,6 +943,42 @@ void main() {
         expect(empty.validate('4111111111111111'), isTrue);
         expect(empty.validate('5555555555554444'), isTrue);
       });
+
+      group('mode', () {
+        test('any (default) accepts digits-only and groups-of-4 with spaces',
+            () {
+          expect(schema.validate('4532015112830366'), isTrue);
+          expect(schema.validate('4532 0151 1283 0366'), isTrue);
+          expect(schema.validate('4532-0151-1283-0366'), isTrue);
+        });
+
+        test('formatted requires separator-grouped digits', () {
+          final formatted = VString().card(mode: ValidationMode.formatted);
+
+          expect(formatted.validate('4532 0151 1283 0366'), isTrue);
+          expect(formatted.validate('4532-0151-1283-0366'), isTrue);
+          expect(formatted.validate('4532015112830366'), isFalse);
+        });
+
+        test('unformatted rejects any non-digit character', () {
+          final unformatted = VString().card(mode: ValidationMode.unformatted);
+
+          expect(unformatted.validate('4532015112830366'), isTrue);
+          expect(unformatted.validate('4532 0151 1283 0366'), isFalse);
+          expect(unformatted.validate('4532-0151-1283-0366'), isFalse);
+        });
+
+        test('mode still enforces Luhn and brand checks', () {
+          final formattedVisa = VString().card(
+            brands: [const VisaBrand()],
+            mode: ValidationMode.formatted,
+          );
+
+          expect(formattedVisa.validate('4111 1111 1111 1111'), isTrue);
+          expect(formattedVisa.validate('4111 1111 1111 1112'), isFalse);
+          expect(formattedVisa.validate('5555 5555 5555 4444'), isFalse);
+        });
+      });
     });
 
     group('phone', () {
@@ -1256,6 +1293,63 @@ void main() {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'postal_code');
       });
+
+      group('CaPostalCodePattern mode', () {
+        test('any accepts with and without space', () {
+          final schema =
+              VString().postalCode(pattern: const CaPostalCodePattern());
+
+          expect(schema.validate('K1A 0B1'), isTrue);
+          expect(schema.validate('K1A0B1'), isTrue);
+        });
+
+        test('formatted requires the space', () {
+          final schema = VString().postalCode(
+            pattern: const CaPostalCodePattern(mode: ValidationMode.formatted),
+          );
+
+          expect(schema.validate('K1A 0B1'), isTrue);
+          expect(schema.validate('K1A0B1'), isFalse);
+        });
+
+        test('unformatted rejects the space', () {
+          final schema = VString().postalCode(
+            pattern:
+                const CaPostalCodePattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('K1A0B1'), isTrue);
+          expect(schema.validate('K1A 0B1'), isFalse);
+        });
+      });
+
+      group('UkPostcodePattern mode', () {
+        test('any accepts with and without space', () {
+          final schema =
+              VString().postalCode(pattern: const UkPostcodePattern());
+
+          expect(schema.validate('SW1A 1AA'), isTrue);
+          expect(schema.validate('SW1A1AA'), isTrue);
+        });
+
+        test('formatted requires the space between outward and inward', () {
+          final schema = VString().postalCode(
+            pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+          );
+
+          expect(schema.validate('SW1A 1AA'), isTrue);
+          expect(schema.validate('SW1A1AA'), isFalse);
+        });
+
+        test('unformatted rejects the space', () {
+          final schema = VString().postalCode(
+            pattern: const UkPostcodePattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('SW1A1AA'), isTrue);
+          expect(schema.validate('SW1A 1AA'), isFalse);
+        });
+      });
     });
 
     group('taxId', () {
@@ -1345,6 +1439,109 @@ void main() {
         final schema = VString().taxId(pattern: const CaSinPattern());
         expect(schema.validate('12345'), isFalse);
       });
+
+      group('UsSsnPattern mode', () {
+        test('any accepts formatted and unformatted', () {
+          final schema = VString().taxId(pattern: const UsSsnPattern());
+
+          expect(schema.validate('123-45-6789'), isTrue);
+          expect(schema.validate('123456789'), isTrue);
+        });
+
+        test('any rejects mixed (one separator missing)', () {
+          final schema = VString().taxId(pattern: const UsSsnPattern());
+
+          expect(schema.validate('123-456789'), isFalse);
+          expect(schema.validate('12345-6789'), isFalse);
+        });
+
+        test('formatted requires both dashes', () {
+          final schema = VString().taxId(
+            pattern: const UsSsnPattern(mode: ValidationMode.formatted),
+          );
+
+          expect(schema.validate('123-45-6789'), isTrue);
+          expect(schema.validate('123456789'), isFalse);
+          expect(schema.validate('123-456789'), isFalse);
+        });
+
+        test('unformatted rejects any dash', () {
+          final schema = VString().taxId(
+            pattern: const UsSsnPattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('123456789'), isTrue);
+          expect(schema.validate('123-45-6789'), isFalse);
+          expect(schema.validate('123-456789'), isFalse);
+        });
+      });
+
+      group('UkNiNumberPattern mode', () {
+        test('any accepts with and without spaces', () {
+          final schema = VString().taxId(pattern: const UkNiNumberPattern());
+
+          expect(schema.validate('AB123456C'), isTrue);
+          expect(schema.validate('AB 12 34 56 C'), isTrue);
+        });
+
+        test('formatted requires canonical spacing', () {
+          final schema = VString().taxId(
+            pattern: const UkNiNumberPattern(mode: ValidationMode.formatted),
+          );
+
+          expect(schema.validate('AB 12 34 56 C'), isTrue);
+          expect(schema.validate('AB123456C'), isFalse);
+          expect(schema.validate('AB 123456 C'), isFalse);
+        });
+
+        test('unformatted rejects any whitespace', () {
+          final schema = VString().taxId(
+            pattern: const UkNiNumberPattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('AB123456C'), isTrue);
+          expect(schema.validate('AB 12 34 56 C'), isFalse);
+          expect(schema.validate(' AB123456C'), isFalse);
+        });
+      });
+
+      group('CaSinPattern mode', () {
+        test('any accepts plain digits and formatted forms', () {
+          final schema = VString().taxId(pattern: const CaSinPattern());
+
+          expect(schema.validate('130692544'), isTrue);
+          expect(schema.validate('130-692-544'), isTrue);
+          expect(schema.validate('130 692 544'), isTrue);
+        });
+
+        test('formatted requires separators in canonical groups', () {
+          final schema = VString().taxId(
+            pattern: const CaSinPattern(mode: ValidationMode.formatted),
+          );
+
+          expect(schema.validate('130-692-544'), isTrue);
+          expect(schema.validate('130 692 544'), isTrue);
+          expect(schema.validate('130692544'), isFalse);
+        });
+
+        test('unformatted rejects any separator', () {
+          final schema = VString().taxId(
+            pattern: const CaSinPattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('130692544'), isTrue);
+          expect(schema.validate('130-692-544'), isFalse);
+          expect(schema.validate('130 692 544'), isFalse);
+        });
+
+        test('mode does not loosen checksum', () {
+          final schema = VString().taxId(
+            pattern: const CaSinPattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('130692545'), isFalse);
+        });
+      });
     });
 
     group('licensePlate', () {
@@ -1385,6 +1582,34 @@ void main() {
       test('UkPlatePattern rejects wrong format', () {
         final schema = VString().licensePlate(pattern: const UkPlatePattern());
         expect(schema.validate('123 ABCD'), isFalse);
+      });
+
+      group('UkPlatePattern mode', () {
+        test('any accepts with and without space', () {
+          final schema =
+              VString().licensePlate(pattern: const UkPlatePattern());
+
+          expect(schema.validate('AB12 CDE'), isTrue);
+          expect(schema.validate('AB12CDE'), isTrue);
+        });
+
+        test('formatted requires the space', () {
+          final schema = VString().licensePlate(
+            pattern: const UkPlatePattern(mode: ValidationMode.formatted),
+          );
+
+          expect(schema.validate('AB12 CDE'), isTrue);
+          expect(schema.validate('AB12CDE'), isFalse);
+        });
+
+        test('unformatted rejects the space', () {
+          final schema = VString().licensePlate(
+            pattern: const UkPlatePattern(mode: ValidationMode.unformatted),
+          );
+
+          expect(schema.validate('AB12CDE'), isTrue);
+          expect(schema.validate('AB12 CDE'), isFalse);
+        });
       });
     });
 
