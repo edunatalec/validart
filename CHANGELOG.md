@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.0] - 2026-04-22
+
+### Added
+
+- **`ValidationMode` enum** (`any` / `formatted` / `unformatted`) — controls whether separator-based formatting is required, forbidden, or optional on validators that accept multiple input shapes. Exported from `package:validart/validart.dart`.
+- **`mode` field on `UsSsnPattern`, `UkNiNumberPattern`, `CaSinPattern`** — SSN, NINO and SIN patterns now accept a `ValidationMode`. Default `any` keeps the current behavior (modulo the change noted below for SSN).
+- **`mode` field on `CaPostalCodePattern`, `UkPostcodePattern`** — Canadian and UK postal codes can now require or forbid the separating space.
+- **`mode` field on `UkPlatePattern`** — UK plates can now require or forbid the space between the two groups.
+- **`mode` parameter on `VString.card()`** — `V.string().card(mode: ValidationMode.formatted)` requires groups of four separated by spaces/dashes; `ValidationMode.unformatted` rejects any non-digit; `ValidationMode.any` (default) keeps the current behavior.
+- **`CountryCodeFormat` enum** (`required` / `optional` / `none`) and `countryCode` field on `E164PhonePattern` — pin whether the leading `+` must be present, optional (default), or forbidden. Exported from `package:validart/validart.dart`.
+
+### Changed
+
+- **Breaking (subtle) — `UsSsnPattern` in `ValidationMode.any`** no longer accepts mixed shapes like `123-456789` or `12345-6789`. Only fully-formatted (`123-45-6789`) or fully-unformatted (`123456789`) inputs are accepted. Users that relied on the older permissive behavior can write their own regex via a custom `TaxIdPattern`.
+
 ## [1.1.0] - 2026-04-21
 
 ### Added
