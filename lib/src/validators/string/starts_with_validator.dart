@@ -10,7 +10,7 @@ class StartsWithValidator extends Validator<String> {
   const StartsWithValidator({required this.prefix});
 
   @override
-  String get code => VCode.startsWith;
+  String get code => VStringCode.startsWith;
 
   @override
   Map<String, dynamic>? validate(String value) =>

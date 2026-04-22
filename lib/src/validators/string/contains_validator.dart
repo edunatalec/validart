@@ -10,7 +10,7 @@ class ContainsValidator extends Validator<String> {
   const ContainsValidator({required this.substring});
 
   @override
-  String get code => VCode.contains;
+  String get code => VStringCode.contains;
 
   @override
   Map<String, dynamic>? validate(String value) =>

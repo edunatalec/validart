@@ -38,6 +38,9 @@ class VMap extends VType<Map<String, dynamic>> {
   }
 
   @override
+  String get typeName => 'map';
+
+  @override
   VMap add(
     Validator<Map<String, dynamic>> validator, {
     String? message,
@@ -366,8 +369,8 @@ class VMap extends VType<Map<String, dynamic>> {
       for (final key in input.keys) {
         if (!_schema.containsKey(key)) {
           errors.add(VError(
-            code: VCode.unrecognizedKey,
-            message: V.t(VCode.unrecognizedKey, {'key': key}),
+            code: VMapCode.unrecognizedKey,
+            message: V.t(VMapCode.unrecognizedKey, {'key': key}),
             path: [key],
           ));
         }
@@ -449,8 +452,8 @@ class VMap extends VType<Map<String, dynamic>> {
       for (final key in input.keys) {
         if (!_schema.containsKey(key)) {
           errors.add(VError(
-            code: VCode.unrecognizedKey,
-            message: V.t(VCode.unrecognizedKey, {'key': key}),
+            code: VMapCode.unrecognizedKey,
+            message: V.t(VMapCode.unrecognizedKey, {'key': key}),
             path: [key],
           ));
         }

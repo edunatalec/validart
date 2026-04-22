@@ -9,7 +9,7 @@ class JsonValidator extends Validator<String> {
   const JsonValidator();
 
   @override
-  String get code => VCode.json;
+  String get code => VStringCode.json;
 
   @override
   Map<String, dynamic>? validate(String value) {

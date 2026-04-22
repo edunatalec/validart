@@ -21,7 +21,7 @@ class PasswordValidator extends Validator<String> {
             'specialChars cannot be empty — use refine() to drop the requirement');
 
   @override
-  String get code => VCode.password;
+  String get code => VStringCode.password;
 
   @override
   Map<String, dynamic>? validate(String value) {

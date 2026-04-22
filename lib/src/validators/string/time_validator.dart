@@ -7,7 +7,7 @@ class TimeValidator extends Validator<String> {
   const TimeValidator();
 
   @override
-  String get code => VCode.invalidTime;
+  String get code => VStringCode.time;
 
   @override
   Map<String, dynamic>? validate(String value) {

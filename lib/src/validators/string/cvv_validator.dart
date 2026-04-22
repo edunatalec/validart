@@ -7,7 +7,7 @@ class CvvValidator extends Validator<String> {
   const CvvValidator();
 
   @override
-  String get code => VCode.cvv;
+  String get code => VStringCode.cvv;
 
   @override
   Map<String, dynamic>? validate(String value) {

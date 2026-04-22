@@ -7,7 +7,7 @@ class IpValidator extends Validator<String> {
   const IpValidator();
 
   @override
-  String get code => VCode.invalidIp;
+  String get code => VStringCode.ip;
 
   @override
   Map<String, dynamic>? validate(String value) {

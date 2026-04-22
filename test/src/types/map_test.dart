@@ -62,7 +62,7 @@ void main() {
         });
         final errors = schema.errors({'name': 'Alice'});
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'required');
+        expect(errors!.first.code, 'string.required');
         expect(errors.first.path, ['email']);
       });
 
@@ -506,7 +506,7 @@ void main() {
         final schema = VMap({'name': VString()});
         final errors = schema.errors(null);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'required');
+        expect(errors!.first.code, 'map.required');
       });
 
       test('nullable should allow null', () {
@@ -535,7 +535,7 @@ void main() {
         final schema = VMap({'name': VString()});
         final errors = schema.errors('not a map');
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'invalid_type');
+        expect(errors!.first.code, 'map.invalid_type');
       });
 
       test('should fail for list input', () {

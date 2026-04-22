@@ -10,7 +10,7 @@ class MacValidator extends Validator<String> {
   const MacValidator();
 
   @override
-  String get code => VCode.mac;
+  String get code => VStringCode.mac;
 
   @override
   Map<String, dynamic>? validate(String value) {

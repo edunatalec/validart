@@ -7,7 +7,7 @@ class EmailValidator extends Validator<String> {
   const EmailValidator();
 
   @override
-  String get code => VCode.invalidEmail;
+  String get code => VStringCode.email;
 
   @override
   Map<String, dynamic>? validate(String value) {

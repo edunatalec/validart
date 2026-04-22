@@ -11,7 +11,7 @@ class UlidValidator extends Validator<String> {
   const UlidValidator();
 
   @override
-  String get code => VCode.ulid;
+  String get code => VStringCode.ulid;
 
   @override
   Map<String, dynamic>? validate(String value) {

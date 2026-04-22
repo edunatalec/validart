@@ -7,7 +7,7 @@ class HexColorValidator extends Validator<String> {
   const HexColorValidator();
 
   @override
-  String get code => VCode.hexColor;
+  String get code => VStringCode.hexColor;
 
   @override
   Map<String, dynamic>? validate(String value) {

@@ -7,7 +7,7 @@ class UniqueValidator<T> extends Validator<List<T>> {
   const UniqueValidator();
 
   @override
-  String get code => VCode.unique;
+  String get code => VArrayCode.unique;
 
   @override
   Map<String, dynamic>? validate(List<T> value) =>

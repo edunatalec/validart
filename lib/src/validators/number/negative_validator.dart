@@ -7,7 +7,7 @@ class NegativeValidator<T extends num> extends Validator<T> {
   const NegativeValidator();
 
   @override
-  String get code => VCode.negative;
+  String get code => VNumberCode.negative;
 
   @override
   Map<String, dynamic>? validate(T value) => value < 0 ? null : {};

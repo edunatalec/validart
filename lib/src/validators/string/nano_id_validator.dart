@@ -14,7 +14,7 @@ class NanoIdValidator extends Validator<String> {
   const NanoIdValidator({this.length = 21});
 
   @override
-  String get code => VCode.nanoId;
+  String get code => VStringCode.nanoId;
 
   @override
   Map<String, dynamic>? validate(String value) {

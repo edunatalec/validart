@@ -125,6 +125,21 @@ abstract class VType<T> {
   final List<Object? Function(Object?)> _preprocessors = [];
   final List<Future<Object?> Function(Object?)> _asyncPreprocessors = [];
 
+  /// Type-specific prefix used to build error codes for `required` and
+  /// `invalid_type`. Concrete subclasses return literals like `'string'`,
+  /// `'int'`, `'bool'`. Wrappers delegate to the inner schema.
+  ///
+  /// Exposed so third-party schemas can plug into the prefixed-code
+  /// mechanism — not intended for callers of existing schemas.
+  String get typeName;
+
+  /// Error code emitted when the value is `null` and the schema is not
+  /// nullable and has no default.
+  String get _requiredCode => '$typeName.required';
+
+  /// Error code emitted when the value has the wrong runtime type.
+  String get _invalidTypeCode => '$typeName.invalid_type';
+
   VType<T> _addStep(_PipelineStep<T> step) {
     _steps.add(step);
     return this;
@@ -216,8 +231,8 @@ abstract class VType<T> {
     return (
       earlyReturn: VFailure<S?>([
         VError(
-          code: VCode.required,
-          message: _message ?? V.t(VCode.required),
+          code: _requiredCode,
+          message: _message ?? V.t(_requiredCode),
         ),
       ]),
       input: null,
@@ -227,8 +242,8 @@ abstract class VType<T> {
   VFailure<S?> _typeError<S>(String expected, Object value) {
     return VFailure<S?>([
       VError(
-        code: VCode.invalidType,
-        message: V.t(VCode.invalidType, {
+        code: _invalidTypeCode,
+        message: V.t(_invalidTypeCode, {
           'expected': expected,
           'received': value.runtimeType.toString(),
         }),
@@ -690,6 +705,9 @@ class _NullableWrapper<T> extends VType<T> {
   final VType<T> _inner;
 
   _NullableWrapper(this._inner);
+
+  @override
+  String get typeName => _inner.typeName;
 
   @override
   VResult<T?> safeParse(Object? value) {

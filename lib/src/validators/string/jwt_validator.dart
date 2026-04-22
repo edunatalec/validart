@@ -7,7 +7,7 @@ class JwtValidator extends Validator<String> {
   const JwtValidator();
 
   @override
-  String get code => VCode.jwt;
+  String get code => VStringCode.jwt;
 
   @override
   Map<String, dynamic>? validate(String value) {

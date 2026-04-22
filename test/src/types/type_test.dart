@@ -6,7 +6,10 @@ import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
 import 'package:validart/src/validators/validator.dart';
 
-class TestStringType extends VType<String> {}
+class TestStringType extends VType<String> {
+  @override
+  String get typeName => 'string';
+}
 
 class _LengthValidator extends Validator<String> {
   final int min;
@@ -57,7 +60,7 @@ void main() {
 
         final errors = (result as VFailure<String?>).errors;
         expect(errors.length, 1);
-        expect(errors.first.code, 'required');
+        expect(errors.first.code, 'string.required');
       });
 
       test('should return VFailure with invalid_type when wrong type', () {
@@ -67,7 +70,7 @@ void main() {
 
         final errors = (result as VFailure<String?>).errors;
         expect(errors.length, 1);
-        expect(errors.first.code, 'invalid_type');
+        expect(errors.first.code, 'string.invalid_type');
       });
     });
 
@@ -99,7 +102,7 @@ void main() {
         final errs = schema.errors(null);
         expect(errs, isNotNull);
         expect(errs!.length, 1);
-        expect(errs.first.code, 'required');
+        expect(errs.first.code, 'string.required');
       });
     });
 

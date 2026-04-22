@@ -1,22 +1,47 @@
 /// Provides locale-aware error message translations.
 ///
-/// Uses `{param}` interpolation for dynamic values. Falls back to the
-/// default English messages when a translation is not found.
+/// Uses `{param}` interpolation for dynamic values. Error codes can be
+/// given in **flat** form (`'string.required'`), **nested** form
+/// (`{'string': {'required': '...'}}`), or a mix of both.
+///
+/// When a prefixed code such as `string.required` is looked up and no
+/// match is found, the lookup falls back to the trailing segment
+/// (`required`) — so an override on the generic `required` key still
+/// affects every type unless you also define a type-specific message.
+///
+/// Lookup order:
+/// 1. Custom translations, exact match (flat or nested).
+/// 2. Custom translations, fallback to the last segment (drops the
+///    prefix).
+/// 3. Default English messages, exact match.
+/// 4. Default English messages, fallback to the last segment.
+/// 5. The code itself.
 ///
 /// ```dart
 /// V.setLocale(const VLocale({
+///   // Generic override — affects every type.
 ///   'required': 'Campo obrigatório',
-///   'invalid_email': 'E-mail inválido',
+///
+///   // Nested override — only strings.
+///   'string': {
+///     'required': 'Campo de texto obrigatório',
+///   },
+///
+///   // Flat override — same as above but written inline.
+///   'int.required': 'Número obrigatório',
 /// }));
 /// ```
 class VLocale {
-  final Map<String, String> _translations;
+  final Map<String, Object> _translations;
 
-  /// Creates a [VLocale] with optional custom [_translations].
+  /// Creates a [VLocale] with optional custom [_translations]. Values may
+  /// be either a `String` (for a direct message) or a nested `Map` whose
+  /// keys form the remainder of the error code path.
   const VLocale([this._translations = const {}]);
 
   static const _defaults = <String, String>{
-    // General
+    // General — used as fallback for every type-specific `required` /
+    // `invalid_type` lookup.
     'required': 'Required',
     'invalid_type': 'Expected {expected}, received {received}',
 
@@ -89,16 +114,55 @@ class VLocale {
 
   /// Translates an error [code] with optional [params] interpolation.
   ///
-  /// Lookup order: custom translations → default English → code itself.
-  ///
   /// ```dart
-  /// final locale = VLocale({'required': 'Obrigatório'});
-  /// locale.translate('required'); // 'Obrigatório'
+  /// const locale = VLocale({'required': 'Obrigatório'});
+  /// locale.translate('string.required'); // 'Obrigatório' (fallback)
   /// ```
   String translate(String code, [Map<String, dynamic> params = const {}]) {
-    final template = _translations[code] ?? _defaults[code] ?? code;
+    final template =
+        _resolve(_translations, code) ?? _resolve(_defaults, code) ?? code;
 
     return _interpolate(template, params);
+  }
+
+  /// Resolves [code] against [source] following the documented fallback
+  /// chain: exact match (flat or nested), then the trailing segment
+  /// after dropping the prefix.
+  static String? _resolve(Map<String, Object> source, String code) {
+    final direct = _lookup(source, code);
+
+    if (direct != null) return direct;
+
+    final dot = code.indexOf('.');
+
+    if (dot < 0) return null;
+
+    return _lookup(source, code.substring(dot + 1));
+  }
+
+  /// Looks up [code] in [source] accepting either the flat form
+  /// (`'string.required'`) or the nested form
+  /// (`{'string': {'required': '...'}}`).
+  static String? _lookup(Map<String, Object> source, String code) {
+    final flat = source[code];
+
+    if (flat is String) return flat;
+
+    final parts = code.split('.');
+
+    if (parts.length < 2) return null;
+
+    Object? current = source;
+
+    for (final part in parts) {
+      if (current is! Map) return null;
+
+      current = current[part];
+
+      if (current == null) return null;
+    }
+
+    return current is String ? current : null;
   }
 
   static String _interpolate(String template, Map<String, dynamic> params) {

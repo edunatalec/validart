@@ -10,7 +10,7 @@ class SemverValidator extends Validator<String> {
   const SemverValidator();
 
   @override
-  String get code => VCode.semver;
+  String get code => VStringCode.semver;
 
   @override
   Map<String, dynamic>? validate(String value) {

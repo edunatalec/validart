@@ -178,4 +178,65 @@ void main() {
       expect(V.t('nonexistent_code'), 'nonexistent_code');
     });
   });
+
+  group('Prefixed codes and nested translations', () {
+    test('flat prefixed override wins over generic', () {
+      V.setLocale(const VLocale({
+        'required': 'Generic required',
+        'string.required': 'String required',
+      }));
+
+      expect(VString().errors(null)!.first.message, 'String required');
+      expect(VInt().errors(null)!.first.message, 'Generic required');
+    });
+
+    test('nested map override wins over generic', () {
+      V.setLocale(const VLocale({
+        'required': 'Generic required',
+        'string': {'required': 'String required'},
+      }));
+
+      expect(VString().errors(null)!.first.message, 'String required');
+      expect(VInt().errors(null)!.first.message, 'Generic required');
+    });
+
+    test('generic required still applies when no type-specific override', () {
+      V.setLocale(const VLocale({'required': 'Obrigatório'}));
+
+      expect(VString().errors(null)!.first.message, 'Obrigatório');
+      expect(VInt().errors(null)!.first.message, 'Obrigatório');
+      expect(VBool().errors(null)!.first.message, 'Obrigatório');
+      expect(VMap({'a': VString()}).errors(null)!.first.message, 'Obrigatório');
+    });
+
+    test('prefixed invalid_type overrides generic', () {
+      V.setLocale(const VLocale({
+        'invalid_type': 'Generic type',
+        'string.invalid_type': 'String type',
+      }));
+
+      expect(VString().errors(42)!.first.message, 'String type');
+      expect(VInt().errors('x')!.first.message, 'Generic type');
+    });
+
+    test('nested and flat can coexist', () {
+      V.setLocale(const VLocale({
+        'int.required': 'Int required',
+        'string': {'required': 'String required'},
+      }));
+
+      expect(VString().errors(null)!.first.message, 'String required');
+      expect(VInt().errors(null)!.first.message, 'Int required');
+      // Falls back to default English for others
+      expect(VBool().errors(null)!.first.message, 'Required');
+    });
+
+    test('error code emitted carries the type prefix', () {
+      expect(VString().errors(null)!.first.code, 'string.required');
+      expect(VInt().errors(null)!.first.code, 'int.required');
+      expect(VBool().errors(null)!.first.code, 'bool.required');
+      expect(VString().errors(42)!.first.code, 'string.invalid_type');
+      expect(VInt().errors('x')!.first.code, 'int.invalid_type');
+    });
+  });
 }

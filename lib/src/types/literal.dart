@@ -17,6 +17,9 @@ class VLiteral<T> extends VType<T> {
   VLiteral(this._expected, {super.message});
 
   @override
+  String get typeName => 'literal';
+
+  @override
   VResult<T?> safeParse(Object? value) {
     final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
@@ -28,8 +31,8 @@ class VLiteral<T> extends VType<T> {
 
     return VFailure<T?>([
       VError(
-        code: VCode.invalidLiteral,
-        message: V.t(VCode.invalidLiteral, {
+        code: VLiteralCode.invalid,
+        message: V.t(VLiteralCode.invalid, {
           'expected': _expected,
           'received': input,
         }),

@@ -7,7 +7,7 @@ class DecimalValidator extends Validator<double> {
   const DecimalValidator();
 
   @override
-  String get code => VCode.decimal;
+  String get code => VDoubleCode.decimal;
 
   @override
   Map<String, dynamic>? validate(double value) => value % 1 != 0 ? null : {};

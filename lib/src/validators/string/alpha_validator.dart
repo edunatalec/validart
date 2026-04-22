@@ -7,7 +7,7 @@ class AlphaValidator extends Validator<String> {
   const AlphaValidator();
 
   @override
-  String get code => VCode.alpha;
+  String get code => VStringCode.alpha;
 
   @override
   Map<String, dynamic>? validate(String value) {

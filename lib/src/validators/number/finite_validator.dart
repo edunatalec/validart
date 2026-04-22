@@ -7,7 +7,7 @@ class FiniteValidator extends Validator<double> {
   const FiniteValidator();
 
   @override
-  String get code => VCode.finite;
+  String get code => VNumberCode.finite;
 
   @override
   Map<String, dynamic>? validate(double value) =>

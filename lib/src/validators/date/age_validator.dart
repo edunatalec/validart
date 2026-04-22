@@ -22,7 +22,7 @@ class AgeValidator extends Validator<DateTime> {
   const AgeValidator({this.min, this.max});
 
   @override
-  String get code => VCode.age;
+  String get code => VDateCode.age;
 
   @override
   Map<String, dynamic>? validate(DateTime value) {

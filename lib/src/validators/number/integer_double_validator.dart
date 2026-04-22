@@ -7,7 +7,7 @@ class IntegerDoubleValidator extends Validator<double> {
   const IntegerDoubleValidator();
 
   @override
-  String get code => VCode.integer;
+  String get code => VDoubleCode.integer;
 
   @override
   Map<String, dynamic>? validate(double value) => value % 1 == 0 ? null : {};

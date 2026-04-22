@@ -10,7 +10,7 @@ class ContainsAllValidator<T> extends Validator<List<T>> {
   const ContainsAllValidator({required this.required});
 
   @override
-  String get code => VCode.containsAll;
+  String get code => VArrayCode.containsAll;
 
   @override
   Map<String, dynamic>? validate(List<T> value) =>

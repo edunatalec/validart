@@ -10,7 +10,7 @@ class BeforeValidator extends Validator<DateTime> {
   const BeforeValidator({required this.date});
 
   @override
-  String get code => VCode.dateTooBig;
+  String get code => VDateCode.tooBig;
 
   @override
   Map<String, dynamic>? validate(DateTime value) =>

@@ -11,7 +11,7 @@ class TaxIdValidator extends Validator<String> {
   const TaxIdValidator({required this.pattern});
 
   @override
-  String get code => VCode.taxId;
+  String get code => VStringCode.taxId;
 
   @override
   Map<String, dynamic>? validate(String value) =>

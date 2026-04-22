@@ -10,7 +10,7 @@ class MinLengthValidator extends Validator<String> {
   const MinLengthValidator({required this.min});
 
   @override
-  String get code => VCode.stringTooSmall;
+  String get code => VStringCode.tooSmall;
 
   @override
   Map<String, dynamic>? validate(String value) =>

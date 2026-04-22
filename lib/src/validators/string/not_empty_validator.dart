@@ -7,7 +7,7 @@ class NotEmptyValidator extends Validator<String> {
   const NotEmptyValidator();
 
   @override
-  String get code => VCode.notEmpty;
+  String get code => VStringCode.notEmpty;
 
   @override
   Map<String, dynamic>? validate(String value) => value.isNotEmpty ? null : {};

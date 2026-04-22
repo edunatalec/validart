@@ -111,6 +111,9 @@ class VInt extends VNumber<int> {
   VInt({super.message});
 
   @override
+  String get typeName => 'int';
+
+  @override
   VInt add(
     Validator<int> validator, {
     String? message,
@@ -255,6 +258,9 @@ class VDouble extends VNumber<double> {
   /// Creates a [VDouble]. Pass [message] to override the default
   /// translation used when the input is `null`.
   VDouble({super.message});
+
+  @override
+  String get typeName => 'double';
 
   @override
   VDouble add(

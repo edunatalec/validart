@@ -11,7 +11,7 @@ class LicensePlateValidator extends Validator<String> {
   const LicensePlateValidator({required this.pattern});
 
   @override
-  String get code => VCode.licensePlate;
+  String get code => VStringCode.licensePlate;
 
   @override
   Map<String, dynamic>? validate(String value) =>

@@ -7,7 +7,7 @@ class EvenValidator extends Validator<int> {
   const EvenValidator();
 
   @override
-  String get code => VCode.even;
+  String get code => VIntCode.even;
 
   @override
   Map<String, dynamic>? validate(int value) => value % 2 == 0 ? null : {};

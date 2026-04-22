@@ -12,6 +12,9 @@ class VDate extends VType<DateTime> {
   VDate({super.message});
 
   @override
+  String get typeName => 'date';
+
+  @override
   VDate add(
     Validator<DateTime> validator, {
     String? message,

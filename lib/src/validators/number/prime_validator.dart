@@ -9,7 +9,7 @@ class PrimeValidator extends Validator<int> {
   const PrimeValidator();
 
   @override
-  String get code => VCode.prime;
+  String get code => VIntCode.prime;
 
   @override
   Map<String, dynamic>? validate(int value) {

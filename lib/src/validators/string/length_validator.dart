@@ -10,7 +10,7 @@ class LengthValidator extends Validator<String> {
   const LengthValidator({required this.length});
 
   @override
-  String get code => VCode.stringLength;
+  String get code => VStringCode.length;
 
   @override
   Map<String, dynamic>? validate(String value) =>

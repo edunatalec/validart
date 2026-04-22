@@ -10,7 +10,7 @@ class EqualsValidator extends Validator<String> {
   const EqualsValidator({required this.expected});
 
   @override
-  String get code => VCode.equals;
+  String get code => VStringCode.equals;
 
   @override
   Map<String, dynamic>? validate(String value) =>

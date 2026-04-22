@@ -18,6 +18,9 @@ class VEnum<T extends Enum> extends VType<T> {
   VEnum(this._values, {super.message});
 
   @override
+  String get typeName => 'enum';
+
+  @override
   VResult<T?> safeParse(Object? value) {
     final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
@@ -29,8 +32,8 @@ class VEnum<T extends Enum> extends VType<T> {
 
     return VFailure<T?>([
       VError(
-        code: VCode.invalidEnum,
-        message: V.t(VCode.invalidEnum, {
+        code: VEnumCode.invalid,
+        message: V.t(VEnumCode.invalid, {
           'values': _values.map((v) => v.name).join(', '),
         }),
       ),

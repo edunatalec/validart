@@ -10,7 +10,7 @@ class IbanValidator extends Validator<String> {
   const IbanValidator();
 
   @override
-  String get code => VCode.iban;
+  String get code => VStringCode.iban;
 
   @override
   Map<String, dynamic>? validate(String value) {

@@ -17,6 +17,9 @@ class VTransformed<I, O> extends VType<O> {
   VTransformed(this._inner, this._transformFn);
 
   @override
+  String get typeName => _inner.typeName;
+
+  @override
   bool get hasAsync => super.hasAsync || _inner.hasAsync;
 
   @override
@@ -74,6 +77,9 @@ class VTransformedAsync<I, O> extends VType<O> {
   /// Creates an async-transformed validator wrapping [_inner] with
   /// [_transformFn].
   VTransformedAsync(this._inner, this._transformFn);
+
+  @override
+  String get typeName => _inner.typeName;
 
   @override
   bool get hasAsync => true;

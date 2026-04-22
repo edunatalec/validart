@@ -71,11 +71,11 @@ void main() {
       final errors = schema.errors(3.14);
 
       expect(errors, isNotNull);
-      expect(errors!.first.code, VCode.invalidUnion);
+      expect(errors!.first.code, VUnionCode.invalid);
       expect(errors.first.context, isNotNull);
       expect(errors.first.context!.length, 2);
-      expect(errors.first.context![0].first.code, VCode.invalidType);
-      expect(errors.first.context![1].first.code, VCode.invalidType);
+      expect(errors.first.context![0].first.code, VStringCode.invalidType);
+      expect(errors.first.context![1].first.code, VIntCode.invalidType);
     });
   });
 }

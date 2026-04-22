@@ -7,7 +7,7 @@ class MongoIdValidator extends Validator<String> {
   const MongoIdValidator();
 
   @override
-  String get code => VCode.mongoId;
+  String get code => VStringCode.mongoId;
 
   @override
   Map<String, dynamic>? validate(String value) {

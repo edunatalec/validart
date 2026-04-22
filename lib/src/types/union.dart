@@ -21,6 +21,9 @@ class VUnion extends VType<Object> {
   }
 
   @override
+  String get typeName => 'union';
+
+  @override
   bool get hasAsync =>
       super.hasAsync || _options.any((option) => option.hasAsync);
 
@@ -49,8 +52,8 @@ class VUnion extends VType<Object> {
 
     return VFailure<Object?>([
       VError(
-        code: VCode.invalidUnion,
-        message: V.t(VCode.invalidUnion),
+        code: VUnionCode.invalid,
+        message: V.t(VUnionCode.invalid),
         context: optionErrors,
       ),
     ]);
@@ -76,8 +79,8 @@ class VUnion extends VType<Object> {
 
     return VFailure<Object?>([
       VError(
-        code: VCode.invalidUnion,
-        message: V.t(VCode.invalidUnion),
+        code: VUnionCode.invalid,
+        message: V.t(VUnionCode.invalid),
         context: optionErrors,
       ),
     ]);

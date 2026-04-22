@@ -7,7 +7,7 @@ class Base64Validator extends Validator<String> {
   const Base64Validator();
 
   @override
-  String get code => VCode.base64;
+  String get code => VStringCode.base64;
 
   @override
   Map<String, dynamic>? validate(String value) {

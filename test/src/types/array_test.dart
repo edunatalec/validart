@@ -187,7 +187,7 @@ void main() {
       test('should return invalid_type error for non-list input', () {
         final errors = schema.errors('not a list');
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'invalid_type');
+        expect(errors!.first.code, 'array.invalid_type');
       });
 
       test('should fail for int input', () {
@@ -209,7 +209,7 @@ void main() {
         final schema = VArray<String>(VString());
         final errors = schema.errors(null);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'required');
+        expect(errors!.first.code, 'array.required');
       });
 
       test('nullable should allow null', () {

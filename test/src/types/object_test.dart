@@ -60,7 +60,7 @@ void main() {
         final schema = VObject<Folder>();
         final errors = schema.errors(null);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'required');
+        expect(errors!.first.code, 'object.required');
       });
 
       test('should pass for Folder with all fields', () {
@@ -219,7 +219,7 @@ void main() {
         final schema = VObject<Folder>();
         final errors = schema.errors('not a folder');
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'invalid_type');
+        expect(errors!.first.code, 'object.invalid_type');
       });
 
       test('should fail for int input', () {
@@ -289,7 +289,7 @@ void main() {
         });
         final errors = schema.errors({'folder': null});
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'required');
+        expect(errors!.first.code, 'object.required');
         expect(errors.first.path, ['folder']);
       });
     });

@@ -12,7 +12,7 @@ class UrlValidator extends Validator<String> {
   const UrlValidator({this.schemes = const {'http', 'https'}});
 
   @override
-  String get code => VCode.invalidUrl;
+  String get code => VStringCode.url;
 
   @override
   Map<String, dynamic>? validate(String value) {

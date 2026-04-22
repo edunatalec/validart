@@ -7,7 +7,7 @@ class IsFalseValidator extends Validator<bool> {
   const IsFalseValidator();
 
   @override
-  String get code => VCode.isFalse;
+  String get code => VBoolCode.isFalse;
 
   @override
   Map<String, dynamic>? validate(bool value) => value == false ? null : {};

@@ -53,7 +53,7 @@ class UuidValidator extends Validator<String> {
   const UuidValidator({this.version});
 
   @override
-  String get code => VCode.invalidUuid;
+  String get code => VStringCode.uuid;
 
   @override
   Map<String, dynamic>? validate(String value) {

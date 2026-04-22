@@ -10,7 +10,7 @@ class EndsWithValidator extends Validator<String> {
   const EndsWithValidator({required this.suffix});
 
   @override
-  String get code => VCode.endsWith;
+  String get code => VStringCode.endsWith;
 
   @override
   Map<String, dynamic>? validate(String value) =>

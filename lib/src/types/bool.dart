@@ -12,6 +12,9 @@ class VBool extends VType<bool> {
   VBool({super.message});
 
   @override
+  String get typeName => 'bool';
+
+  @override
   VBool add(
     Validator<bool> validator, {
     String? message,

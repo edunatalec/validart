@@ -11,7 +11,7 @@ class PostalCodeValidator extends Validator<String> {
   const PostalCodeValidator({required this.pattern});
 
   @override
-  String get code => VCode.postalCode;
+  String get code => VStringCode.postalCode;
 
   @override
   Map<String, dynamic>? validate(String value) =>

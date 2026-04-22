@@ -7,7 +7,7 @@ class OddValidator extends Validator<int> {
   const OddValidator();
 
   @override
-  String get code => VCode.odd;
+  String get code => VIntCode.odd;
 
   @override
   Map<String, dynamic>? validate(int value) => value % 2 != 0 ? null : {};

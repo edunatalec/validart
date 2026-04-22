@@ -10,7 +10,7 @@ class MultipleOfValidator<T extends num> extends Validator<T> {
   const MultipleOfValidator({required this.factor});
 
   @override
-  String get code => VCode.multipleOf;
+  String get code => VNumberCode.multipleOf;
 
   @override
   Map<String, dynamic>? validate(T value) {

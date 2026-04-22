@@ -11,7 +11,7 @@ class IntegerStringValidator extends Validator<String> {
   const IntegerStringValidator();
 
   @override
-  String get code => VCode.stringInteger;
+  String get code => VStringCode.integer;
 
   @override
   Map<String, dynamic>? validate(String value) {

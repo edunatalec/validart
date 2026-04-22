@@ -25,7 +25,7 @@ class CardValidator extends Validator<String> {
   const CardValidator({this.brands, this.mode = ValidationMode.any});
 
   @override
-  String get code => VCode.card;
+  String get code => VStringCode.card;
 
   @override
   Map<String, dynamic>? validate(String value) {

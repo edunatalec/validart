@@ -7,7 +7,7 @@ class WeekdayValidator extends Validator<DateTime> {
   const WeekdayValidator();
 
   @override
-  String get code => VCode.weekday;
+  String get code => VDateCode.weekday;
 
   @override
   Map<String, dynamic>? validate(DateTime value) =>

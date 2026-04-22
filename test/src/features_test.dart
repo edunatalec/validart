@@ -18,7 +18,7 @@ void main() {
     test('should return correct error code', () {
       final schema = VString().notEmpty();
       final errs = schema.errors('');
-      expect(errs!.first.code, VCode.notEmpty);
+      expect(errs!.first.code, VStringCode.notEmpty);
     });
 
     test('should use custom message', () {
@@ -160,7 +160,7 @@ void main() {
         'password': 'abc',
         'confirm': 'xyz',
       });
-      expect(errs!.first.code, VCode.fieldsNotEqual);
+      expect(errs!.first.code, VMapCode.fieldsNotEqual);
     });
 
     test('should use locale message with params', () {
@@ -209,7 +209,7 @@ void main() {
     test('should propagate errors from inner schema', () {
       final schema = (V.string().min(5)).transform<int>((s) => s.length);
       final errs = schema.errors('hi');
-      expect(errs!.first.code, VCode.stringTooSmall);
+      expect(errs!.first.code, VStringCode.tooSmall);
     });
 
     test('should return null for null when inner is nullable', () {
@@ -374,7 +374,7 @@ void main() {
     test('VString required error uses custom message', () {
       final schema = V.string(message: 'Name is required');
       final errs = schema.errors(null);
-      expect(errs!.first.code, 'required');
+      expect(errs!.first.code, 'string.required');
       expect(errs.first.message, 'Name is required');
     });
 

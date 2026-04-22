@@ -61,7 +61,7 @@ class E164PhonePattern extends PhonePattern {
   const E164PhonePattern({this.countryCode = CountryCodeFormat.optional});
 
   @override
-  String get code => VCode.invalidPhone;
+  String get code => VStringCode.phone;
 
   @override
   Map<String, dynamic>? validate(String value) {

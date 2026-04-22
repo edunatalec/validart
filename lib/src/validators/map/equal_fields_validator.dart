@@ -13,7 +13,7 @@ class EqualFieldsValidator extends Validator<Map<String, dynamic>> {
   const EqualFieldsValidator({required this.field, required this.other});
 
   @override
-  String get code => VCode.fieldsNotEqual;
+  String get code => VMapCode.fieldsNotEqual;
 
   @override
   Map<String, dynamic>? validate(Map<String, dynamic> value) =>

@@ -10,7 +10,7 @@ class PatternValidator extends Validator<String> {
   const PatternValidator({required this.pattern});
 
   @override
-  String get code => VCode.invalidFormat;
+  String get code => VStringCode.format;
 
   @override
   Map<String, dynamic>? validate(String value) {

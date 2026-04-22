@@ -21,7 +21,7 @@ class DateStringValidator extends Validator<String> {
   const DateStringValidator({this.format});
 
   @override
-  String get code => VCode.invalidDate;
+  String get code => VStringCode.date;
 
   @override
   Map<String, dynamic>? validate(String value) {

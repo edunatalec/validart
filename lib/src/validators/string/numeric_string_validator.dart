@@ -12,7 +12,7 @@ class NumericStringValidator extends Validator<String> {
   const NumericStringValidator();
 
   @override
-  String get code => VCode.stringNumeric;
+  String get code => VStringCode.numeric;
 
   @override
   Map<String, dynamic>? validate(String value) {

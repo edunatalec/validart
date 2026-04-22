@@ -62,6 +62,9 @@ class VObject<T> extends VType<T> {
       : _fields = fields;
 
   @override
+  String get typeName => 'object';
+
+  @override
   VObject<T> add(
     Validator<T> validator, {
     String? message,

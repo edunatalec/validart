@@ -411,7 +411,7 @@ void main() {
       final result = await schema.safeParseAsync(null);
 
       expect(result, isA<VFailure<String?>>());
-      expect((result as VFailure).errors.first.code, 'required');
+      expect((result as VFailure).errors.first.code, 'string.required');
     });
   });
 

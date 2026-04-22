@@ -7,7 +7,7 @@ class AlphanumericValidator extends Validator<String> {
   const AlphanumericValidator();
 
   @override
-  String get code => VCode.alphanumeric;
+  String get code => VStringCode.alphanumeric;
 
   @override
   Map<String, dynamic>? validate(String value) {

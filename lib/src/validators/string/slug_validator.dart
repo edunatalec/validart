@@ -7,7 +7,7 @@ class SlugValidator extends Validator<String> {
   const SlugValidator();
 
   @override
-  String get code => VCode.slug;
+  String get code => VStringCode.slug;
 
   @override
   Map<String, dynamic>? validate(String value) {

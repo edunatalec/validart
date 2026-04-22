@@ -18,6 +18,9 @@ class VArray<T> extends VType<List<T>> {
   VArray(this._element, {super.message});
 
   @override
+  String get typeName => 'array';
+
+  @override
   VArray<T> add(
     Validator<List<T>> validator, {
     String? message,

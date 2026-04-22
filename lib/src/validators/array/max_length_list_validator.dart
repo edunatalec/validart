@@ -10,7 +10,7 @@ class MaxLengthListValidator<T> extends Validator<List<T>> {
   const MaxLengthListValidator({required this.max});
 
   @override
-  String get code => VCode.arrayTooBig;
+  String get code => VArrayCode.tooBig;
 
   @override
   Map<String, dynamic>? validate(List<T> value) =>
