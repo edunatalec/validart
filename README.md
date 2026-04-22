@@ -120,9 +120,17 @@ V.string()
 
 Built-in brands: `VisaBrand`, `MastercardBrand`, `AmexBrand`, `DinersBrand`, `DiscoverBrand`, `JcbBrand`. External packages can extend `CardBrandPattern` to add more (e.g. `EloBrand`, `HipercardBrand` in `validart_br`).
 
+Pin the input shape with `ValidationMode`:
+
+```dart
+V.string().card(mode: ValidationMode.formatted).validate('4532 0151 1283 0366'); // true
+V.string().card(mode: ValidationMode.formatted).validate('4532015112830366');     // false
+V.string().card(mode: ValidationMode.unformatted).validate('4532015112830366');   // true
+```
+
 #### Phone
 
-Defaults to E.164. Pass a `PhonePattern` to plug in country-specific rules:
+Defaults to E.164 with an optional leading `+`. Pass a `PhonePattern` to plug in country-specific rules:
 
 ```dart
 V.string().phone().validate('+14155552671'); // true (E.164 default)
@@ -141,6 +149,18 @@ class BrPhonePattern extends PhonePattern {
 V.string().phone(pattern: const BrPhonePattern());
 ```
 
+Use `CountryCodeFormat` to pin whether the leading `+` is `required`, `optional` (default) or `none`:
+
+```dart
+V.string().phone(
+  pattern: const E164PhonePattern(countryCode: CountryCodeFormat.required),
+).validate('14155552671'); // false — `+` missing
+
+V.string().phone(
+  pattern: const E164PhonePattern(countryCode: CountryCodeFormat.none),
+).validate('+14155552671'); // false — `+` forbidden
+```
+
 #### Postal code
 
 Pluggable pattern. Core ships with `UsZipPattern`, `CaPostalCodePattern`, `UkPostcodePattern`. Others (BR CEP, etc.) come from extension packages:
@@ -149,6 +169,18 @@ Pluggable pattern. Core ships with `UsZipPattern`, `CaPostalCodePattern`, `UkPos
 V.string().postalCode(pattern: const UsZipPattern()).validate('94103-1234');
 V.string().postalCode(pattern: const CaPostalCodePattern()).validate('K1A 0B1');
 V.string().postalCode(pattern: const UkPostcodePattern()).validate('SW1A 1AA');
+```
+
+`CaPostalCodePattern` and `UkPostcodePattern` accept a `mode` to require or forbid the separating space:
+
+```dart
+V.string().postalCode(
+  pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+).validate('SW1A1AA'); // false — space required
+
+V.string().postalCode(
+  pattern: const CaPostalCodePattern(mode: ValidationMode.unformatted),
+).validate('K1A0B1'); // true
 ```
 
 #### Tax ID
@@ -161,12 +193,30 @@ V.string().taxId(pattern: const UkNiNumberPattern()).validate('AB123456C');
 V.string().taxId(pattern: const CaSinPattern()).validate('046-454-286');
 ```
 
+All three accept a `mode` (default `ValidationMode.any`) to pin formatted vs unformatted input:
+
+```dart
+V.string().taxId(
+  pattern: const UsSsnPattern(mode: ValidationMode.formatted),
+).validate('123456789'); // false — dashes required
+
+V.string().taxId(
+  pattern: const CaSinPattern(mode: ValidationMode.unformatted),
+).validate('130692544'); // true
+```
+
+> **Note:** `UsSsnPattern` in `ValidationMode.any` only accepts fully-formatted (`123-45-6789`) or fully-unformatted (`123456789`) input. Mixed shapes like `123-456789` are now rejected.
+
 #### License plate
 
 Pluggable pattern. Core ships with `UkPlatePattern` (post-2001 format — stable nationwide). US and Canada plates vary heavily by state/province and are not built in; implement them per your needs or use an extension package:
 
 ```dart
 V.string().licensePlate(pattern: const UkPlatePattern()).validate('AB12 CDE');
+
+V.string().licensePlate(
+  pattern: const UkPlatePattern(mode: ValidationMode.unformatted),
+).validate('AB12CDE'); // true
 ```
 
 ### Int
