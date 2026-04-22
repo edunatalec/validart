@@ -1215,6 +1215,115 @@ void main() {
       });
     });
 
+    group('integer', () {
+      final schema = VString().integer();
+
+      test('should pass for plain digits', () {
+        expect(schema.validate('42'), isTrue);
+        expect(schema.validate('0'), isTrue);
+      });
+
+      test('should pass for negative sign', () {
+        expect(schema.validate('-42'), isTrue);
+      });
+
+      test('should pass for positive sign', () {
+        expect(schema.validate('+42'), isTrue);
+      });
+
+      test('should fail for decimal notation', () {
+        expect(schema.validate('42.0'), isFalse);
+        expect(schema.validate('3.14'), isFalse);
+      });
+
+      test('should fail for scientific notation', () {
+        expect(schema.validate('42e3'), isFalse);
+      });
+
+      test('should fail for empty string', () {
+        expect(schema.validate(''), isFalse);
+      });
+
+      test('should fail for whitespace-padded input', () {
+        expect(schema.validate(' 42 '), isFalse);
+      });
+
+      test('should fail for hex prefix', () {
+        expect(schema.validate('0xFF'), isFalse);
+      });
+
+      test('should fail for letters', () {
+        expect(schema.validate('abc'), isFalse);
+        expect(schema.validate('42a'), isFalse);
+      });
+
+      test('should return error code string.integer', () {
+        final errors = schema.errors('3.14');
+        expect(errors!.first.code, 'string.integer');
+      });
+
+      test('should support custom message', () {
+        final custom = VString().integer(message: 'Not an integer');
+        final errors = custom.errors('3.14');
+        expect(errors!.first.message, 'Not an integer');
+      });
+    });
+
+    group('numeric', () {
+      final schema = VString().numeric();
+
+      test('should pass for plain integer', () {
+        expect(schema.validate('42'), isTrue);
+      });
+
+      test('should pass for negative integer', () {
+        expect(schema.validate('-42'), isTrue);
+      });
+
+      test('should pass for decimal', () {
+        expect(schema.validate('3.14'), isTrue);
+        expect(schema.validate('-0.5'), isTrue);
+      });
+
+      test('should pass for scientific notation', () {
+        expect(schema.validate('42e3'), isTrue);
+        expect(schema.validate('1E-10'), isTrue);
+      });
+
+      test('should fail for empty string', () {
+        expect(schema.validate(''), isFalse);
+      });
+
+      test('should fail for whitespace-padded input', () {
+        expect(schema.validate(' 42 '), isFalse);
+      });
+
+      test('should fail for NaN', () {
+        expect(schema.validate('NaN'), isFalse);
+      });
+
+      test('should fail for Infinity', () {
+        expect(schema.validate('Infinity'), isFalse);
+        expect(schema.validate('-Infinity'), isFalse);
+      });
+
+      test('should fail for letters', () {
+        expect(schema.validate('abc'), isFalse);
+        expect(schema.validate('42a'), isFalse);
+      });
+
+      test('should return error code string.numeric', () {
+        final errors = schema.errors('abc');
+        expect(errors!.first.code, 'string.numeric');
+      });
+
+      test('should support custom message', () {
+        final custom = VString().numeric(message: 'Not a number');
+        final errors = custom.errors('abc');
+        expect(errors!.first.message, 'Not a number');
+      });
+    });
+
     group('cvv', () {
       final schema = VString().cvv();
 

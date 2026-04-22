@@ -29,6 +29,12 @@ abstract class VCode {
   /// String does not match the exact length.
   static const stringLength = 'string.length';
 
+  /// String is not parseable as an integer.
+  static const stringInteger = 'string.integer';
+
+  /// String is not parseable as a finite number.
+  static const stringNumeric = 'string.numeric';
+
   /// String is not a valid email address.
   static const invalidEmail = 'invalid_email';
 

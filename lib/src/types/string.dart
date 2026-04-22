@@ -503,6 +503,43 @@ class VString extends VType<String> {
     return add(const JsonValidator(), message: message);
   }
 
+  /// Validates that the string is parseable as a Dart `int` (decimal base).
+  ///
+  /// Accepts an optional leading `+`/`-` followed by decimal digits only.
+  /// Does not convert the output — the pipeline value remains a `String`.
+  /// For conversion use [V.coerce.int] instead.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().integer().validate('42'); // true
+  /// V.string().integer().validate('-42'); // true
+  /// V.string().integer().validate('3.14'); // false
+  /// V.string().integer().validate('42e3'); // false
+  /// ```
+  VString integer({String? message}) {
+    return add(const IntegerStringValidator(), message: message);
+  }
+
+  /// Validates that the string is parseable as a finite `double`.
+  ///
+  /// Accepts integer, decimal and scientific notation. Rejects `NaN`,
+  /// `Infinity`, `-Infinity`, whitespace padding and empty strings. Does
+  /// not convert the output — the pipeline value remains a `String`. For
+  /// conversion use [V.coerce.double] instead.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().numeric().validate('3.14'); // true
+  /// V.string().numeric().validate('42e3'); // true
+  /// V.string().numeric().validate('NaN'); // false
+  /// V.string().numeric().validate('Infinity'); // false
+  /// ```
+  VString numeric({String? message}) {
+    return add(const NumericStringValidator(), message: message);
+  }
+
   /// Validates that the string is a valid postal code for [pattern].
   ///
   /// Built-in patterns: [UsZipPattern], [CaPostalCodePattern],

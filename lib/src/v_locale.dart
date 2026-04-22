@@ -25,6 +25,8 @@ class VLocale {
     'string.too_small': 'Must be at least {min} characters',
     'string.too_big': 'Must be at most {max} characters',
     'string.length': 'Must be exactly {length} characters',
+    'string.integer': 'Must be a valid integer',
+    'string.numeric': 'Must be a valid number',
     'invalid_email': 'Invalid email address',
     'invalid_url': 'Invalid URL',
     'invalid_uuid': 'Invalid UUID',
