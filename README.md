@@ -52,7 +52,7 @@ V.string()
   .email();
 ```
 
-Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ulid`, `nanoId`, `mongoId`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `cvv`, `phone`, `base64`, `hexColor`, `mac`, `semver`, `iban`, `json`, `postalCode`, `taxId`, `licensePlate`.
+Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ulid`, `nanoId`, `mongoId`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `cvv`, `phone`, `base64`, `hexColor`, `mac`, `semver`, `iban`, `json`, `integer`, `numeric`, `postalCode`, `taxId`, `licensePlate`.
 
 `uuid()` accepts RFC 4122 v1–v5 and RFC 9562 v6–v8. Pass `version: UuidVersion.vN` (enum) to restrict — e.g. `V.string().uuid(version: UuidVersion.v7)` for timestamp-ordered only.
 
@@ -104,6 +104,22 @@ V.string().password().validate('Str0ng!Pass');                       // true
 V.string().password().validate('Str0ng_Pass');                       // false ('_' not in default)
 V.string().password(specialChars: r'!@#$%^&*()-_+=<>?')
   .validate('Str0ng_Pass');                                          // true
+```
+
+#### Numeric strings
+
+`integer` and `numeric` validate that the string *represents* a number, without converting the output type. Use them when the pipeline value must stay a `String` (form fields, query params). For conversion use `V.coerce.int()` / `V.coerce.double()` instead.
+
+```dart
+V.string().integer().validate('42');   // true
+V.string().integer().validate('-42');  // true
+V.string().integer().validate('3.14'); // false (decimal)
+V.string().integer().validate('0xFF'); // false (hex)
+
+V.string().numeric().validate('3.14');     // true
+V.string().numeric().validate('42e3');     // true (scientific)
+V.string().numeric().validate('NaN');      // false
+V.string().numeric().validate('Infinity'); // false
 ```
 
 #### Card
@@ -547,7 +563,7 @@ Set translations using `VLocale`:
 V.setLocale(const VLocale({
   'required': 'Campo obrigatório',
   'invalid_email': 'Email inválido',
-  'too_small': 'Mínimo de {min} caracteres',
+  'string.too_small': 'Mínimo de {min} caracteres',
 }));
 ```
 
@@ -559,26 +575,227 @@ V.setLocale(const VLocale(esTranslations));
 V.setLocale(const VLocale()); // reset to English
 ```
 
-Per-validator overrides bypass the locale:
+### Type-specific overrides
+
+Every schema emits a **type-prefixed error code** for `required` and `invalid_type` — `VString` → `string.required`, `VInt` → `int.required`, etc. This lets you translate each type independently while still having a single generic fallback. Keys can be **flat** or **nested**:
+
+```dart
+V.setLocale(const VLocale({
+  // Generic fallback — applies to every schema that has no type-specific override.
+  'required': 'Campo obrigatório',
+
+  // Nested override — only strings.
+  'string': {
+    'required': 'Campo de texto obrigatório',
+  },
+
+  // Flat override — same idea, written inline. Works interchangeably.
+  'int.required': 'Número obrigatório',
+}));
+
+V.string().errors(null)!.first.message; // 'Campo de texto obrigatório'
+V.int().errors(null)!.first.message;    // 'Número obrigatório'
+V.bool().errors(null)!.first.message;   // 'Campo obrigatório' (generic fallback)
+```
+
+Lookup order for any prefixed code (e.g. `string.required`): custom prefixed → custom generic (`required`) → default prefixed → default generic → the code itself.
+
+### Per-validator override
+
+Bypasses the locale entirely for a single validator call:
 
 ```dart
 V.string().min(3, message: (n) => 'At least $n chars');
 ```
 
-Use `V.t()` to translate manually:
+### Manual translation
+
+Use `V.t()` to resolve a code yourself (useful for custom validators or UI):
 
 ```dart
-V.t('too_small', {'min': 3}); // 'Mínimo de 3 caracteres'
+V.t('string.too_small', {'min': 3}); // 'Mínimo de 3 caracteres'
 ```
 
-Error codes are defined in `VCode`:
+### Error codes
+
+Error codes are organized into one `sealed class` per type. `VCode` itself holds only the generic fallbacks (`required`, `invalidType`, `custom`); everything else lives in a companion class — `VStringCode`, `VNumberCode`, `VIntCode`, `VDoubleCode`, `VBoolCode`, `VDateCode`, `VArrayCode`, `VMapCode`, `VObjectCode`, `VEnumCode`, `VLiteralCode`, `VUnionCode`:
 
 ```dart
-VCode.required        // 'required'
-VCode.invalidEmail    // 'invalid_email'
-VCode.stringTooSmall  // 'string.too_small'
-VCode.numberTooSmall  // 'number.too_small'
-// ... see VCode for all codes
+VCode.required            // 'required'  (generic fallback key)
+VCode.invalidType         // 'invalid_type'
+VCode.custom              // 'custom'
+
+VStringCode.required      // 'string.required' (emitted by VString)
+VStringCode.invalidType   // 'string.invalid_type'
+VStringCode.email         // 'invalid_email'
+VStringCode.tooSmall      // 'string.too_small'
+VStringCode.integer       // 'string.integer'
+VStringCode.postalCode    // 'postal_code'
+
+VIntCode.required         // 'int.required'
+VIntCode.even             // 'even'
+VIntCode.prime            // 'prime'
+
+VDoubleCode.required      // 'double.required'
+VDoubleCode.integer       // 'integer' (double that is a whole number)
+VDoubleCode.decimal       // 'decimal'
+
+VNumberCode.positive      // 'positive' (shared by VInt and VDouble)
+VNumberCode.tooSmall      // 'number.too_small'
+
+VBoolCode.isTrue          // 'is_true'
+VDateCode.tooSmall        // 'date.too_small'
+VArrayCode.unique         // 'unique'
+VMapCode.unrecognizedKey  // 'unrecognized_key'
+VEnumCode.invalid         // 'invalid_enum'
+VLiteralCode.invalid      // 'invalid_literal'
+VUnionCode.invalid        // 'invalid_union'
+```
+
+Each sealed class is implicitly `abstract` and cannot be extended outside the library — they serve purely as namespaces for the `static const` codes they expose.
+
+### Complete translation template
+
+Every translatable key in one place. Copy, replace the values with your language, and pass to `V.setLocale`. Keys you omit fall back to English defaults — for type-prefixed codes (`string.required`, `int.required`, …), an omitted key also falls back to the generic sibling (`required`).
+
+```dart
+V.setLocale(const VLocale({
+  // ── Generic fallbacks ─────────────────────────────────────────────
+  'required': 'Required',
+  'invalid_type': 'Expected {expected}, received {received}',
+  'custom': 'Invalid value',
+
+  // ── Type-specific required / invalid_type (optional) ──────────────
+  // If you omit these, each schema falls back to the generic keys above.
+  'string.required': 'Required',
+  'string.invalid_type': 'Expected {expected}, received {received}',
+  'int.required': 'Required',
+  'int.invalid_type': 'Expected {expected}, received {received}',
+  'double.required': 'Required',
+  'double.invalid_type': 'Expected {expected}, received {received}',
+  'bool.required': 'Required',
+  'bool.invalid_type': 'Expected {expected}, received {received}',
+  'date.required': 'Required',
+  'date.invalid_type': 'Expected {expected}, received {received}',
+  'array.required': 'Required',
+  'array.invalid_type': 'Expected {expected}, received {received}',
+  'map.required': 'Required',
+  'map.invalid_type': 'Expected {expected}, received {received}',
+  'object.required': 'Required',
+  'object.invalid_type': 'Expected {expected}, received {received}',
+  'enum.required': 'Required',
+  'enum.invalid_type': 'Expected {expected}, received {received}',
+  'literal.required': 'Required',
+  'literal.invalid_type': 'Expected {expected}, received {received}',
+  'union.required': 'Required',
+  'union.invalid_type': 'Expected {expected}, received {received}',
+
+  // ── String validators ─────────────────────────────────────────────
+  'not_empty': 'Must not be empty',
+  'string.too_small': 'Must be at least {min} characters',
+  'string.too_big': 'Must be at most {max} characters',
+  'string.length': 'Must be exactly {length} characters',
+  'string.integer': 'Must be a valid integer',
+  'string.numeric': 'Must be a valid number',
+  'invalid_email': 'Invalid email address',
+  'invalid_url': 'Invalid URL',
+  'invalid_uuid': 'Invalid UUID',
+  'invalid_ip': 'Invalid IP address',
+  'invalid_format': 'Invalid format',
+  'invalid_date': 'Invalid date',
+  'invalid_time': 'Invalid time',
+  'invalid_phone': 'Invalid phone number',
+  'contains': 'Must contain "{substring}"',
+  'starts_with': 'Must start with "{prefix}"',
+  'ends_with': 'Must end with "{suffix}"',
+  'equals': 'Must be equal to "{expected}"',
+  'alpha': 'Must contain only letters',
+  'alphanumeric': 'Must contain only letters and numbers',
+  'slug': 'Must be a valid slug',
+  'password':
+      'Password must have at least 8 characters, including uppercase, lowercase, digit, and special character',
+  'jwt': 'Invalid JWT',
+  'card': 'Invalid credit card number',
+  'base64': 'Invalid Base64',
+  'hex_color': 'Invalid hex color',
+  'mac': 'Invalid MAC address',
+  'semver': 'Invalid Semantic Version',
+  'mongo_id': 'Invalid MongoDB ObjectId',
+  'ulid': 'Invalid ULID',
+  'nano_id': 'Invalid NanoID',
+  'iban': 'Invalid IBAN',
+  'json': 'Invalid JSON',
+  'cvv': 'Invalid CVV',
+  'postal_code': 'Invalid {name}',
+  'tax_id': 'Invalid {name}',
+  'license_plate': 'Invalid {name}',
+
+  // ── Number validators (shared by int + double) ────────────────────
+  'number.too_small': 'Must be at least {min}',
+  'number.too_big': 'Must be at most {max}',
+  'number.not_in_range': 'Must be between {min} and {max}',
+  'positive': 'Must be positive',
+  'negative': 'Must be negative',
+  'multiple_of': 'Must be a multiple of {factor}',
+  'finite': 'Must be finite',
+
+  // ── Int-specific ──────────────────────────────────────────────────
+  'even': 'Must be even',
+  'odd': 'Must be odd',
+  'prime': 'Must be prime',
+
+  // ── Double-specific ───────────────────────────────────────────────
+  'decimal': 'Must be a decimal number',
+  'integer': 'Must be an integer',
+
+  // ── Bool validators ───────────────────────────────────────────────
+  'is_true': 'Must be true',
+  'is_false': 'Must be false',
+
+  // ── Date validators ───────────────────────────────────────────────
+  'date.too_small': 'Must be after {date}',
+  'date.too_big': 'Must be before {date}',
+  'date.not_in_range': 'Must be between {min} and {max}',
+  'weekday': 'Must be a weekday',
+  'weekend': 'Must be a weekend',
+  'age': 'Age is out of the allowed range',
+
+  // ── Array validators ──────────────────────────────────────────────
+  'array.too_small': 'Must have at least {min} items',
+  'array.too_big': 'Must have at most {max} items',
+  'unique': 'Must contain unique values',
+  'contains_all': 'Must contain all required values',
+
+  // ── Map validators ────────────────────────────────────────────────
+  'unrecognized_key': 'Unrecognized key "{key}"',
+  'fields_not_equal': '{field} must be equal to {other}',
+
+  // ── Composite (enum / literal / union) ────────────────────────────
+  'invalid_enum': 'Invalid value. Expected one of: {values}',
+  'invalid_literal': 'Expected "{expected}", received "{received}"',
+  'invalid_union': 'Value does not match any of the union types',
+}));
+```
+
+**Interpolation tokens** — each key can use `{param}` placeholders that are substituted at validation time. The most common ones: `{min}`, `{max}`, `{length}`, `{factor}`, `{expected}`, `{received}`, `{substring}`, `{prefix}`, `{suffix}`, `{date}`, `{key}`, `{field}`, `{other}`, `{values}`, `{name}` (for pluggable patterns like postal codes and tax IDs). Leaving a token in the translated string preserves the dynamic value in the output; omit tokens you don't want to render.
+
+The same template works in **nested form**, which is convenient when several keys share a prefix:
+
+```dart
+V.setLocale(const VLocale({
+  'required': 'Campo obrigatório',
+  'string': {
+    'required': 'Texto obrigatório',
+    'too_small': 'Mínimo de {min} caracteres',
+    'too_big': 'Máximo de {max} caracteres',
+  },
+  'number': {
+    'too_small': 'Valor mínimo: {min}',
+    'too_big': 'Valor máximo: {max}',
+    'positive': 'Deve ser positivo',
+  },
+  'invalid_email': 'E-mail inválido',
+}));
 ```
 
 ## Extensibility
