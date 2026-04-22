@@ -7,6 +7,47 @@ A type-safe validation library for Dart, inspired by [Zod](https://zod.dev).
 
 Built for **chaining**, **schema composition**, **i18n**, and **extensibility**. Includes validators for emails, phone numbers, dates, and more.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Types](#types)
+  - [String](#string)
+  - [Int](#int)
+  - [Double](#double)
+  - [Bool](#bool)
+  - [Date](#date)
+- [Map (Structured Objects)](#map-structured-objects)
+  - [Schema Composition](#schema-composition)
+  - [Cross-Field Validation](#cross-field-validation)
+  - [Custom Field Validation](#custom-field-validation)
+  - [Conditional Validation](#conditional-validation)
+  - [Array of Maps](#array-of-maps)
+- [Object (Entity Validation)](#object-entity-validation)
+- [Array](#array)
+- [Other Types](#other-types)
+  - [Enum](#enum)
+  - [Literal](#literal)
+  - [Union](#union)
+- [Coercion](#coercion)
+- [Pipeline](#pipeline)
+  - [Transform](#transform)
+  - [Preprocess](#preprocess)
+- [Modifiers](#modifiers)
+  - [Custom `required` message per schema](#custom-required-message-per-schema)
+- [Async Validation](#async-validation)
+  - [More async primitives](#more-async-primitives)
+- [Form Errors](#form-errors)
+- [i18n (Internationalization)](#i18n-internationalization)
+  - [Type-specific overrides](#type-specific-overrides)
+  - [Per-validator override](#per-validator-override)
+  - [Manual translation](#manual-translation)
+  - [Error codes](#error-codes)
+  - [Complete translation template](#complete-translation-template)
+- [Extensibility](#extensibility)
+  - [Pluggable patterns](#pluggable-patterns)
+- [License](#license)
+
 ## Installation
 
 ```sh
