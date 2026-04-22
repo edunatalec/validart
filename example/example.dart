@@ -92,8 +92,33 @@ void stringExamples() {
   print(visaOrMaster.validate('5555555555554444')); // true (Mastercard)
   print(visaOrMaster.validate('378282246310005')); // false (Amex)
 
-  // phone (default E.164)
+  // card (pin input shape via ValidationMode)
+  final formattedCard = V.string().card(mode: ValidationMode.formatted);
+  print(formattedCard.validate('4532 0151 1283 0366')); // true
+  print(formattedCard.validate('4532015112830366')); // false (missing groups)
+
+  final unformattedCard = V.string().card(mode: ValidationMode.unformatted);
+  print(unformattedCard.validate('4532015112830366')); // true
+  print(unformattedCard.validate('4532 0151 1283 0366')); // false
+
+  // phone (default E.164 — `+` optional)
   print(V.string().phone().validate('+14155552671')); // true
+  print(V.string().phone().validate('14155552671')); // true
+
+  // phone (require or forbid the country-code prefix)
+  final requiredPrefix = V.string().phone(
+        pattern: const E164PhonePattern(
+          countryCode: CountryCodeFormat.required,
+        ),
+      );
+  print(requiredPrefix.validate('+14155552671')); // true
+  print(requiredPrefix.validate('14155552671')); // false
+
+  final noPrefix = V.string().phone(
+        pattern: const E164PhonePattern(countryCode: CountryCodeFormat.none),
+      );
+  print(noPrefix.validate('14155552671')); // true
+  print(noPrefix.validate('+14155552671')); // false
 
   // phone (custom pattern)
   final localPhone = V.string().phone(pattern: const LocalPhonePattern());
@@ -140,6 +165,24 @@ void stringExamples() {
         .validate('SW1A 1AA'),
   ); // true
 
+  // postal code with ValidationMode — require or forbid the separator
+  print(
+    V
+        .string()
+        .postalCode(
+          pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+        )
+        .validate('SW1A1AA'),
+  ); // false (no space)
+  print(
+    V
+        .string()
+        .postalCode(
+          pattern: const CaPostalCodePattern(mode: ValidationMode.unformatted),
+        )
+        .validate('K1A0B1'),
+  ); // true
+
   // tax ID built-ins
   print(
     V.string().taxId(pattern: const UsSsnPattern()).validate('123-45-6789'),
@@ -151,12 +194,36 @@ void stringExamples() {
     V.string().taxId(pattern: const CaSinPattern()).validate('046-454-286'),
   ); // true
 
+  // tax ID with ValidationMode — pin formatted vs unformatted
+  print(
+    V
+        .string()
+        .taxId(pattern: const UsSsnPattern(mode: ValidationMode.formatted))
+        .validate('123456789'),
+  ); // false (dashes required)
+  print(
+    V
+        .string()
+        .taxId(pattern: const CaSinPattern(mode: ValidationMode.unformatted))
+        .validate('130692544'),
+  ); // true
+
   // license plate built-in (UK post-2001)
   print(
     V
         .string()
         .licensePlate(pattern: const UkPlatePattern())
         .validate('AB12 CDE'),
+  ); // true
+
+  // license plate with ValidationMode
+  print(
+    V
+        .string()
+        .licensePlate(
+          pattern: const UkPlatePattern(mode: ValidationMode.unformatted),
+        )
+        .validate('AB12CDE'),
   ); // true
 
   // Extend with your own patterns for country-specific needs:
