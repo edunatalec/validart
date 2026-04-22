@@ -135,6 +135,16 @@ void stringExamples() {
   print(V.string().iban().validate('GB82 WEST 1234 5698 7654 32')); // true
   print(V.string().json().validate('{"a":1}')); // true
 
+  // integer / numeric — validate string is parseable as int/double
+  // (keeps output as String; use V.coerce.int()/double() to convert)
+  print(V.string().integer().validate('42')); // true
+  print(V.string().integer().validate('-42')); // true
+  print(V.string().integer().validate('3.14')); // false
+  print(V.string().numeric().validate('3.14')); // true
+  print(V.string().numeric().validate('42e3')); // true
+  print(V.string().numeric().validate('NaN')); // false
+  print(V.string().numeric().validate('Infinity')); // false
+
   // ULID / NanoID
   print(V.string().ulid().validate('01ARZ3NDEKTSV4RRFFQ69G5FAV')); // true
   print(V.string().nanoId().validate('V1StGXR8_Z5jdHi6B-myT')); // true
