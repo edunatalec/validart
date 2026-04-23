@@ -12,13 +12,11 @@ import 'package:validart/src/v_locale.dart';
 /// final schema = V.string().email();
 /// schema.parse('user@mail.com');
 /// ```
-class V {
+sealed class V {
   static VLocale _locale = const VLocale();
 
   /// Provides coercion schemas that convert input values before validation.
   static final VCoerce coerce = VCoerce();
-
-  V._();
 
   /// Sets the locale used for error messages.
   ///
