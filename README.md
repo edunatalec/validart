@@ -661,6 +661,8 @@ V.t('string.too_small', {'min': 3}); // 'Mínimo de 3 caracteres'
 
 Error codes are organized into one `sealed class` per type. `VCode` itself holds only the generic fallbacks (`required`, `invalidType`, `custom`); everything else lives in a companion class — `VStringCode`, `VNumberCode`, `VIntCode`, `VDoubleCode`, `VBoolCode`, `VDateCode`, `VArrayCode`, `VMapCode`, `VObjectCode`, `VEnumCode`, `VLiteralCode`, `VUnionCode`:
 
+All emitted codes follow the `<type>.<action>` convention — the three generic fallbacks stay flat in `VCode` only as a backstop for `VLocale`:
+
 ```dart
 VCode.required            // 'required'  (generic fallback key)
 VCode.invalidType         // 'invalid_type'
@@ -668,29 +670,30 @@ VCode.custom              // 'custom'
 
 VStringCode.required      // 'string.required' (emitted by VString)
 VStringCode.invalidType   // 'string.invalid_type'
-VStringCode.email         // 'invalid_email'
+VStringCode.email         // 'string.email'
 VStringCode.tooSmall      // 'string.too_small'
 VStringCode.integer       // 'string.integer'
-VStringCode.postalCode    // 'postal_code'
+VStringCode.postalCode    // 'string.postal_code'
 
 VIntCode.required         // 'int.required'
-VIntCode.even             // 'even'
-VIntCode.prime            // 'prime'
+VIntCode.even             // 'int.even'
+VIntCode.prime            // 'int.prime'
 
 VDoubleCode.required      // 'double.required'
-VDoubleCode.integer       // 'integer' (double that is a whole number)
-VDoubleCode.decimal       // 'decimal'
+VDoubleCode.integer       // 'double.integer' (double that is a whole number)
+VDoubleCode.decimal       // 'double.decimal'
 
-VNumberCode.positive      // 'positive' (shared by VInt and VDouble)
+VNumberCode.positive      // 'number.positive' (shared by VInt and VDouble)
 VNumberCode.tooSmall      // 'number.too_small'
 
-VBoolCode.isTrue          // 'is_true'
+VBoolCode.isTrue          // 'bool.is_true'
 VDateCode.tooSmall        // 'date.too_small'
-VArrayCode.unique         // 'unique'
-VMapCode.unrecognizedKey  // 'unrecognized_key'
-VEnumCode.invalid         // 'invalid_enum'
-VLiteralCode.invalid      // 'invalid_literal'
-VUnionCode.invalid        // 'invalid_union'
+VDateCode.weekday         // 'date.weekday'
+VArrayCode.unique         // 'array.unique'
+VMapCode.unrecognizedKey  // 'map.unrecognized_key'
+VEnumCode.invalid         // 'enum.invalid'
+VLiteralCode.invalid      // 'literal.invalid'
+VUnionCode.invalid        // 'union.invalid'
 ```
 
 Each sealed class is implicitly `abstract` and cannot be extended outside the library — they serve purely as namespaces for the `static const` codes they expose.
@@ -699,143 +702,272 @@ Each sealed class is implicitly `abstract` and cannot be extended outside the li
 
 Every translatable key in one place. Copy, replace the values with your language, and pass to `V.setLocale`. Keys you omit fall back to English defaults — for type-prefixed codes (`string.required`, `int.required`, …), an omitted key also falls back to the generic sibling (`required`).
 
+Two equivalent formats are supported — pick the one you prefer, or mix them.
+
+#### Flat format
+
+Same groups as the nested format, just spelled out with the `<type>.<action>` prefix on each key.
+
 ```dart
 V.setLocale(const VLocale({
-  // ── Generic fallbacks ─────────────────────────────────────────────
   'required': 'Required',
   'invalid_type': 'Expected {expected}, received {received}',
   'custom': 'Invalid value',
 
-  // ── Type-specific required / invalid_type (optional) ──────────────
-  // If you omit these, each schema falls back to the generic keys above.
   'string.required': 'Required',
   'string.invalid_type': 'Expected {expected}, received {received}',
-  'int.required': 'Required',
-  'int.invalid_type': 'Expected {expected}, received {received}',
-  'double.required': 'Required',
-  'double.invalid_type': 'Expected {expected}, received {received}',
-  'bool.required': 'Required',
-  'bool.invalid_type': 'Expected {expected}, received {received}',
-  'date.required': 'Required',
-  'date.invalid_type': 'Expected {expected}, received {received}',
-  'array.required': 'Required',
-  'array.invalid_type': 'Expected {expected}, received {received}',
-  'map.required': 'Required',
-  'map.invalid_type': 'Expected {expected}, received {received}',
-  'object.required': 'Required',
-  'object.invalid_type': 'Expected {expected}, received {received}',
-  'enum.required': 'Required',
-  'enum.invalid_type': 'Expected {expected}, received {received}',
-  'literal.required': 'Required',
-  'literal.invalid_type': 'Expected {expected}, received {received}',
-  'union.required': 'Required',
-  'union.invalid_type': 'Expected {expected}, received {received}',
-
-  // ── String validators ─────────────────────────────────────────────
-  'not_empty': 'Must not be empty',
+  'string.not_empty': 'Must not be empty',
   'string.too_small': 'Must be at least {min} characters',
   'string.too_big': 'Must be at most {max} characters',
   'string.length': 'Must be exactly {length} characters',
   'string.integer': 'Must be a valid integer',
   'string.numeric': 'Must be a valid number',
-  'invalid_email': 'Invalid email address',
-  'invalid_url': 'Invalid URL',
-  'invalid_uuid': 'Invalid UUID',
-  'invalid_ip': 'Invalid IP address',
-  'invalid_format': 'Invalid format',
-  'invalid_date': 'Invalid date',
-  'invalid_time': 'Invalid time',
-  'invalid_phone': 'Invalid phone number',
-  'contains': 'Must contain "{substring}"',
-  'starts_with': 'Must start with "{prefix}"',
-  'ends_with': 'Must end with "{suffix}"',
-  'equals': 'Must be equal to "{expected}"',
-  'alpha': 'Must contain only letters',
-  'alphanumeric': 'Must contain only letters and numbers',
-  'slug': 'Must be a valid slug',
-  'password':
+  'string.email': 'Invalid email address',
+  'string.url': 'Invalid URL',
+  'string.uuid': 'Invalid UUID',
+  'string.ip': 'Invalid IP address',
+  'string.format': 'Invalid format',
+  'string.date': 'Invalid date',
+  'string.time': 'Invalid time',
+  'string.phone': 'Invalid phone number',
+  'string.contains': 'Must contain "{substring}"',
+  'string.starts_with': 'Must start with "{prefix}"',
+  'string.ends_with': 'Must end with "{suffix}"',
+  'string.equals': 'Must be equal to "{expected}"',
+  'string.alpha': 'Must contain only letters',
+  'string.alphanumeric': 'Must contain only letters and numbers',
+  'string.slug': 'Must be a valid slug',
+  'string.password':
       'Password must have at least 8 characters, including uppercase, lowercase, digit, and special character',
-  'jwt': 'Invalid JWT',
-  'card': 'Invalid credit card number',
-  'base64': 'Invalid Base64',
-  'hex_color': 'Invalid hex color',
-  'mac': 'Invalid MAC address',
-  'semver': 'Invalid Semantic Version',
-  'mongo_id': 'Invalid MongoDB ObjectId',
-  'ulid': 'Invalid ULID',
-  'nano_id': 'Invalid NanoID',
-  'iban': 'Invalid IBAN',
-  'json': 'Invalid JSON',
-  'cvv': 'Invalid CVV',
-  'postal_code': 'Invalid {name}',
-  'tax_id': 'Invalid {name}',
-  'license_plate': 'Invalid {name}',
+  'string.jwt': 'Invalid JWT',
+  'string.card': 'Invalid credit card number',
+  'string.base64': 'Invalid Base64',
+  'string.hex_color': 'Invalid hex color',
+  'string.mac': 'Invalid MAC address',
+  'string.semver': 'Invalid Semantic Version',
+  'string.mongo_id': 'Invalid MongoDB ObjectId',
+  'string.ulid': 'Invalid ULID',
+  'string.nano_id': 'Invalid NanoID',
+  'string.iban': 'Invalid IBAN',
+  'string.json': 'Invalid JSON',
+  'string.cvv': 'Invalid CVV',
+  'string.postal_code': 'Invalid {name}',
+  'string.tax_id': 'Invalid {name}',
+  'string.license_plate': 'Invalid {name}',
 
-  // ── Number validators (shared by int + double) ────────────────────
   'number.too_small': 'Must be at least {min}',
   'number.too_big': 'Must be at most {max}',
   'number.not_in_range': 'Must be between {min} and {max}',
-  'positive': 'Must be positive',
-  'negative': 'Must be negative',
-  'multiple_of': 'Must be a multiple of {factor}',
-  'finite': 'Must be finite',
+  'number.positive': 'Must be positive',
+  'number.negative': 'Must be negative',
+  'number.multiple_of': 'Must be a multiple of {factor}',
+  'number.finite': 'Must be finite',
 
-  // ── Int-specific ──────────────────────────────────────────────────
-  'even': 'Must be even',
-  'odd': 'Must be odd',
-  'prime': 'Must be prime',
+  'int.required': 'Required',
+  'int.invalid_type': 'Expected {expected}, received {received}',
+  'int.even': 'Must be even',
+  'int.odd': 'Must be odd',
+  'int.prime': 'Must be prime',
 
-  // ── Double-specific ───────────────────────────────────────────────
-  'decimal': 'Must be a decimal number',
-  'integer': 'Must be an integer',
+  'double.required': 'Required',
+  'double.invalid_type': 'Expected {expected}, received {received}',
+  'double.decimal': 'Must be a decimal number',
+  'double.integer': 'Must be an integer',
 
-  // ── Bool validators ───────────────────────────────────────────────
-  'is_true': 'Must be true',
-  'is_false': 'Must be false',
+  'bool.required': 'Required',
+  'bool.invalid_type': 'Expected {expected}, received {received}',
+  'bool.is_true': 'Must be true',
+  'bool.is_false': 'Must be false',
 
-  // ── Date validators ───────────────────────────────────────────────
+  'date.required': 'Required',
+  'date.invalid_type': 'Expected {expected}, received {received}',
   'date.too_small': 'Must be after {date}',
   'date.too_big': 'Must be before {date}',
   'date.not_in_range': 'Must be between {min} and {max}',
-  'weekday': 'Must be a weekday',
-  'weekend': 'Must be a weekend',
-  'age': 'Age is out of the allowed range',
+  'date.weekday': 'Must be a weekday',
+  'date.weekend': 'Must be a weekend',
+  'date.age': 'Age is out of the allowed range',
 
-  // ── Array validators ──────────────────────────────────────────────
+  'array.required': 'Required',
+  'array.invalid_type': 'Expected {expected}, received {received}',
   'array.too_small': 'Must have at least {min} items',
   'array.too_big': 'Must have at most {max} items',
-  'unique': 'Must contain unique values',
-  'contains_all': 'Must contain all required values',
+  'array.unique': 'Must contain unique values',
+  'array.contains_all': 'Must contain all required values',
 
-  // ── Map validators ────────────────────────────────────────────────
-  'unrecognized_key': 'Unrecognized key "{key}"',
-  'fields_not_equal': '{field} must be equal to {other}',
+  'map.required': 'Required',
+  'map.invalid_type': 'Expected {expected}, received {received}',
+  'map.unrecognized_key': 'Unrecognized key "{key}"',
+  'map.fields_not_equal': '{field} must be equal to {other}',
 
-  // ── Composite (enum / literal / union) ────────────────────────────
-  'invalid_enum': 'Invalid value. Expected one of: {values}',
-  'invalid_literal': 'Expected "{expected}", received "{received}"',
-  'invalid_union': 'Value does not match any of the union types',
+  'object.required': 'Required',
+  'object.invalid_type': 'Expected {expected}, received {received}',
+
+  'enum.required': 'Required',
+  'enum.invalid_type': 'Expected {expected}, received {received}',
+  'enum.invalid': 'Invalid value. Expected one of: {values}',
+
+  'literal.required': 'Required',
+  'literal.invalid_type': 'Expected {expected}, received {received}',
+  'literal.invalid': 'Expected "{expected}", received "{received}"',
+
+  'union.required': 'Required',
+  'union.invalid_type': 'Expected {expected}, received {received}',
+  'union.invalid': 'Value does not match any of the union types',
 }));
 ```
 
 **Interpolation tokens** — each key can use `{param}` placeholders that are substituted at validation time. The most common ones: `{min}`, `{max}`, `{length}`, `{factor}`, `{expected}`, `{received}`, `{substring}`, `{prefix}`, `{suffix}`, `{date}`, `{key}`, `{field}`, `{other}`, `{values}`, `{name}` (for pluggable patterns like postal codes and tax IDs). Leaving a token in the translated string preserves the dynamic value in the output; omit tokens you don't want to render.
 
-The same template works in **nested form**, which is convenient when several keys share a prefix:
+#### Nested format
+
+Same content, grouped by type — easier to maintain when translating several keys of the same namespace.
+
+```dart
+V.setLocale(const VLocale({
+  'required': 'Required',
+  'invalid_type': 'Expected {expected}, received {received}',
+  'custom': 'Invalid value',
+
+  'string': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'not_empty': 'Must not be empty',
+    'too_small': 'Must be at least {min} characters',
+    'too_big': 'Must be at most {max} characters',
+    'length': 'Must be exactly {length} characters',
+    'integer': 'Must be a valid integer',
+    'numeric': 'Must be a valid number',
+    'email': 'Invalid email address',
+    'url': 'Invalid URL',
+    'uuid': 'Invalid UUID',
+    'ip': 'Invalid IP address',
+    'format': 'Invalid format',
+    'date': 'Invalid date',
+    'time': 'Invalid time',
+    'phone': 'Invalid phone number',
+    'contains': 'Must contain "{substring}"',
+    'starts_with': 'Must start with "{prefix}"',
+    'ends_with': 'Must end with "{suffix}"',
+    'equals': 'Must be equal to "{expected}"',
+    'alpha': 'Must contain only letters',
+    'alphanumeric': 'Must contain only letters and numbers',
+    'slug': 'Must be a valid slug',
+    'password':
+        'Password must have at least 8 characters, including uppercase, lowercase, digit, and special character',
+    'jwt': 'Invalid JWT',
+    'card': 'Invalid credit card number',
+    'base64': 'Invalid Base64',
+    'hex_color': 'Invalid hex color',
+    'mac': 'Invalid MAC address',
+    'semver': 'Invalid Semantic Version',
+    'mongo_id': 'Invalid MongoDB ObjectId',
+    'ulid': 'Invalid ULID',
+    'nano_id': 'Invalid NanoID',
+    'iban': 'Invalid IBAN',
+    'json': 'Invalid JSON',
+    'cvv': 'Invalid CVV',
+    'postal_code': 'Invalid {name}',
+    'tax_id': 'Invalid {name}',
+    'license_plate': 'Invalid {name}',
+  },
+
+  'number': {
+    'too_small': 'Must be at least {min}',
+    'too_big': 'Must be at most {max}',
+    'not_in_range': 'Must be between {min} and {max}',
+    'positive': 'Must be positive',
+    'negative': 'Must be negative',
+    'multiple_of': 'Must be a multiple of {factor}',
+    'finite': 'Must be finite',
+  },
+
+  'int': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'even': 'Must be even',
+    'odd': 'Must be odd',
+    'prime': 'Must be prime',
+  },
+
+  'double': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'decimal': 'Must be a decimal number',
+    'integer': 'Must be an integer',
+  },
+
+  'bool': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'is_true': 'Must be true',
+    'is_false': 'Must be false',
+  },
+
+  'date': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'too_small': 'Must be after {date}',
+    'too_big': 'Must be before {date}',
+    'not_in_range': 'Must be between {min} and {max}',
+    'weekday': 'Must be a weekday',
+    'weekend': 'Must be a weekend',
+    'age': 'Age is out of the allowed range',
+  },
+
+  'array': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'too_small': 'Must have at least {min} items',
+    'too_big': 'Must have at most {max} items',
+    'unique': 'Must contain unique values',
+    'contains_all': 'Must contain all required values',
+  },
+
+  'map': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'unrecognized_key': 'Unrecognized key "{key}"',
+    'fields_not_equal': '{field} must be equal to {other}',
+  },
+
+  'object': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+  },
+
+  'enum': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'invalid': 'Invalid value. Expected one of: {values}',
+  },
+
+  'literal': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'invalid': 'Expected "{expected}", received "{received}"',
+  },
+
+  'union': {
+    'required': 'Required',
+    'invalid_type': 'Expected {expected}, received {received}',
+    'invalid': 'Value does not match any of the union types',
+  },
+}));
+```
+
+#### Mixing formats
+
+Both forms can coexist in the same map — use flat for one-off overrides and nested for bulk translations. The resolver treats them identically.
 
 ```dart
 V.setLocale(const VLocale({
   'required': 'Campo obrigatório',
   'string': {
-    'required': 'Texto obrigatório',
+    'email': 'E-mail inválido',
     'too_small': 'Mínimo de {min} caracteres',
-    'too_big': 'Máximo de {max} caracteres',
   },
-  'number': {
-    'too_small': 'Valor mínimo: {min}',
-    'too_big': 'Valor máximo: {max}',
-    'positive': 'Deve ser positivo',
-  },
-  'invalid_email': 'E-mail inválido',
+  'number.positive': 'Deve ser positivo',
 }));
 ```
 
