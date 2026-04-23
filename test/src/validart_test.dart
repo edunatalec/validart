@@ -158,6 +158,57 @@ void main() {
         final schema = V.coerce.date();
         expect(schema.validate('not-a-date'), isFalse);
       });
+
+      group('flexible formats', () {
+        final schema = V.coerce.date();
+
+        test('ISO 8601 still works', () {
+          expect(schema.parse('2024-01-15'), DateTime(2024, 1, 15));
+          expect(schema.parse('2024-01-15T10:30:00'),
+              DateTime(2024, 1, 15, 10, 30));
+        });
+
+        test('BR format DD/MM/YYYY', () {
+          expect(schema.parse('15/01/2024'), DateTime(2024, 1, 15));
+        });
+
+        test('US format MM/DD/YYYY', () {
+          // '01/15/2024' matches MM/DD/YYYY (DD/MM/YYYY fails: 15 is not a
+          // valid month), so it resolves to Jan 15.
+          expect(schema.parse('01/15/2024'), DateTime(2024, 1, 15));
+        });
+
+        test('EU format DD.MM.YYYY', () {
+          expect(schema.parse('15.01.2024'), DateTime(2024, 1, 15));
+        });
+
+        test('dashed and compact variants', () {
+          expect(schema.parse('15-01-2024'), DateTime(2024, 1, 15));
+          expect(schema.parse('2024/01/15'), DateTime(2024, 1, 15));
+          expect(schema.parse('20240115'), DateTime(2024, 1, 15));
+        });
+
+        test('calendar-invalid dates throw', () {
+          expect(() => schema.parse('2024-02-30'),
+              throwsA(isA<VException>()));
+          expect(() => schema.parse('31/02/2024'),
+              throwsA(isA<VException>()));
+          expect(() => schema.parse('2024-13-01'),
+              throwsA(isA<VException>()));
+        });
+
+        test('garbage input throws', () {
+          expect(
+              () => schema.parse('not-a-date'), throwsA(isA<VException>()));
+          expect(() => schema.parse(''), throwsA(isA<VException>()));
+          expect(() => schema.parse('15/01'), throwsA(isA<VException>()));
+        });
+
+        test('ambiguous 01/02/2024 resolves as DD/MM (1-Feb) per list order',
+            () {
+          expect(schema.parse('01/02/2024'), DateTime(2024, 2, 1));
+        });
+      });
     });
   });
 }

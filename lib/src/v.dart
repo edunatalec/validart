@@ -2,6 +2,7 @@ import 'dart:core' as core;
 import 'dart:core';
 
 import 'package:validart/src/types/type.dart';
+import 'package:validart/src/utils/date_parser.dart';
 import 'package:validart/src/v_locale.dart';
 
 /// Entry point for creating validation schemas.
@@ -254,17 +255,34 @@ class VCoerce {
 
   /// Creates a [VDate] schema that coerces values to [DateTime].
   ///
-  /// Accepts [DateTime] and [String] (ISO 8601) inputs.
+  /// Accepts a [DateTime] directly, or a [String] in ISO 8601 or any of
+  /// the formats in [defaultDateFormats] (BR `DD/MM/YYYY`, US
+  /// `MM/DD/YYYY`, EU `DD.MM.YYYY`, dashed and compact variants).
+  /// Calendar-invalid dates (like `30/02/2024`) throw.
+  ///
+  /// For strict format validation where ambiguity matters (e.g.
+  /// rejecting `01/15/2024` in a BR-only pipeline), chain
+  /// `V.string().date(format: 'DD/MM/YYYY')` before conversion.
   ///
   /// ```dart
   /// V.coerce.date().parse('2024-01-15'); // DateTime(2024, 1, 15)
+  /// V.coerce.date().parse('15/01/2024'); // DateTime(2024, 1, 15)
+  /// V.coerce.date().parse('01/15/2024'); // DateTime(2024, 1, 15)
   /// ```
   VDate date() {
     final schema = VDate();
 
     schema.coercer = (value) {
       if (value is DateTime) return value;
-      if (value is String) return DateTime.parse(value);
+
+      if (value is String) {
+        final parsed = tryParseFlexibleDate(value);
+
+        if (parsed != null) return parsed;
+
+        throw FormatException('Cannot coerce "$value" to DateTime');
+      }
+
       throw FormatException('Cannot coerce $value to DateTime');
     };
 
