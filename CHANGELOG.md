@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0] - 2026-04-23
+
+### Added
+
+- **`V.coerce.date()` now accepts the same default formats as `V.string().date()`** — ISO 8601 (`YYYY-MM-DD` and variants with time), BR (`DD/MM/YYYY`), US (`MM/DD/YYYY`), EU (`DD.MM.YYYY`), dashed (`DD-MM-YYYY`, `MM-DD-YYYY`), compact (`YYYYMMDD`), slashed (`YYYY/MM/DD`). Calendar-invalid dates (like `30/02/2024`) continue to throw. Parsing logic moved to a shared helper (`lib/src/utils/date_parser.dart`) used by both `DateStringValidator` and `VCoerce.date()`. For strict format validation, chain `V.string().date(format: '...')` before coercion.
+
+### Changed
+
+- **Breaking — `V.string().phone()` / `.postalCode()` / `.taxId()` / `.licensePlate()` now accept a list of patterns.** The parameter was renamed from `pattern:` (single `Pattern`) to `patterns:` (non-empty `List<Pattern>`), and validation succeeds when **any** pattern in the list matches — enabling multi-country systems to declare every accepted format in a single schema instead of wrapping multiple schemas in `V.union([...])`. `V.string().phone()` with no argument continues to default to a single `E164PhonePattern` (behavior unchanged). **Migration:** wrap any existing single pattern in a list — `pattern: const UsZipPattern()` → `patterns: [const UsZipPattern()]`. For phone, the emitted error code keeps each pattern's custom `code` when exactly one pattern is configured; with two or more, the generic `VStringCode.phone` is emitted. For postal code / tax ID / license plate, the `{name}` interpolation param now joins each pattern's `name` with ` / ` when multiple are configured — a single template like `'Invalid {name}'` renders correctly in both single- and multi-pattern mode.
+- **Breaking — all error codes are now domain-prefixed.** Every string emitted by `error.code` follows `<type>.<action>` (e.g. `string.email`, `number.positive`, `int.even`, `bool.is_true`, `date.weekday`, `array.unique`, `enum.invalid`). The three generic fallbacks (`required`, `invalid_type`, `custom`) stay flat in `VCode` — `VLocale` uses them as the backstop when a prefixed key has no match. Constants in the sealed classes keep the same identifiers (`VStringCode.email`, `VIntCode.even`, `VDoubleCode.integer`, etc.); only the string value each one maps to changed. **Migration:** find-and-replace the old flat codes in `VLocale` configurations and in any `error.code == '...'` comparisons. Highlights: `'invalid_email'` → `'string.email'`, `'positive'` → `'number.positive'`, `'even'` → `'int.even'`, `'decimal'` → `'double.decimal'`, `'is_true'` → `'bool.is_true'`, `'weekday'` → `'date.weekday'`, `'unique'` → `'array.unique'`, `'invalid_enum'` → `'enum.invalid'`. Complete mapping table in README.
+- **`VLocale._defaults` is now structured as a nested map** grouping each type's translations (`'string': {'email': '...', 'too_small': '...'}`). Default behavior unchanged — the `_resolve` fallback chain already works with flat or nested lookups. This is purely a readability improvement for maintainers; custom translations can still use either form.
+
+### Fixed
+
+- **Missing default locale templates for 14 emitted codes.** The codes `string.base64`, `string.cvv`, `string.hex_color`, `string.iban`, `string.json`, `string.mac`, `string.mongo_id`, `string.nano_id`, `string.semver`, `string.ulid`, `date.age`, `string.postal_code`, `string.tax_id` and `string.license_plate` were emitted by their validators but had no matching entry in `VLocale._defaults`, so `error.message` fell through to the raw code string (e.g. `"string.base64"` instead of `"Invalid Base64"`). The default templates already documented in the README are now actually registered in `VLocale`. A regression test in `test/src/messages/messages_test.dart` (`'Every emitted VCode has a default translation'`) iterates every `VXxxCode` constant and asserts a non-code default exists, so any new code added without a matching locale entry fails the suite immediately.
+- **Invalid SIN example in README and `example/example.dart`.** The sample `V.string().taxId(patterns: [const CaSinPattern()]).validate('046-454-286')` was commented `// true`, but SINs starting with `0` are forbidden by CRA specification — the actual output is `false`. Replaced with `130-692-544` (a Luhn-valid SIN starting with a legal leading digit). All README examples with `// result` comments were re-verified against real output after the change.
+
 ## [1.2.0] - 2026-04-23
 
 ### Added
