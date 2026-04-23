@@ -189,17 +189,13 @@ void main() {
         });
 
         test('calendar-invalid dates throw', () {
-          expect(() => schema.parse('2024-02-30'),
-              throwsA(isA<VException>()));
-          expect(() => schema.parse('31/02/2024'),
-              throwsA(isA<VException>()));
-          expect(() => schema.parse('2024-13-01'),
-              throwsA(isA<VException>()));
+          expect(() => schema.parse('2024-02-30'), throwsA(isA<VException>()));
+          expect(() => schema.parse('31/02/2024'), throwsA(isA<VException>()));
+          expect(() => schema.parse('2024-13-01'), throwsA(isA<VException>()));
         });
 
         test('garbage input throws', () {
-          expect(
-              () => schema.parse('not-a-date'), throwsA(isA<VException>()));
+          expect(() => schema.parse('not-a-date'), throwsA(isA<VException>()));
           expect(() => schema.parse(''), throwsA(isA<VException>()));
           expect(() => schema.parse('15/01'), throwsA(isA<VException>()));
         });

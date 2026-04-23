@@ -260,7 +260,9 @@ void main() {
       // resolver drops the prefix and returns the English default.
       expect(locale.translate('string.required'), 'Required');
       expect(locale.translate('int.required'), 'Required');
-      expect(locale.translate('map.invalid_type', {'expected': 'Map', 'received': 'int'}),
+      expect(
+          locale.translate(
+              'map.invalid_type', {'expected': 'Map', 'received': 'int'}),
           'Expected Map, received int');
     });
 
@@ -469,17 +471,28 @@ void main() {
       // (documented fallback chain). Confirms the fallback actually works
       // for every registered type.
       for (final code in const [
-        VStringCode.required, VStringCode.invalidType,
-        VIntCode.required, VIntCode.invalidType,
-        VDoubleCode.required, VDoubleCode.invalidType,
-        VBoolCode.required, VBoolCode.invalidType,
-        VDateCode.required, VDateCode.invalidType,
-        VArrayCode.required, VArrayCode.invalidType,
-        VMapCode.required, VMapCode.invalidType,
-        VObjectCode.required, VObjectCode.invalidType,
-        VEnumCode.required, VEnumCode.invalidType,
-        VLiteralCode.required, VLiteralCode.invalidType,
-        VUnionCode.required, VUnionCode.invalidType,
+        VStringCode.required,
+        VStringCode.invalidType,
+        VIntCode.required,
+        VIntCode.invalidType,
+        VDoubleCode.required,
+        VDoubleCode.invalidType,
+        VBoolCode.required,
+        VBoolCode.invalidType,
+        VDateCode.required,
+        VDateCode.invalidType,
+        VArrayCode.required,
+        VArrayCode.invalidType,
+        VMapCode.required,
+        VMapCode.invalidType,
+        VObjectCode.required,
+        VObjectCode.invalidType,
+        VEnumCode.required,
+        VEnumCode.invalidType,
+        VLiteralCode.required,
+        VLiteralCode.invalidType,
+        VUnionCode.required,
+        VUnionCode.invalidType,
       ]) {
         expectTranslated(code);
       }

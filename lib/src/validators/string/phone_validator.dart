@@ -27,7 +27,7 @@ class PhoneValidator extends Validator<String> {
 
   /// Creates a [PhoneValidator]. The [patterns] list must be non-empty.
   PhoneValidator({required this.patterns})
-    : assert(patterns.isNotEmpty, 'patterns must not be empty');
+      : assert(patterns.isNotEmpty, 'patterns must not be empty');
 
   @override
   String get code =>

@@ -27,7 +27,7 @@ class PostalCodeValidator extends Validator<String> {
   /// Creates a [PostalCodeValidator]. The [patterns] list must be
   /// non-empty.
   PostalCodeValidator({required this.patterns})
-    : assert(patterns.isNotEmpty, 'patterns must not be empty');
+      : assert(patterns.isNotEmpty, 'patterns must not be empty');
 
   @override
   String get code => VStringCode.postalCode;

@@ -26,7 +26,7 @@ class LicensePlateValidator extends Validator<String> {
   /// Creates a [LicensePlateValidator]. The [patterns] list must be
   /// non-empty.
   LicensePlateValidator({required this.patterns})
-    : assert(patterns.isNotEmpty, 'patterns must not be empty');
+      : assert(patterns.isNotEmpty, 'patterns must not be empty');
 
   @override
   String get code => VStringCode.licensePlate;

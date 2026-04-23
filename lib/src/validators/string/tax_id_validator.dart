@@ -26,7 +26,7 @@ class TaxIdValidator extends Validator<String> {
 
   /// Creates a [TaxIdValidator]. The [patterns] list must be non-empty.
   TaxIdValidator({required this.patterns})
-    : assert(patterns.isNotEmpty, 'patterns must not be empty');
+      : assert(patterns.isNotEmpty, 'patterns must not be empty');
 
   @override
   String get code => VStringCode.taxId;

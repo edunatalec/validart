@@ -23,10 +23,12 @@ void main() {
 
     test('required rejects numbers without +', () {
       final schema = V.string().phone(
-            patterns: [const E164PhonePattern(
-              countryCode: CountryCodeFormat.required,
-            )],
-          );
+        patterns: [
+          const E164PhonePattern(
+            countryCode: CountryCodeFormat.required,
+          )
+        ],
+      );
 
       expect(schema.safeParse('+14155552671').isValid, isTrue);
       expect(schema.safeParse('14155552671').isValid, isFalse);
@@ -34,8 +36,8 @@ void main() {
 
     test('none rejects numbers that start with +', () {
       final schema = V.string().phone(
-            patterns: [const E164PhonePattern(countryCode: CountryCodeFormat.none)],
-          );
+        patterns: [const E164PhonePattern(countryCode: CountryCodeFormat.none)],
+      );
 
       expect(schema.safeParse('14155552671').isValid, isTrue);
       expect(schema.safeParse('+14155552671').isValid, isFalse);
