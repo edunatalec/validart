@@ -324,4 +324,165 @@ void main() {
       expect(locale.translate('a.b.missing'), 'a.b.missing');
     });
   });
+
+  group('Every emitted VCode has a default translation', () {
+    // Regression guard: every code that can be emitted at runtime must
+    // resolve to something other than the raw code string when passed
+    // through the default locale. Without this, a validator that emits
+    // a new code becomes visible in `error.message` as "string.foo_bar"
+    // until someone remembers to add the template to `VLocale._defaults`.
+    const locale = VLocale();
+
+    // Catchall param bag covering every placeholder used across default
+    // templates — avoids tripping the `_interpolate` assert that fires
+    // when a {placeholder} remains after substitution.
+    const allParams = {
+      'expected': 'x',
+      'received': 'x',
+      'min': 0,
+      'max': 0,
+      'length': 0,
+      'factor': 0,
+      'substring': 'x',
+      'prefix': 'x',
+      'suffix': 'x',
+      'date': 'x',
+      'key': 'x',
+      'field': 'x',
+      'other': 'x',
+      'values': 'x',
+      'name': 'x',
+      'age': 0,
+    };
+
+    void expectTranslated(String code) {
+      expect(
+        locale.translate(code, allParams),
+        isNot(equals(code)),
+        reason: 'Missing default locale template for "$code". '
+            'Add an entry to VLocale._defaults.',
+      );
+    }
+
+    test('VCode generics', () {
+      expectTranslated(VCode.required);
+      expectTranslated(VCode.invalidType);
+      expectTranslated(VCode.custom);
+    });
+
+    test('VStringCode', () {
+      expectTranslated(VStringCode.notEmpty);
+      expectTranslated(VStringCode.tooSmall);
+      expectTranslated(VStringCode.tooBig);
+      expectTranslated(VStringCode.length);
+      expectTranslated(VStringCode.integer);
+      expectTranslated(VStringCode.numeric);
+      expectTranslated(VStringCode.email);
+      expectTranslated(VStringCode.url);
+      expectTranslated(VStringCode.uuid);
+      expectTranslated(VStringCode.ip);
+      expectTranslated(VStringCode.format);
+      expectTranslated(VStringCode.date);
+      expectTranslated(VStringCode.time);
+      expectTranslated(VStringCode.contains);
+      expectTranslated(VStringCode.startsWith);
+      expectTranslated(VStringCode.endsWith);
+      expectTranslated(VStringCode.equals);
+      expectTranslated(VStringCode.alpha);
+      expectTranslated(VStringCode.alphanumeric);
+      expectTranslated(VStringCode.slug);
+      expectTranslated(VStringCode.password);
+      expectTranslated(VStringCode.jwt);
+      expectTranslated(VStringCode.card);
+      expectTranslated(VStringCode.phone);
+      expectTranslated(VStringCode.base64);
+      expectTranslated(VStringCode.hexColor);
+      expectTranslated(VStringCode.mac);
+      expectTranslated(VStringCode.semver);
+      expectTranslated(VStringCode.mongoId);
+      expectTranslated(VStringCode.ulid);
+      expectTranslated(VStringCode.nanoId);
+      expectTranslated(VStringCode.iban);
+      expectTranslated(VStringCode.json);
+      expectTranslated(VStringCode.cvv);
+      expectTranslated(VStringCode.postalCode);
+      expectTranslated(VStringCode.taxId);
+      expectTranslated(VStringCode.licensePlate);
+    });
+
+    test('VNumberCode', () {
+      expectTranslated(VNumberCode.tooSmall);
+      expectTranslated(VNumberCode.tooBig);
+      expectTranslated(VNumberCode.notInRange);
+      expectTranslated(VNumberCode.positive);
+      expectTranslated(VNumberCode.negative);
+      expectTranslated(VNumberCode.multipleOf);
+      expectTranslated(VNumberCode.finite);
+    });
+
+    test('VIntCode', () {
+      expectTranslated(VIntCode.even);
+      expectTranslated(VIntCode.odd);
+      expectTranslated(VIntCode.prime);
+    });
+
+    test('VDoubleCode', () {
+      expectTranslated(VDoubleCode.decimal);
+      expectTranslated(VDoubleCode.integer);
+    });
+
+    test('VBoolCode', () {
+      expectTranslated(VBoolCode.isTrue);
+      expectTranslated(VBoolCode.isFalse);
+    });
+
+    test('VDateCode', () {
+      expectTranslated(VDateCode.tooSmall);
+      expectTranslated(VDateCode.tooBig);
+      expectTranslated(VDateCode.notInRange);
+      expectTranslated(VDateCode.weekday);
+      expectTranslated(VDateCode.weekend);
+      expectTranslated(VDateCode.age);
+    });
+
+    test('VArrayCode', () {
+      expectTranslated(VArrayCode.tooSmall);
+      expectTranslated(VArrayCode.tooBig);
+      expectTranslated(VArrayCode.unique);
+      expectTranslated(VArrayCode.containsAll);
+    });
+
+    test('VMapCode', () {
+      expectTranslated(VMapCode.unrecognizedKey);
+      expectTranslated(VMapCode.fieldsNotEqual);
+    });
+
+    test('VEnumCode / VLiteralCode / VUnionCode', () {
+      expectTranslated(VEnumCode.invalid);
+      expectTranslated(VLiteralCode.invalid);
+      expectTranslated(VUnionCode.invalid);
+    });
+
+    test('per-type required / invalid_type fall back to generic', () {
+      // These are intentionally not in the per-type sub-map; the locale
+      // resolves them via the generic `required` / `invalid_type` entry
+      // (documented fallback chain). Confirms the fallback actually works
+      // for every registered type.
+      for (final code in const [
+        VStringCode.required, VStringCode.invalidType,
+        VIntCode.required, VIntCode.invalidType,
+        VDoubleCode.required, VDoubleCode.invalidType,
+        VBoolCode.required, VBoolCode.invalidType,
+        VDateCode.required, VDateCode.invalidType,
+        VArrayCode.required, VArrayCode.invalidType,
+        VMapCode.required, VMapCode.invalidType,
+        VObjectCode.required, VObjectCode.invalidType,
+        VEnumCode.required, VEnumCode.invalidType,
+        VLiteralCode.required, VLiteralCode.invalidType,
+        VUnionCode.required, VUnionCode.invalidType,
+      ]) {
+        expectTranslated(code);
+      }
+    });
+  });
 }
