@@ -45,3 +45,5 @@ windows/.dart_tool/
 CLAUDE.md
 .claude/
 scripts/
+analysis_options.yaml
+dart_test.yaml
