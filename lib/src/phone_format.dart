@@ -6,9 +6,9 @@
 ///
 /// ```dart
 /// V.string().phone(
-///   pattern: const E164PhonePattern(
-///     countryCode: CountryCodeFormat.required,
-///   ),
+///   patterns: [
+///     const E164PhonePattern(countryCode: CountryCodeFormat.required),
+///   ],
 /// );
 /// ```
 enum CountryCodeFormat {

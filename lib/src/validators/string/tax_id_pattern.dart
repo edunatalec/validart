@@ -8,8 +8,8 @@ import 'package:validart/src/validation_mode.dart';
 /// `validart_br`.
 ///
 /// ```dart
-/// V.string().taxId(pattern: const UsSsnPattern());
-/// V.string().taxId(pattern: const UkNiNumberPattern());
+/// V.string().taxId(patterns: [const UsSsnPattern()]);
+/// V.string().taxId(patterns: [const UkNiNumberPattern()]);
 ///
 /// class CpfPattern extends TaxIdPattern {
 ///   const CpfPattern();
@@ -40,7 +40,7 @@ abstract class TaxIdPattern {
 ///
 /// ```dart
 /// V.string().taxId(
-///   pattern: const UsSsnPattern(mode: ValidationMode.formatted),
+///   patterns: [const UsSsnPattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
 class UsSsnPattern extends TaxIdPattern {
@@ -82,7 +82,7 @@ class UsSsnPattern extends TaxIdPattern {
 ///
 /// ```dart
 /// V.string().taxId(
-///   pattern: const UkNiNumberPattern(mode: ValidationMode.unformatted),
+///   patterns: [const UkNiNumberPattern(mode: ValidationMode.unformatted)],
 /// );
 /// ```
 class UkNiNumberPattern extends TaxIdPattern {
@@ -132,7 +132,7 @@ class UkNiNumberPattern extends TaxIdPattern {
 ///
 /// ```dart
 /// V.string().taxId(
-///   pattern: const CaSinPattern(mode: ValidationMode.formatted),
+///   patterns: [const CaSinPattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
 class CaSinPattern extends TaxIdPattern {

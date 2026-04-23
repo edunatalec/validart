@@ -691,7 +691,7 @@ void main() {
         'joined': V.date().before(DateTime(2030)),
         'tags': V.string().min(2).array().min(1).unique(),
         'address': V.map({
-          'zip': V.string().postalCode(pattern: const UsZipPattern()),
+          'zip': V.string().postalCode(patterns: [const UsZipPattern()]),
           'country': V.literal('US'),
         }),
         'role': V.enm(_Role.values),

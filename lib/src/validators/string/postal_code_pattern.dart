@@ -19,7 +19,7 @@ import 'package:validart/src/validation_mode.dart';
 ///       RegExp(r'^\d{5}-?\d{3}$').hasMatch(value);
 /// }
 ///
-/// V.string().postalCode(pattern: const BrCepPattern());
+/// V.string().postalCode(patterns: [const BrCepPattern()]);
 /// ```
 abstract class PostalCodePattern {
   /// Creates a [PostalCodePattern].
@@ -52,7 +52,7 @@ class UsZipPattern extends PostalCodePattern {
 ///
 /// ```dart
 /// V.string().postalCode(
-///   pattern: const CaPostalCodePattern(mode: ValidationMode.formatted),
+///   patterns: [const CaPostalCodePattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
 class CaPostalCodePattern extends PostalCodePattern {
@@ -96,7 +96,7 @@ class CaPostalCodePattern extends PostalCodePattern {
 ///
 /// ```dart
 /// V.string().postalCode(
-///   pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+///   patterns: [const UkPostcodePattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
 class UkPostcodePattern extends PostalCodePattern {

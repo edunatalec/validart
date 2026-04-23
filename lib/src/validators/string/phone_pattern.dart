@@ -20,7 +20,7 @@ import 'package:validart/src/v_code.dart';
 ///   }
 /// }
 ///
-/// V.string().phone(pattern: const MyCountryPhonePattern());
+/// V.string().phone(patterns: [const MyCountryPhonePattern()]);
 /// ```
 abstract class PhonePattern {
   /// Creates a [PhonePattern].
@@ -47,9 +47,9 @@ abstract class PhonePattern {
 /// V.string().phone(); // `+` optional
 ///
 /// V.string().phone(
-///   pattern: const E164PhonePattern(
-///     countryCode: CountryCodeFormat.required,
-///   ),
+///   patterns: [
+///     const E164PhonePattern(countryCode: CountryCodeFormat.required),
+///   ],
 /// );
 /// ```
 class E164PhonePattern extends PhonePattern {

@@ -543,74 +543,113 @@ class VString extends VType<String> {
     return add(const NumericStringValidator(), message: message);
   }
 
-  /// Validates that the string is a valid postal code for [pattern].
+  /// Validates that the string is a valid postal code for at least one
+  /// of the given [patterns].
   ///
   /// Built-in patterns: [UsZipPattern], [CaPostalCodePattern],
   /// [UkPostcodePattern]. External packages can extend
   /// [PostalCodePattern] to add country-specific rules (e.g. BR CEP in
   /// `validart_br`).
   ///
+  /// Pass multiple patterns to accept inputs from any of several
+  /// countries — validation succeeds when the value matches any of them.
+  ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().postalCode(pattern: const UsZipPattern())
+  /// V.string().postalCode(patterns: [const UsZipPattern()])
   ///   .validate('94103-1234'); // true
+  ///
+  /// V.string().postalCode(patterns: [
+  ///   const UsZipPattern(),
+  ///   const CaPostalCodePattern(),
+  ///   const UkPostcodePattern(),
+  /// ]).validate('SW1A 1AA'); // true
   /// ```
   VString postalCode({
-    required PostalCodePattern pattern,
+    required List<PostalCodePattern> patterns,
     String? message,
   }) {
-    return add(PostalCodeValidator(pattern: pattern), message: message);
+    return add(PostalCodeValidator(patterns: patterns), message: message);
   }
 
-  /// Validates that the string is a valid tax ID for [pattern].
+  /// Validates that the string is a valid tax ID for at least one of
+  /// the given [patterns].
   ///
-  /// The core does not ship built-in patterns (tax IDs are heavily
-  /// country-specific). Implement [TaxIdPattern] in an extension package
-  /// (e.g. CPF/CNPJ in `validart_br`).
+  /// Built-in patterns: [UsSsnPattern], [UkNiNumberPattern],
+  /// [CaSinPattern]. Country-specific IDs with custom check digits
+  /// (e.g. BR CPF/CNPJ) live in extension packages like `validart_br`.
+  ///
+  /// Pass multiple patterns to accept inputs from any of several
+  /// countries — validation succeeds when the value matches any of them.
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().taxId(pattern: const CpfPattern());
+  /// V.string().taxId(patterns: [const UsSsnPattern()])
+  ///   .validate('123-45-6789'); // true
+  ///
+  /// V.string().taxId(patterns: [
+  ///   const UsSsnPattern(),
+  ///   const UkNiNumberPattern(),
+  /// ]).validate('AB123456C'); // true
   /// ```
-  VString taxId({required TaxIdPattern pattern, String? message}) {
-    return add(TaxIdValidator(pattern: pattern), message: message);
+  VString taxId({required List<TaxIdPattern> patterns, String? message}) {
+    return add(TaxIdValidator(patterns: patterns), message: message);
   }
 
-  /// Validates that the string is a valid license plate for [pattern].
+  /// Validates that the string is a valid license plate for at least
+  /// one of the given [patterns].
   ///
-  /// The core does not ship built-in patterns (plates vary heavily by
-  /// country). Implement [LicensePlatePattern] in an extension package.
+  /// Built-in pattern: [UkPlatePattern]. Most countries vary heavily by
+  /// state/province — implement [LicensePlatePattern] in an extension
+  /// package to add your own.
+  ///
+  /// Pass multiple patterns to accept inputs from any of several
+  /// countries — validation succeeds when the value matches any of them.
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().licensePlate(pattern: const BrMercosulPattern());
+  /// V.string().licensePlate(patterns: [const UkPlatePattern()])
+  ///   .validate('AB12 CDE'); // true
+  ///
+  /// V.string().licensePlate(patterns: [
+  ///   const UkPlatePattern(),
+  ///   const BrMercosulPattern(), // from validart_br
+  /// ]);
   /// ```
   VString licensePlate({
-    required LicensePlatePattern pattern,
+    required List<LicensePlatePattern> patterns,
     String? message,
   }) {
-    return add(LicensePlateValidator(pattern: pattern), message: message);
+    return add(LicensePlateValidator(patterns: patterns), message: message);
   }
 
-  /// Validates that the string is a valid phone number.
+  /// Validates that the string is a valid phone number for at least one
+  /// of the given [patterns].
   ///
-  /// Defaults to the E.164 international format via [E164PhonePattern].
-  /// Pass a [pattern] to plug in a country-specific rule (for example,
-  /// `BrPhonePattern` from `validart_br`).
+  /// Defaults to a single [E164PhonePattern] when [patterns] is omitted,
+  /// matching the E.164 international format. Pass one or more patterns
+  /// to plug country-specific rules (for example, `BrPhonePattern` from
+  /// `validart_br`).
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
   /// V.string().phone().validate('+5511999999999'); // true (E.164 default)
-  /// V.string().phone(pattern: const MyCountryPhonePattern())
+  ///
+  /// V.string().phone(patterns: [const MyCountryPhonePattern()])
   ///   .validate('(11) 98765-4321');
+  ///
+  /// V.string().phone(patterns: [
+  ///   const BrPhonePattern(),
+  ///   const UsPhonePattern(),
+  /// ]).validate('+14155552671'); // true
   /// ```
-  VString phone({PhonePattern? pattern, String? message}) {
+  VString phone({List<PhonePattern>? patterns, String? message}) {
     return add(
-      PhoneValidator(pattern: pattern ?? const E164PhonePattern()),
+      PhoneValidator(patterns: patterns ?? const [E164PhonePattern()]),
       message: message,
     );
   }

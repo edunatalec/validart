@@ -2,18 +2,41 @@ import 'package:validart/src/v_code.dart';
 import 'package:validart/src/validators/string/license_plate_pattern.dart';
 import 'package:validart/src/validators/validator.dart';
 
-/// Validates that a string is a valid license plate for the given pattern.
+/// Validates that a string is a valid license plate for any of the
+/// given patterns.
+///
+/// Validation succeeds when **any** pattern accepts the value, enabling
+/// multi-country acceptance without a union:
+///
+/// ```dart
+/// V.string().licensePlate(patterns: [
+///   const UkPlatePattern(),
+///   const BrMercosulPattern(), // from validart_br
+/// ]);
+/// ```
+///
+/// On failure the `{name}` interpolation param joins each pattern's
+/// name with ` / ` (e.g. `UK Plate / Mercosul`), so a single template
+/// like `'Invalid {name}'` works regardless of how many patterns are
+/// configured.
 class LicensePlateValidator extends Validator<String> {
-  /// The license-plate pattern to match against.
-  final LicensePlatePattern pattern;
+  /// The license-plate patterns accepted by this validator.
+  final List<LicensePlatePattern> patterns;
 
-  /// Creates a [LicensePlateValidator].
-  const LicensePlateValidator({required this.pattern});
+  /// Creates a [LicensePlateValidator]. The [patterns] list must be
+  /// non-empty.
+  LicensePlateValidator({required this.patterns})
+    : assert(patterns.isNotEmpty, 'patterns must not be empty');
 
   @override
   String get code => VStringCode.licensePlate;
 
   @override
-  Map<String, dynamic>? validate(String value) =>
-      pattern.matches(value) ? null : {'name': pattern.name};
+  Map<String, dynamic>? validate(String value) {
+    for (final pattern in patterns) {
+      if (pattern.matches(value)) return null;
+    }
+
+    return {'name': patterns.map((p) => p.name).join(' / ')};
+  }
 }

@@ -8,7 +8,7 @@ import 'package:validart/src/validation_mode.dart';
 /// built in; implement them per your use case or use extension packages.
 ///
 /// ```dart
-/// V.string().licensePlate(pattern: const UkPlatePattern());
+/// V.string().licensePlate(patterns: [const UkPlatePattern()]);
 ///
 /// class BrMercosulPattern extends LicensePlatePattern {
 ///   const BrMercosulPattern();
@@ -39,7 +39,7 @@ abstract class LicensePlatePattern {
 ///
 /// ```dart
 /// V.string().licensePlate(
-///   pattern: const UkPlatePattern(mode: ValidationMode.formatted),
+///   patterns: [const UkPlatePattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
 class UkPlatePattern extends LicensePlatePattern {

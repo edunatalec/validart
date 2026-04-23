@@ -11,11 +11,11 @@
 ///
 /// ```dart
 /// V.string().postalCode(
-///   pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+///   patterns: [const UkPostcodePattern(mode: ValidationMode.formatted)],
 /// );
 ///
 /// V.string().taxId(
-///   pattern: const UsSsnPattern(mode: ValidationMode.unformatted),
+///   patterns: [const UsSsnPattern(mode: ValidationMode.unformatted)],
 /// );
 /// ```
 enum ValidationMode {

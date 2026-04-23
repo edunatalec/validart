@@ -73,6 +73,9 @@ class VLocale {
           'Password must have at least 8 characters, including uppercase, lowercase, digit, and special character',
       'jwt': 'Invalid JWT',
       'card': 'Invalid credit card number',
+      'postal_code': 'Invalid {name}',
+      'tax_id': 'Invalid {name}',
+      'license_plate': 'Invalid {name}',
     },
 
     'number': <String, String>{

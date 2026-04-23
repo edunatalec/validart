@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:validart/src/error.dart';
+import 'package:validart/src/phone_format.dart';
 import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
@@ -983,7 +984,7 @@ void main() {
 
     group('phone', () {
       final schema = VString().phone();
-      final fake = VString().phone(pattern: const _FakePhonePattern());
+      final fake = VString().phone(patterns: [const _FakePhonePattern()]);
 
       test('should pass for valid E.164 phone', () {
         expect(schema.validate('+14155552671'), isTrue);
@@ -1350,55 +1351,55 @@ void main() {
 
     group('postalCode', () {
       test('UsZipPattern accepts 5-digit ZIP', () {
-        final schema = VString().postalCode(pattern: const UsZipPattern());
+        final schema = VString().postalCode(patterns: [const UsZipPattern()]);
         expect(schema.validate('94103'), isTrue);
       });
 
       test('UsZipPattern accepts ZIP+4', () {
-        final schema = VString().postalCode(pattern: const UsZipPattern());
+        final schema = VString().postalCode(patterns: [const UsZipPattern()]);
         expect(schema.validate('94103-1234'), isTrue);
       });
 
       test('UsZipPattern rejects letters', () {
-        final schema = VString().postalCode(pattern: const UsZipPattern());
+        final schema = VString().postalCode(patterns: [const UsZipPattern()]);
         expect(schema.validate('ABC12'), isFalse);
       });
 
       test('CaPostalCodePattern accepts A1A 1A1', () {
         final schema =
-            VString().postalCode(pattern: const CaPostalCodePattern());
+            VString().postalCode(patterns: [const CaPostalCodePattern()]);
         expect(schema.validate('K1A 0B1'), isTrue);
       });
 
       test('CaPostalCodePattern accepts no-space format', () {
         final schema =
-            VString().postalCode(pattern: const CaPostalCodePattern());
+            VString().postalCode(patterns: [const CaPostalCodePattern()]);
         expect(schema.validate('K1A0B1'), isTrue);
       });
 
       test('CaPostalCodePattern rejects invalid leading letter', () {
         final schema =
-            VString().postalCode(pattern: const CaPostalCodePattern());
+            VString().postalCode(patterns: [const CaPostalCodePattern()]);
         expect(schema.validate('D1A 0B1'), isFalse);
       });
 
       test('UkPostcodePattern accepts SW1A 1AA', () {
-        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        final schema = VString().postalCode(patterns: [const UkPostcodePattern()]);
         expect(schema.validate('SW1A 1AA'), isTrue);
       });
 
       test('UkPostcodePattern accepts M1 1AE', () {
-        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        final schema = VString().postalCode(patterns: [const UkPostcodePattern()]);
         expect(schema.validate('M1 1AE'), isTrue);
       });
 
       test('UkPostcodePattern rejects invalid', () {
-        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        final schema = VString().postalCode(patterns: [const UkPostcodePattern()]);
         expect(schema.validate('1ABC 2D'), isFalse);
       });
 
       test('should return error code postal_code', () {
-        final schema = VString().postalCode(pattern: const UsZipPattern());
+        final schema = VString().postalCode(patterns: [const UsZipPattern()]);
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.postal_code');
       });
@@ -1406,7 +1407,7 @@ void main() {
       group('CaPostalCodePattern mode', () {
         test('any accepts with and without space', () {
           final schema =
-              VString().postalCode(pattern: const CaPostalCodePattern());
+              VString().postalCode(patterns: [const CaPostalCodePattern()]);
 
           expect(schema.validate('K1A 0B1'), isTrue);
           expect(schema.validate('K1A0B1'), isTrue);
@@ -1414,7 +1415,7 @@ void main() {
 
         test('formatted requires the space', () {
           final schema = VString().postalCode(
-            pattern: const CaPostalCodePattern(mode: ValidationMode.formatted),
+            patterns: [const CaPostalCodePattern(mode: ValidationMode.formatted)],
           );
 
           expect(schema.validate('K1A 0B1'), isTrue);
@@ -1423,8 +1424,7 @@ void main() {
 
         test('unformatted rejects the space', () {
           final schema = VString().postalCode(
-            pattern:
-                const CaPostalCodePattern(mode: ValidationMode.unformatted),
+            patterns: [const CaPostalCodePattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('K1A0B1'), isTrue);
@@ -1435,7 +1435,7 @@ void main() {
       group('UkPostcodePattern mode', () {
         test('any accepts with and without space', () {
           final schema =
-              VString().postalCode(pattern: const UkPostcodePattern());
+              VString().postalCode(patterns: [const UkPostcodePattern()]);
 
           expect(schema.validate('SW1A 1AA'), isTrue);
           expect(schema.validate('SW1A1AA'), isTrue);
@@ -1443,7 +1443,7 @@ void main() {
 
         test('formatted requires the space between outward and inward', () {
           final schema = VString().postalCode(
-            pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+            patterns: [const UkPostcodePattern(mode: ValidationMode.formatted)],
           );
 
           expect(schema.validate('SW1A 1AA'), isTrue);
@@ -1452,7 +1452,7 @@ void main() {
 
         test('unformatted rejects the space', () {
           final schema = VString().postalCode(
-            pattern: const UkPostcodePattern(mode: ValidationMode.unformatted),
+            patterns: [const UkPostcodePattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('SW1A1AA'), isTrue);
@@ -1463,102 +1463,102 @@ void main() {
 
     group('taxId', () {
       test('accepts when custom pattern matches', () {
-        final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
+        final schema = VString().taxId(patterns: [const _DummyTaxIdPattern()]);
         expect(schema.validate('TAX:123'), isTrue);
       });
 
       test('rejects when custom pattern does not match', () {
-        final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
+        final schema = VString().taxId(patterns: [const _DummyTaxIdPattern()]);
         expect(schema.validate('xyz'), isFalse);
       });
 
       test('returns error code tax_id', () {
-        final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
+        final schema = VString().taxId(patterns: [const _DummyTaxIdPattern()]);
         final errors = schema.errors('xyz');
         expect(errors!.first.code, 'string.tax_id');
       });
 
       test('UsSsnPattern accepts formatted', () {
-        final schema = VString().taxId(pattern: const UsSsnPattern());
+        final schema = VString().taxId(patterns: [const UsSsnPattern()]);
         expect(schema.validate('123-45-6789'), isTrue);
       });
 
       test('UsSsnPattern accepts unformatted', () {
-        final schema = VString().taxId(pattern: const UsSsnPattern());
+        final schema = VString().taxId(patterns: [const UsSsnPattern()]);
         expect(schema.validate('123456789'), isTrue);
       });
 
       test('UsSsnPattern rejects letters', () {
-        final schema = VString().taxId(pattern: const UsSsnPattern());
+        final schema = VString().taxId(patterns: [const UsSsnPattern()]);
         expect(schema.validate('ABC-45-6789'), isFalse);
       });
 
       test('UkNiNumberPattern accepts valid', () {
-        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        final schema = VString().taxId(patterns: [const UkNiNumberPattern()]);
         expect(schema.validate('AB123456C'), isTrue);
       });
 
       test('UkNiNumberPattern accepts with spaces', () {
-        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        final schema = VString().taxId(patterns: [const UkNiNumberPattern()]);
         expect(schema.validate('AB 12 34 56 C'), isTrue);
       });
 
       test('UkNiNumberPattern rejects excluded first char', () {
-        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        final schema = VString().taxId(patterns: [const UkNiNumberPattern()]);
         expect(schema.validate('DB123456C'), isFalse);
       });
 
       test('UkNiNumberPattern rejects invalid suffix letter', () {
-        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        final schema = VString().taxId(patterns: [const UkNiNumberPattern()]);
         expect(schema.validate('AB123456E'), isFalse);
       });
 
       test('CaSinPattern accepts valid with Luhn', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('130692544'), isTrue);
       });
 
       test('CaSinPattern accepts with spaces/dashes', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('130-692-544'), isTrue);
       });
 
       test('CaSinPattern rejects SIN starting with 0 (per CRA spec)', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('046454286'), isFalse);
       });
 
       test('CaSinPattern rejects SIN starting with 8 (per CRA spec)', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         // Passes Luhn but starts with 8 — CRA forbids.
         expect(schema.validate('800000006'), isFalse);
       });
 
       test('CaSinPattern accepts 9 prefix (temporary residents)', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('930692546'), isTrue);
       });
 
       test('CaSinPattern rejects invalid Luhn', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('046454287'), isFalse);
       });
 
       test('CaSinPattern rejects wrong length', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('12345'), isFalse);
       });
 
       group('UsSsnPattern mode', () {
         test('any accepts formatted and unformatted', () {
-          final schema = VString().taxId(pattern: const UsSsnPattern());
+          final schema = VString().taxId(patterns: [const UsSsnPattern()]);
 
           expect(schema.validate('123-45-6789'), isTrue);
           expect(schema.validate('123456789'), isTrue);
         });
 
         test('any rejects mixed (one separator missing)', () {
-          final schema = VString().taxId(pattern: const UsSsnPattern());
+          final schema = VString().taxId(patterns: [const UsSsnPattern()]);
 
           expect(schema.validate('123-456789'), isFalse);
           expect(schema.validate('12345-6789'), isFalse);
@@ -1566,7 +1566,7 @@ void main() {
 
         test('formatted requires both dashes', () {
           final schema = VString().taxId(
-            pattern: const UsSsnPattern(mode: ValidationMode.formatted),
+            patterns: [const UsSsnPattern(mode: ValidationMode.formatted)],
           );
 
           expect(schema.validate('123-45-6789'), isTrue);
@@ -1576,7 +1576,7 @@ void main() {
 
         test('unformatted rejects any dash', () {
           final schema = VString().taxId(
-            pattern: const UsSsnPattern(mode: ValidationMode.unformatted),
+            patterns: [const UsSsnPattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('123456789'), isTrue);
@@ -1587,7 +1587,7 @@ void main() {
 
       group('UkNiNumberPattern mode', () {
         test('any accepts with and without spaces', () {
-          final schema = VString().taxId(pattern: const UkNiNumberPattern());
+          final schema = VString().taxId(patterns: [const UkNiNumberPattern()]);
 
           expect(schema.validate('AB123456C'), isTrue);
           expect(schema.validate('AB 12 34 56 C'), isTrue);
@@ -1595,7 +1595,7 @@ void main() {
 
         test('formatted requires canonical spacing', () {
           final schema = VString().taxId(
-            pattern: const UkNiNumberPattern(mode: ValidationMode.formatted),
+            patterns: [const UkNiNumberPattern(mode: ValidationMode.formatted)],
           );
 
           expect(schema.validate('AB 12 34 56 C'), isTrue);
@@ -1605,7 +1605,7 @@ void main() {
 
         test('unformatted rejects any whitespace', () {
           final schema = VString().taxId(
-            pattern: const UkNiNumberPattern(mode: ValidationMode.unformatted),
+            patterns: [const UkNiNumberPattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('AB123456C'), isTrue);
@@ -1616,7 +1616,7 @@ void main() {
 
       group('CaSinPattern mode', () {
         test('any accepts plain digits and formatted forms', () {
-          final schema = VString().taxId(pattern: const CaSinPattern());
+          final schema = VString().taxId(patterns: [const CaSinPattern()]);
 
           expect(schema.validate('130692544'), isTrue);
           expect(schema.validate('130-692-544'), isTrue);
@@ -1625,7 +1625,7 @@ void main() {
 
         test('formatted requires separators in canonical groups', () {
           final schema = VString().taxId(
-            pattern: const CaSinPattern(mode: ValidationMode.formatted),
+            patterns: [const CaSinPattern(mode: ValidationMode.formatted)],
           );
 
           expect(schema.validate('130-692-544'), isTrue);
@@ -1635,7 +1635,7 @@ void main() {
 
         test('unformatted rejects any separator', () {
           final schema = VString().taxId(
-            pattern: const CaSinPattern(mode: ValidationMode.unformatted),
+            patterns: [const CaSinPattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('130692544'), isTrue);
@@ -1645,7 +1645,7 @@ void main() {
 
         test('mode does not loosen checksum', () {
           final schema = VString().taxId(
-            pattern: const CaSinPattern(mode: ValidationMode.unformatted),
+            patterns: [const CaSinPattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('130692545'), isFalse);
@@ -1656,47 +1656,47 @@ void main() {
     group('licensePlate', () {
       test('accepts when custom pattern matches', () {
         final schema =
-            VString().licensePlate(pattern: const _DummyPlatePattern());
+            VString().licensePlate(patterns: [const _DummyPlatePattern()]);
         expect(schema.validate('ABC-1234'), isTrue);
       });
 
       test('rejects when pattern does not match', () {
         final schema =
-            VString().licensePlate(pattern: const _DummyPlatePattern());
+            VString().licensePlate(patterns: [const _DummyPlatePattern()]);
         expect(schema.validate('nope'), isFalse);
       });
 
       test('returns error code license_plate', () {
         final schema =
-            VString().licensePlate(pattern: const _DummyPlatePattern());
+            VString().licensePlate(patterns: [const _DummyPlatePattern()]);
         final errors = schema.errors('nope');
         expect(errors!.first.code, 'string.license_plate');
       });
 
       test('UkPlatePattern accepts AB12 CDE', () {
-        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        final schema = VString().licensePlate(patterns: [const UkPlatePattern()]);
         expect(schema.validate('AB12 CDE'), isTrue);
       });
 
       test('UkPlatePattern accepts AB12CDE (no space)', () {
-        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        final schema = VString().licensePlate(patterns: [const UkPlatePattern()]);
         expect(schema.validate('AB12CDE'), isTrue);
       });
 
       test('UkPlatePattern accepts lowercase', () {
-        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        final schema = VString().licensePlate(patterns: [const UkPlatePattern()]);
         expect(schema.validate('ab12 cde'), isTrue);
       });
 
       test('UkPlatePattern rejects wrong format', () {
-        final schema = VString().licensePlate(pattern: const UkPlatePattern());
+        final schema = VString().licensePlate(patterns: [const UkPlatePattern()]);
         expect(schema.validate('123 ABCD'), isFalse);
       });
 
       group('UkPlatePattern mode', () {
         test('any accepts with and without space', () {
           final schema =
-              VString().licensePlate(pattern: const UkPlatePattern());
+              VString().licensePlate(patterns: [const UkPlatePattern()]);
 
           expect(schema.validate('AB12 CDE'), isTrue);
           expect(schema.validate('AB12CDE'), isTrue);
@@ -1704,7 +1704,7 @@ void main() {
 
         test('formatted requires the space', () {
           final schema = VString().licensePlate(
-            pattern: const UkPlatePattern(mode: ValidationMode.formatted),
+            patterns: [const UkPlatePattern(mode: ValidationMode.formatted)],
           );
 
           expect(schema.validate('AB12 CDE'), isTrue);
@@ -1713,12 +1713,98 @@ void main() {
 
         test('unformatted rejects the space', () {
           final schema = VString().licensePlate(
-            pattern: const UkPlatePattern(mode: ValidationMode.unformatted),
+            patterns: [const UkPlatePattern(mode: ValidationMode.unformatted)],
           );
 
           expect(schema.validate('AB12CDE'), isTrue);
           expect(schema.validate('AB12 CDE'), isFalse);
         });
+      });
+    });
+
+    group('multi-pattern acceptance', () {
+      test('phone accepts numbers matched by any of the patterns', () {
+        final schema = VString().phone(
+          patterns: [
+            const E164PhonePattern(countryCode: CountryCodeFormat.required),
+            const _FakePhonePattern(),
+          ],
+        );
+
+        expect(schema.validate('+14155552671'), isTrue);
+        expect(schema.validate('LOCAL:123'), isTrue);
+        expect(schema.validate('totally bogus'), isFalse);
+      });
+
+      test('phone with multiple patterns emits generic string.phone code', () {
+        final schema = VString().phone(
+          patterns: [
+            const E164PhonePattern(),
+            const _FakePhonePattern(),
+          ],
+        );
+
+        final errors = schema.errors('totally bogus');
+        expect(errors!.first.code, 'string.phone');
+      });
+
+      test('phone with single pattern preserves the pattern\'s code', () {
+        final schema =
+            VString().phone(patterns: [const _FakePhonePattern()]);
+
+        final errors = schema.errors('totally bogus');
+        expect(errors!.first.code, 'invalid_phone_fake');
+      });
+
+      test('postalCode accepts matches from any country pattern', () {
+        final schema = VString().postalCode(
+          patterns: [
+            const UsZipPattern(),
+            const CaPostalCodePattern(),
+            const UkPostcodePattern(),
+          ],
+        );
+
+        expect(schema.validate('94103'), isTrue);
+        expect(schema.validate('K1A 0B1'), isTrue);
+        expect(schema.validate('SW1A 1AA'), isTrue);
+        expect(schema.validate('not a zip'), isFalse);
+      });
+
+      test('postalCode error renders joined pattern names via {name}', () {
+        final schema = VString().postalCode(
+          patterns: [const UsZipPattern(), const UkPostcodePattern()],
+        );
+
+        final errors = schema.errors('not a zip');
+        expect(errors!.first.message, 'Invalid US ZIP / UK Postcode');
+      });
+
+      test('taxId accepts any of the given patterns', () {
+        final schema = VString().taxId(
+          patterns: [const UsSsnPattern(), const UkNiNumberPattern()],
+        );
+
+        expect(schema.validate('123-45-6789'), isTrue);
+        expect(schema.validate('AB123456C'), isTrue);
+        expect(schema.validate('nonsense'), isFalse);
+      });
+
+      test('licensePlate accepts any of the given patterns', () {
+        final schema = VString().licensePlate(
+          patterns: [const UkPlatePattern(), const _DummyPlatePattern()],
+        );
+
+        expect(schema.validate('AB12 CDE'), isTrue);
+        expect(schema.validate('ABC-1234'), isTrue);
+        expect(schema.validate('nope'), isFalse);
+      });
+
+      test('empty patterns list throws via assertion', () {
+        expect(
+          () => VString().postalCode(patterns: const []),
+          throwsA(isA<AssertionError>()),
+        );
       });
     });
 
@@ -2291,35 +2377,35 @@ void main() {
 
     group('postalCode edge cases', () {
       test('UK postcode accepts single-digit area', () {
-        final schema = VString().postalCode(pattern: const UkPostcodePattern());
+        final schema = VString().postalCode(patterns: [const UkPostcodePattern()]);
         expect(schema.validate('M1 1AA'), isTrue);
       });
 
       test('US ZIP rejects letters in ZIP+4', () {
-        final schema = VString().postalCode(pattern: const UsZipPattern());
+        final schema = VString().postalCode(patterns: [const UsZipPattern()]);
         expect(schema.validate('94103-AAAA'), isFalse);
       });
 
       test('CA postal accepts lowercase', () {
         final schema =
-            VString().postalCode(pattern: const CaPostalCodePattern());
+            VString().postalCode(patterns: [const CaPostalCodePattern()]);
         expect(schema.validate('k1a 0b1'), isTrue);
       });
     });
 
     group('taxId edge cases', () {
       test('CA SIN rejects all-zero (first-digit rule)', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('000000000'), isFalse);
       });
 
       test('CA SIN handles unicode dashes gracefully (invalid)', () {
-        final schema = VString().taxId(pattern: const CaSinPattern());
+        final schema = VString().taxId(patterns: [const CaSinPattern()]);
         expect(schema.validate('046—454—286'), isFalse);
       });
 
       test('UK NI rejects with suffix outside A-D', () {
-        final schema = VString().taxId(pattern: const UkNiNumberPattern());
+        final schema = VString().taxId(patterns: [const UkNiNumberPattern()]);
         expect(schema.validate('AB123456E'), isFalse);
         expect(schema.validate('AB123456F'), isFalse);
       });

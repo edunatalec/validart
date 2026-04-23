@@ -23,9 +23,9 @@ void main() {
 
     test('required rejects numbers without +', () {
       final schema = V.string().phone(
-            pattern: const E164PhonePattern(
+            patterns: [const E164PhonePattern(
               countryCode: CountryCodeFormat.required,
-            ),
+            )],
           );
 
       expect(schema.safeParse('+14155552671').isValid, isTrue);
@@ -34,8 +34,7 @@ void main() {
 
     test('none rejects numbers that start with +', () {
       final schema = V.string().phone(
-            pattern:
-                const E164PhonePattern(countryCode: CountryCodeFormat.none),
+            patterns: [const E164PhonePattern(countryCode: CountryCodeFormat.none)],
           );
 
       expect(schema.safeParse('14155552671').isValid, isTrue);
@@ -52,7 +51,7 @@ void main() {
       const none = E164PhonePattern(countryCode: CountryCodeFormat.none);
 
       for (final pattern in [required, optional, none]) {
-        final schema = V.string().phone(pattern: pattern);
+        final schema = V.string().phone(patterns: [pattern]);
 
         expect(schema.safeParse('').isValid, isFalse);
         expect(schema.safeParse('abc').isValid, isFalse);
