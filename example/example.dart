@@ -655,7 +655,7 @@ void localeExamples() {
   print('--- locale ---');
 
   V.setLocale(const VLocale({
-    'invalid_email': 'Email inválido',
+    'string.email': 'Email inválido',
     'positive': 'Deve ser positivo',
     'required': 'Campo obrigatório',
   }));
