@@ -20,7 +20,7 @@ void main() {
         expect(schema.validate(4), isFalse);
       });
 
-      test('should return error with code too_small', () {
+      test('should return error with code number.too_small', () {
         final errs = schema.errors(3);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.too_small');
@@ -39,7 +39,7 @@ void main() {
         expect(schema.validate(11), isFalse);
       });
 
-      test('should return error with code too_big', () {
+      test('should return error with code number.too_big', () {
         final errs = schema.errors(11);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.too_big');
@@ -59,7 +59,7 @@ void main() {
         expect(schema.validate(-1), isFalse);
       });
 
-      test('should return error with code positive', () {
+      test('should return error with code number.positive', () {
         final errs = schema.errors(0);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.positive');
@@ -79,7 +79,7 @@ void main() {
         expect(schema.validate(1), isFalse);
       });
 
-      test('should return error with code negative', () {
+      test('should return error with code number.negative', () {
         final errs = schema.errors(0);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.negative');
@@ -100,7 +100,7 @@ void main() {
         expect(schema.validate(11), isFalse);
       });
 
-      test('should return error with code not_in_range', () {
+      test('should return error with code number.not_in_range', () {
         final errs = schema.errors(0);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.not_in_range');
@@ -121,7 +121,7 @@ void main() {
         expect(schema.validate(7), isFalse);
       });
 
-      test('should return error with code multiple_of', () {
+      test('should return error with code number.multiple_of', () {
         final errs = schema.errors(4);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.multiple_of');
@@ -143,7 +143,7 @@ void main() {
         expect(schema.validate(-5), isFalse);
       });
 
-      test('should return error with code even', () {
+      test('should return error with code int.even', () {
         final errs = schema.errors(1);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'int.even');
@@ -165,7 +165,7 @@ void main() {
         expect(schema.validate(-4), isFalse);
       });
 
-      test('should return error with code odd', () {
+      test('should return error with code int.odd', () {
         final errs = schema.errors(2);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'int.odd');
@@ -189,7 +189,7 @@ void main() {
         expect(schema.validate(9), isFalse);
       });
 
-      test('should return error with code prime', () {
+      test('should return error with code int.prime', () {
         final errs = schema.errors(4);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'int.prime');
@@ -357,7 +357,7 @@ void main() {
         expect(schema.validate(double.nan), isFalse);
       });
 
-      test('should return error with code finite', () {
+      test('should return error with code number.finite', () {
         final errs = schema.errors(double.infinity);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.finite');
@@ -377,7 +377,7 @@ void main() {
         expect(schema.validate(0.0), isFalse);
       });
 
-      test('should return error with code decimal', () {
+      test('should return error with code double.decimal', () {
         final errs = schema.errors(3.0);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'double.decimal');
@@ -397,7 +397,7 @@ void main() {
         expect(schema.validate(0.5), isFalse);
       });
 
-      test('should return error with code integer', () {
+      test('should return error with code double.integer', () {
         final errs = schema.errors(3.14);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'double.integer');

@@ -238,5 +238,90 @@ void main() {
       expect(VString().errors(42)!.first.code, 'string.invalid_type');
       expect(VInt().errors('x')!.first.code, 'int.invalid_type');
     });
+
+    test('custom drop-prefix: flat key without type prefix wins', () {
+      // User sets only the unprefixed `'email'` — emitted code is
+      // `'string.email'`; the resolver drops the `'string.'` prefix and
+      // hits the custom generic key.
+      V.setLocale(const VLocale({'email': 'Custom email'}));
+
+      expect(V.t('string.email'), 'Custom email');
+      expect(VString().email().errors('bad')!.first.message, 'Custom email');
+    });
+
+    test('default drop-prefix: prefixed code falls back to generic default',
+        () {
+      // No custom locale, no type-specific default for `'string.whatever'`
+      // — but the resolver finds `'required'` in defaults after dropping
+      // the prefix.
+      const locale = VLocale();
+
+      // `string.required` is not in _defaults nested, but `required` is —
+      // resolver drops the prefix and returns the English default.
+      expect(locale.translate('string.required'), 'Required');
+      expect(locale.translate('int.required'), 'Required');
+      expect(locale.translate('map.invalid_type', {'expected': 'Map', 'received': 'int'}),
+          'Expected Map, received int');
+    });
+
+    test('full 5-layer fallback chain resolves in the documented order', () {
+      // Layer 1: custom prefixed wins
+      V.setLocale(const VLocale({
+        'string.email': 'L1 custom prefixed',
+        'email': 'L2 custom drop',
+      }));
+      expect(V.t('string.email'), 'L1 custom prefixed');
+
+      // Layer 2: custom drop-prefix (no prefixed match)
+      V.setLocale(const VLocale({'email': 'L2 custom drop'}));
+      expect(V.t('string.email'), 'L2 custom drop');
+
+      // Layer 3: default prefixed (no custom at all) — nested defaults
+      V.setLocale(const VLocale());
+      expect(V.t('string.email'), 'Invalid email address');
+
+      // Layer 4: default drop-prefix (prefixed code with no prefixed
+      // default, but generic sibling exists).
+      expect(V.t('string.required'), 'Required');
+
+      // Layer 5: code itself when nothing matches anywhere
+      expect(V.t('totally.made.up.code'), 'totally.made.up.code');
+    });
+  });
+
+  group('Malformed locale handling', () {
+    test('non-Map value at a path segment falls back gracefully', () {
+      // User mistakenly sets 'string' to a String instead of a Map.
+      // Lookup for 'string.email' cannot navigate into it — resolver
+      // drops prefix and finds 'email' (not set) → default 'string.email'
+      // via nested defaults → 'Invalid email address'.
+      const locale = VLocale({'string': 'not a map'});
+
+      expect(locale.translate('string.email'), 'Invalid email address');
+    });
+
+    test('non-String leaf value is rejected (treated as no match)', () {
+      // Malformed locale with a non-String value. Lookup returns null for
+      // that key — resolver falls through to defaults.
+      const locale = VLocale(<String, Object>{'required': 42});
+
+      expect(locale.translate('required'), 'Required');
+    });
+
+    test('deep nested paths (3+ levels) resolve correctly', () {
+      // Code with multiple dots navigates the tree fully. Defensive
+      // check — no current emitted code has 3 levels, but the resolver
+      // should handle it for future-proofing and third-party extensions.
+      const locale = VLocale({
+        'a': {
+          'b': {'c': 'deep'},
+        },
+      });
+
+      expect(locale.translate('a.b.c'), 'deep');
+      // Miss at the deepest level: falls through to fallback (no match
+      // anywhere, returns code).
+      expect(locale.translate('a.b.missing'), 'a.b.missing');
+    });
   });
 }

@@ -77,7 +77,7 @@ void main() {
         expect(schema.validate(['a']), isFalse);
       });
 
-      test('should return error code too_small', () {
+      test('should return error code array.too_small', () {
         final schema = VArray<String>(VString()).min(2);
         final errors = schema.errors(['a']);
         expect(errors, isNotNull);
@@ -108,7 +108,7 @@ void main() {
         expect(schema.validate(['a', 'b', 'c']), isFalse);
       });
 
-      test('should return error code too_big', () {
+      test('should return error code array.too_big', () {
         final schema = VArray<String>(VString()).max(1);
         final errors = schema.errors(['a', 'b']);
         expect(errors, isNotNull);
@@ -134,7 +134,7 @@ void main() {
         expect(schema.validate(['a', 'b', 'a']), isFalse);
       });
 
-      test('should return error code unique', () {
+      test('should return error code array.unique', () {
         final errors = schema.errors(['x', 'x']);
         expect(errors, isNotNull);
         expect(errors!.first.code, 'array.unique');
@@ -162,7 +162,7 @@ void main() {
         expect(schema.validate(['a', 'c']), isFalse);
       });
 
-      test('should return error code contains_all', () {
+      test('should return error code array.contains_all', () {
         final schema = VArray<String>(VString()).contains(['x']);
         final errors = schema.errors(['a', 'b']);
         expect(errors, isNotNull);

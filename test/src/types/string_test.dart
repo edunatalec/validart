@@ -36,7 +36,7 @@ void main() {
         expect(schema.validate(''), isFalse);
       });
 
-      test('should return error code too_small', () {
+      test('should return error code string.too_small', () {
         final schema = VString().min(3);
         final errors = schema.errors('ab');
         expect(errors, isNotNull);
@@ -66,7 +66,7 @@ void main() {
         expect(schema.validate('toolong'), isFalse);
       });
 
-      test('should return error code too_big', () {
+      test('should return error code string.too_big', () {
         final schema = VString().max(3);
         final errors = schema.errors('abcd');
         expect(errors!.first.code, 'string.too_big');
@@ -95,7 +95,7 @@ void main() {
         expect(schema.validate('abcde'), isFalse);
       });
 
-      test('should return error code length', () {
+      test('should return error code string.length', () {
         final schema = VString().length(4);
         final errors = schema.errors('ab');
         expect(errors!.first.code, 'string.length');
@@ -131,7 +131,7 @@ void main() {
         expect(schema.validate('user..name@example.com'), isFalse);
       });
 
-      test('should return error code invalid_email', () {
+      test('should return error code string.email', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.email');
       });
@@ -162,7 +162,7 @@ void main() {
         expect(schema.validate(''), isFalse);
       });
 
-      test('should return error code invalid_url', () {
+      test('should return error code string.url', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.url');
       });
@@ -205,7 +205,7 @@ void main() {
         expect(schema.validate('550e8400e29b41d4a716446655440000'), isFalse);
       });
 
-      test('should return error code invalid_uuid', () {
+      test('should return error code string.uuid', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.uuid');
       });
@@ -335,7 +335,7 @@ void main() {
         expect(schema.validate('not-an-ip'), isFalse);
       });
 
-      test('should return error code invalid_ip', () {
+      test('should return error code string.ip', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.ip');
       });
@@ -358,7 +358,7 @@ void main() {
         expect(schema.validate('abc'), isFalse);
       });
 
-      test('should return error code invalid_format', () {
+      test('should return error code string.format', () {
         final schema = VString().pattern(r'^\d+$');
         final errors = schema.errors('abc');
         expect(errors!.first.code, 'string.format');
@@ -422,7 +422,7 @@ void main() {
         expect(schema.validate('30/02/2020'), isFalse);
       });
 
-      test('should return error code invalid_date', () {
+      test('should return error code string.date', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.date');
       });
@@ -517,7 +517,7 @@ void main() {
         expect(schema.validate('not-time'), isFalse);
       });
 
-      test('should return error code invalid_time', () {
+      test('should return error code string.time', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.time');
       });
@@ -540,7 +540,7 @@ void main() {
         expect(schema.validate('hello'), isFalse);
       });
 
-      test('should return error code contains', () {
+      test('should return error code string.contains', () {
         final schema = VString().contains('x');
         final errors = schema.errors('abc');
         expect(errors!.first.code, 'string.contains');
@@ -564,7 +564,7 @@ void main() {
         expect(schema.validate('world hello'), isFalse);
       });
 
-      test('should return error code starts_with', () {
+      test('should return error code string.starts_with', () {
         final schema = VString().startsWith('x');
         final errors = schema.errors('abc');
         expect(errors!.first.code, 'string.starts_with');
@@ -588,7 +588,7 @@ void main() {
         expect(schema.validate('main.js'), isFalse);
       });
 
-      test('should return error code ends_with', () {
+      test('should return error code string.ends_with', () {
         final schema = VString().endsWith('z');
         final errors = schema.errors('abc');
         expect(errors!.first.code, 'string.ends_with');
@@ -617,7 +617,7 @@ void main() {
         expect(schema.validate('hello'), isFalse);
       });
 
-      test('should return error code equals', () {
+      test('should return error code string.equals', () {
         final schema = VString().equals('x');
         final errors = schema.errors('y');
         expect(errors!.first.code, 'string.equals');
@@ -649,7 +649,7 @@ void main() {
         expect(schema.validate('abc!'), isFalse);
       });
 
-      test('should return error code alpha', () {
+      test('should return error code string.alpha', () {
         final errors = schema.errors('123');
         expect(errors!.first.code, 'string.alpha');
       });
@@ -684,7 +684,7 @@ void main() {
         expect(schema.validate('abc!@#'), isFalse);
       });
 
-      test('should return error code alphanumeric', () {
+      test('should return error code string.alphanumeric', () {
         final errors = schema.errors('a b');
         expect(errors!.first.code, 'string.alphanumeric');
       });
@@ -727,7 +727,7 @@ void main() {
         expect(schema.validate('hello-'), isFalse);
       });
 
-      test('should return error code slug', () {
+      test('should return error code string.slug', () {
         final errors = schema.errors('NOT VALID');
         expect(errors!.first.code, 'string.slug');
       });
@@ -766,7 +766,7 @@ void main() {
         expect(schema.validate('Abcdefg1'), isFalse);
       });
 
-      test('should return error code password', () {
+      test('should return error code string.password', () {
         final errors = schema.errors('weak');
         expect(errors!.first.code, 'string.password');
       });
@@ -822,7 +822,7 @@ void main() {
         expect(schema.validate('not-a-jwt'), isFalse);
       });
 
-      test('should return error code jwt', () {
+      test('should return error code string.jwt', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.jwt');
       });
@@ -861,7 +861,7 @@ void main() {
         expect(schema.validate('123'), isFalse);
       });
 
-      test('should return error code card', () {
+      test('should return error code string.card', () {
         final errors = schema.errors('1234567890123456');
         expect(errors!.first.code, 'string.card');
       });
@@ -933,7 +933,7 @@ void main() {
         expect(visa.validate('4111111111111112'), isFalse);
       });
 
-      test('should return error code card when brand does not match', () {
+      test('should return error code string.card when brand does not match', () {
         final errors = visa.errors('5555555555554444');
         expect(errors!.first.code, 'string.card');
       });
@@ -1005,7 +1005,7 @@ void main() {
         expect(schema.validate(''), isFalse);
       });
 
-      test('should return error code invalid_phone', () {
+      test('should return error code string.phone', () {
         final errors = schema.errors('bad');
         expect(errors!.first.code, 'string.phone');
       });

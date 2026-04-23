@@ -10,7 +10,7 @@
 /// print(error.pathString); // 'name'
 /// ```
 final class VError {
-  /// Machine-readable error code (e.g., `'required'`, `'invalid_email'`).
+  /// Machine-readable error code (e.g., `'required'`, `'string.email'`).
   final String code;
 
   /// Human-readable error message.
