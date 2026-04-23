@@ -1,22 +1,31 @@
 #!/bin/bash
 set -e
 
-echo "Cleaning previous coverage..."
+TOTAL_STEPS=5
+STEP=0
+step() {
+  STEP=$((STEP + 1))
+  echo
+  echo "[$STEP/$TOTAL_STEPS] $1"
+}
+
+step "Cleaning previous coverage"
 rm -rf coverage
 
-echo "Running tests with coverage..."
+step "Running tests with coverage"
 dart test --coverage=coverage
 
-echo "Ensuring coverage CLI is installed..."
+step "Ensuring coverage CLI is installed"
 if ! command -v format_coverage >/dev/null 2>&1; then
   dart pub global activate coverage
 fi
 
-echo "Formatting coverage report..."
+step "Formatting coverage report"
 format_coverage --lcov --check-ignore --in=coverage --out=coverage/lcov.info --report-on=lib
 
-echo "Generating HTML report..."
+step "Generating HTML report"
 genhtml -o coverage/html coverage/lcov.info
 
+echo
 echo "✅ Coverage report generated successfully!"
 open coverage/html/index.html

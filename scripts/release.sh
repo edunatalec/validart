@@ -1,7 +1,13 @@
 #!/bin/bash
 set -e
 
-step() { echo; echo "=== $1 ==="; }
+TOTAL_STEPS=8
+STEP=0
+step() {
+  STEP=$((STEP + 1))
+  echo
+  echo "[$STEP/$TOTAL_STEPS] $1"
+}
 
 step "Installing dependencies"
 dart pub get
@@ -34,4 +40,5 @@ git push --tags
 step "Publishing to pub.dev"
 dart pub publish --force
 
-step "Done! Published v$VERSION"
+echo
+echo "🎉 Done! Published v$VERSION"
