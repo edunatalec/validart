@@ -107,21 +107,21 @@ void stringExamples() {
 
   // phone (require or forbid the country-code prefix)
   final requiredPrefix = V.string().phone(
-        pattern: const E164PhonePattern(
+        patterns: [const E164PhonePattern(
           countryCode: CountryCodeFormat.required,
-        ),
+        )],
       );
   print(requiredPrefix.validate('+14155552671')); // true
   print(requiredPrefix.validate('14155552671')); // false
 
   final noPrefix = V.string().phone(
-        pattern: const E164PhonePattern(countryCode: CountryCodeFormat.none),
+        patterns: [const E164PhonePattern(countryCode: CountryCodeFormat.none)],
       );
   print(noPrefix.validate('14155552671')); // true
   print(noPrefix.validate('+14155552671')); // false
 
   // phone (custom pattern)
-  final localPhone = V.string().phone(pattern: const LocalPhonePattern());
+  final localPhone = V.string().phone(patterns: [const LocalPhonePattern()]);
   print(localPhone.validate('LOCAL:1234')); // true
   print(localPhone.validate('+5511999999999')); // false
 
@@ -160,18 +160,18 @@ void stringExamples() {
 
   // postal code (pluggable — built-ins US, CA, UK)
   print(
-    V.string().postalCode(pattern: const UsZipPattern()).validate('94103'),
+    V.string().postalCode(patterns: [const UsZipPattern()]).validate('94103'),
   ); // true
   print(
     V
         .string()
-        .postalCode(pattern: const CaPostalCodePattern())
+        .postalCode(patterns: [const CaPostalCodePattern()])
         .validate('K1A 0B1'),
   ); // true
   print(
     V
         .string()
-        .postalCode(pattern: const UkPostcodePattern())
+        .postalCode(patterns: [const UkPostcodePattern()])
         .validate('SW1A 1AA'),
   ); // true
 
@@ -180,7 +180,7 @@ void stringExamples() {
     V
         .string()
         .postalCode(
-          pattern: const UkPostcodePattern(mode: ValidationMode.formatted),
+          patterns: [const UkPostcodePattern(mode: ValidationMode.formatted)],
         )
         .validate('SW1A1AA'),
   ); // false (no space)
@@ -188,33 +188,33 @@ void stringExamples() {
     V
         .string()
         .postalCode(
-          pattern: const CaPostalCodePattern(mode: ValidationMode.unformatted),
+          patterns: [const CaPostalCodePattern(mode: ValidationMode.unformatted)],
         )
         .validate('K1A0B1'),
   ); // true
 
   // tax ID built-ins
   print(
-    V.string().taxId(pattern: const UsSsnPattern()).validate('123-45-6789'),
+    V.string().taxId(patterns: [const UsSsnPattern()]).validate('123-45-6789'),
   ); // true
   print(
-    V.string().taxId(pattern: const UkNiNumberPattern()).validate('AB123456C'),
+    V.string().taxId(patterns: [const UkNiNumberPattern()]).validate('AB123456C'),
   ); // true
   print(
-    V.string().taxId(pattern: const CaSinPattern()).validate('046-454-286'),
+    V.string().taxId(patterns: [const CaSinPattern()]).validate('130-692-544'),
   ); // true
 
   // tax ID with ValidationMode — pin formatted vs unformatted
   print(
     V
         .string()
-        .taxId(pattern: const UsSsnPattern(mode: ValidationMode.formatted))
+        .taxId(patterns: [const UsSsnPattern(mode: ValidationMode.formatted)])
         .validate('123456789'),
   ); // false (dashes required)
   print(
     V
         .string()
-        .taxId(pattern: const CaSinPattern(mode: ValidationMode.unformatted))
+        .taxId(patterns: [const CaSinPattern(mode: ValidationMode.unformatted)])
         .validate('130692544'),
   ); // true
 
@@ -222,7 +222,7 @@ void stringExamples() {
   print(
     V
         .string()
-        .licensePlate(pattern: const UkPlatePattern())
+        .licensePlate(patterns: [const UkPlatePattern()])
         .validate('AB12 CDE'),
   ); // true
 
@@ -231,21 +231,34 @@ void stringExamples() {
     V
         .string()
         .licensePlate(
-          pattern: const UkPlatePattern(mode: ValidationMode.unformatted),
+          patterns: [const UkPlatePattern(mode: ValidationMode.unformatted)],
         )
         .validate('AB12CDE'),
   ); // true
 
   // Extend with your own patterns for country-specific needs:
   print(
-    V.string().taxId(pattern: const DummyTaxIdPattern()).validate('TAX:123'),
+    V.string().taxId(patterns: [const DummyTaxIdPattern()]).validate('TAX:123'),
   ); // true
   print(
     V
         .string()
-        .licensePlate(pattern: const DummyPlatePattern())
+        .licensePlate(patterns: [const DummyPlatePattern()])
         .validate('ABC-1234'),
   ); // true
+
+  // Multi-country — accept inputs matching ANY of several patterns.
+  final multiCountryPostal = V.string().postalCode(
+    patterns: [
+      const UsZipPattern(),
+      const CaPostalCodePattern(),
+      const UkPostcodePattern(),
+    ],
+  );
+  print(multiCountryPostal.validate('94103')); // true (US)
+  print(multiCountryPostal.validate('K1A 0B1')); // true (CA)
+  print(multiCountryPostal.validate('SW1A 1AA')); // true (UK)
+  print(multiCountryPostal.validate('nope')); // false
 
   // transforms (pre-processing — always run before validators)
   print(V.string().trim().parse('  hello  ')); // 'hello'
