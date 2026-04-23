@@ -46,7 +46,7 @@ void main() {
       });
     });
 
-    group('positive', () {
+    group('number.positive', () {
       final schema = VInt().positive();
 
       test('should pass when value is positive', () {
@@ -62,11 +62,11 @@ void main() {
       test('should return error with code positive', () {
         final errs = schema.errors(0);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'positive');
+        expect(errs!.first.code, 'number.positive');
       });
     });
 
-    group('negative', () {
+    group('number.negative', () {
       final schema = VInt().negative();
 
       test('should pass when value is negative', () {
@@ -82,7 +82,7 @@ void main() {
       test('should return error with code negative', () {
         final errs = schema.errors(0);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'negative');
+        expect(errs!.first.code, 'number.negative');
       });
     });
 
@@ -124,11 +124,11 @@ void main() {
       test('should return error with code multiple_of', () {
         final errs = schema.errors(4);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'multiple_of');
+        expect(errs!.first.code, 'number.multiple_of');
       });
     });
 
-    group('even', () {
+    group('int.even', () {
       final schema = VInt().even();
 
       test('should pass when value is even', () {
@@ -146,11 +146,11 @@ void main() {
       test('should return error with code even', () {
         final errs = schema.errors(1);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'even');
+        expect(errs!.first.code, 'int.even');
       });
     });
 
-    group('odd', () {
+    group('int.odd', () {
       final schema = VInt().odd();
 
       test('should pass when value is odd', () {
@@ -168,11 +168,11 @@ void main() {
       test('should return error with code odd', () {
         final errs = schema.errors(2);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'odd');
+        expect(errs!.first.code, 'int.odd');
       });
     });
 
-    group('prime', () {
+    group('int.prime', () {
       final schema = VInt().prime();
 
       test('should pass for prime numbers', () {
@@ -192,7 +192,7 @@ void main() {
       test('should return error with code prime', () {
         final errs = schema.errors(4);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'prime');
+        expect(errs!.first.code, 'int.prime');
       });
     });
 
@@ -276,7 +276,7 @@ void main() {
       });
     });
 
-    group('positive', () {
+    group('number.positive', () {
       final schema = VDouble().positive();
 
       test('should pass when value is positive', () {
@@ -289,7 +289,7 @@ void main() {
       });
     });
 
-    group('negative', () {
+    group('number.negative', () {
       final schema = VDouble().negative();
 
       test('should pass when value is negative', () {
@@ -339,7 +339,7 @@ void main() {
       });
     });
 
-    group('finite', () {
+    group('number.finite', () {
       final schema = VDouble().finite();
 
       test('should pass for normal finite values', () {
@@ -360,11 +360,11 @@ void main() {
       test('should return error with code finite', () {
         final errs = schema.errors(double.infinity);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'finite');
+        expect(errs!.first.code, 'number.finite');
       });
     });
 
-    group('decimal', () {
+    group('double.decimal', () {
       final schema = VDouble().decimal();
 
       test('should pass when value has fractional part', () {
@@ -380,7 +380,7 @@ void main() {
       test('should return error with code decimal', () {
         final errs = schema.errors(3.0);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'decimal');
+        expect(errs!.first.code, 'double.decimal');
       });
     });
 
@@ -400,7 +400,7 @@ void main() {
       test('should return error with code integer', () {
         final errs = schema.errors(3.14);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'integer');
+        expect(errs!.first.code, 'double.integer');
       });
     });
 

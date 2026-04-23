@@ -37,7 +37,7 @@ void main() {
     test('should return correct error code', () {
       final schema = VUnion([VString(), VInt()]);
       final errs = schema.errors(3.14);
-      expect(errs!.first.code, 'invalid_union');
+      expect(errs!.first.code, 'union.invalid');
     });
 
     test('should work with validators on options', () {

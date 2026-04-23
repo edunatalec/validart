@@ -43,7 +43,7 @@ void main() {
     test('should return correct error code', () {
       final schema = VLiteral('admin');
       final errs = schema.errors('user');
-      expect(errs!.first.code, 'invalid_literal');
+      expect(errs!.first.code, 'literal.invalid');
     });
 
     test('should include expected value in error message', () {

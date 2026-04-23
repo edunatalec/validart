@@ -8,9 +8,9 @@ void main() {
     test('default translations should work', () {
       const locale = VLocale();
       expect(locale.translate('required'), 'Required');
-      expect(locale.translate('invalid_email'), 'Invalid email address');
-      expect(locale.translate('positive'), 'Must be positive');
-      expect(locale.translate('is_true'), 'Must be true');
+      expect(locale.translate('string.email'), 'Invalid email address');
+      expect(locale.translate('number.positive'), 'Must be positive');
+      expect(locale.translate('bool.is_true'), 'Must be true');
     });
 
     test('default translations should interpolate params', () {
@@ -29,12 +29,12 @@ void main() {
     test('custom translations should override defaults', () {
       const locale = VLocale({
         'required': 'Campo obrigatório',
-        'invalid_email': 'Email inválido',
+        'string.email': 'Email inválido',
       });
       expect(locale.translate('required'), 'Campo obrigatório');
-      expect(locale.translate('invalid_email'), 'Email inválido');
+      expect(locale.translate('string.email'), 'Email inválido');
       // Non-overridden keys should fall back to defaults
-      expect(locale.translate('invalid_url'), 'Invalid URL');
+      expect(locale.translate('string.url'), 'Invalid URL');
     });
 
     test('unknown code should return code itself', () {
@@ -66,7 +66,7 @@ void main() {
   group('V.setLocale', () {
     test('should change translations for string validators', () {
       V.setLocale(const VLocale({
-        'invalid_email': 'Email inválido',
+        'string.email': 'Email inválido',
       }));
       final schema = VString().email();
       final errs = schema.errors('bad');
@@ -75,7 +75,7 @@ void main() {
 
     test('should change translations for number validators', () {
       V.setLocale(const VLocale({
-        'positive': 'Deve ser positivo',
+        'number.positive': 'Deve ser positivo',
       }));
       final schema = VInt().positive();
       final errs = schema.errors(-1);
@@ -84,7 +84,7 @@ void main() {
 
     test('should change translations for bool validators', () {
       V.setLocale(const VLocale({
-        'is_true': 'Deve ser verdadeiro',
+        'bool.is_true': 'Deve ser verdadeiro',
       }));
       final schema = VBool().isTrue();
       final errs = schema.errors(false);
@@ -148,7 +148,7 @@ void main() {
   group('Per-validator override bypasses locale', () {
     test('should use per-validator message over locale', () {
       V.setLocale(const VLocale({
-        'invalid_email': 'Global email msg',
+        'string.email': 'Global email msg',
       }));
       final schema = VString().email(message: 'Per-validator msg');
       final errs = schema.errors('bad');
@@ -172,7 +172,7 @@ void main() {
       expect(V.t('required'), 'Custom required');
 
       // Default is used when no custom
-      expect(V.t('invalid_email'), 'Invalid email address');
+      expect(V.t('string.email'), 'Invalid email address');
 
       // Code itself is returned when nothing matches
       expect(V.t('nonexistent_code'), 'nonexistent_code');

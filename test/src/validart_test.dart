@@ -38,10 +38,10 @@ void main() {
     test('should create map schema', () {
       final schema = V.map({
         'name': V.string().min(1),
-        'age': V.int().min(0),
+        'date.age': V.int().min(0),
       });
       expect(schema, isA<VMap>());
-      expect(schema.validate({'name': 'Alice', 'age': 25}), isTrue);
+      expect(schema.validate({'name': 'Alice', 'date.age': 25}), isTrue);
     });
 
     test('should create object schema', () {
@@ -58,7 +58,7 @@ void main() {
 
     test('should use custom messages via V.setLocale', () {
       V.setLocale(const VLocale({
-        'invalid_email': 'Email inválido',
+        'string.email': 'Email inválido',
       }));
       final schema = V.string().email();
       final errs = schema.errors('bad');

@@ -168,9 +168,9 @@ void main() {
 
       test('should use custom code', () {
         final schema = TestStringType().refine((v) => v.isNotEmpty,
-            code: 'not_empty', message: 'Cannot be empty');
+            code: 'string.not_empty', message: 'Cannot be empty');
         final errs = schema.errors('');
-        expect(errs!.first.code, 'not_empty');
+        expect(errs!.first.code, 'string.not_empty');
       });
 
       test('should collect multiple refine errors', () {

@@ -42,7 +42,7 @@ void main() {
     test('should return correct error code', () {
       final schema = VEnum(Color.values);
       final errs = schema.errors('invalid');
-      expect(errs!.first.code, 'invalid_enum');
+      expect(errs!.first.code, 'enum.invalid');
     });
 
     test('should include valid values in error message', () {

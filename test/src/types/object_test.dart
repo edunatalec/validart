@@ -136,7 +136,7 @@ void main() {
                 ));
         final errors = schema.errors(Folder(id: 'not-a-uuid', name: 'Test'));
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'invalid_uuid');
+        expect(errors!.first.code, 'string.uuid');
         expect(errors.first.path, ['id']);
       });
 
@@ -322,7 +322,7 @@ void main() {
       final schema = V.object<_KitchenSinkEntity>(
         configure: (o) => o
             .field('name', (e) => e.name, V.string().min(1))
-            .field('age', (e) => e.age, V.int().between(0, 150))
+            .field('date.age', (e) => e.age, V.int().between(0, 150))
             .field('balance', (e) => e.balance, V.double().finite())
             .field('active', (e) => e.active, V.bool().isTrue())
             .field(
@@ -407,7 +407,7 @@ void main() {
           paths,
           containsAll(<Object>[
             'name',
-            'age',
+            'date.age',
             'balance',
             'active',
             'joined',

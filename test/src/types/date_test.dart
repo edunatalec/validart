@@ -105,7 +105,7 @@ void main() {
       });
     });
 
-    group('weekday', () {
+    group('date.weekday', () {
       final schema = VDate().weekday();
 
       test('should pass for Monday through Friday', () {
@@ -124,7 +124,7 @@ void main() {
       test('should return error with code weekday', () {
         final errs = schema.errors(DateTime(2024, 1, 6));
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'weekday');
+        expect(errs!.first.code, 'date.weekday');
       });
 
       test('should use custom message', () {
@@ -134,7 +134,7 @@ void main() {
       });
     });
 
-    group('weekend', () {
+    group('date.weekend', () {
       final schema = VDate().weekend();
 
       test('should pass for Saturday and Sunday', () {
@@ -150,7 +150,7 @@ void main() {
       test('should return error with code weekend', () {
         final errs = schema.errors(DateTime(2024, 1, 1));
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'weekend');
+        expect(errs!.first.code, 'date.weekend');
       });
 
       test('should use custom message', () {
@@ -199,7 +199,7 @@ void main() {
       });
     });
 
-    group('age', () {
+    group('date.age', () {
       final now = DateTime.now();
 
       DateTime birthAgedYears(int years) {
@@ -265,7 +265,7 @@ void main() {
         final schema = VDate().age(min: 18);
         final errs = schema.errors(birthAgedYears(10));
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'age');
+        expect(errs!.first.code, 'date.age');
       });
     });
 

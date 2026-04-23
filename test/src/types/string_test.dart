@@ -133,7 +133,7 @@ void main() {
 
       test('should return error code invalid_email', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_email');
+        expect(errors!.first.code, 'string.email');
       });
 
       test('should support custom message', () {
@@ -164,7 +164,7 @@ void main() {
 
       test('should return error code invalid_url', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_url');
+        expect(errors!.first.code, 'string.url');
       });
 
       test('should support custom message', () {
@@ -207,7 +207,7 @@ void main() {
 
       test('should return error code invalid_uuid', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_uuid');
+        expect(errors!.first.code, 'string.uuid');
       });
 
       test('should support custom message', () {
@@ -267,7 +267,7 @@ void main() {
       });
     });
 
-    group('ulid', () {
+    group('string.ulid', () {
       final schema = VString().ulid();
 
       test('should accept valid ULID', () {
@@ -337,7 +337,7 @@ void main() {
 
       test('should return error code invalid_ip', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_ip');
+        expect(errors!.first.code, 'string.ip');
       });
 
       test('should support custom message', () {
@@ -361,7 +361,7 @@ void main() {
       test('should return error code invalid_format', () {
         final schema = VString().pattern(r'^\d+$');
         final errors = schema.errors('abc');
-        expect(errors!.first.code, 'invalid_format');
+        expect(errors!.first.code, 'string.format');
       });
 
       test('should support custom message', () {
@@ -424,7 +424,7 @@ void main() {
 
       test('should return error code invalid_date', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_date');
+        expect(errors!.first.code, 'string.date');
       });
 
       test('should support custom message', () {
@@ -519,7 +519,7 @@ void main() {
 
       test('should return error code invalid_time', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_time');
+        expect(errors!.first.code, 'string.time');
       });
 
       test('should support custom message', () {
@@ -543,7 +543,7 @@ void main() {
       test('should return error code contains', () {
         final schema = VString().contains('x');
         final errors = schema.errors('abc');
-        expect(errors!.first.code, 'contains');
+        expect(errors!.first.code, 'string.contains');
       });
 
       test('should support custom message', () {
@@ -567,7 +567,7 @@ void main() {
       test('should return error code starts_with', () {
         final schema = VString().startsWith('x');
         final errors = schema.errors('abc');
-        expect(errors!.first.code, 'starts_with');
+        expect(errors!.first.code, 'string.starts_with');
       });
 
       test('should support custom message', () {
@@ -591,7 +591,7 @@ void main() {
       test('should return error code ends_with', () {
         final schema = VString().endsWith('z');
         final errors = schema.errors('abc');
-        expect(errors!.first.code, 'ends_with');
+        expect(errors!.first.code, 'string.ends_with');
       });
 
       test('should support custom message', () {
@@ -620,7 +620,7 @@ void main() {
       test('should return error code equals', () {
         final schema = VString().equals('x');
         final errors = schema.errors('y');
-        expect(errors!.first.code, 'equals');
+        expect(errors!.first.code, 'string.equals');
       });
 
       test('should support custom message', () {
@@ -630,7 +630,7 @@ void main() {
       });
     });
 
-    group('alpha', () {
+    group('string.alpha', () {
       final schema = VString().alpha();
 
       test('should pass for only letters', () {
@@ -651,7 +651,7 @@ void main() {
 
       test('should return error code alpha', () {
         final errors = schema.errors('123');
-        expect(errors!.first.code, 'alpha');
+        expect(errors!.first.code, 'string.alpha');
       });
 
       test('should support custom message', () {
@@ -661,7 +661,7 @@ void main() {
       });
     });
 
-    group('alphanumeric', () {
+    group('string.alphanumeric', () {
       final schema = VString().alphanumeric();
 
       test('should pass for letters and numbers', () {
@@ -686,7 +686,7 @@ void main() {
 
       test('should return error code alphanumeric', () {
         final errors = schema.errors('a b');
-        expect(errors!.first.code, 'alphanumeric');
+        expect(errors!.first.code, 'string.alphanumeric');
       });
 
       test('should support custom message', () {
@@ -696,7 +696,7 @@ void main() {
       });
     });
 
-    group('slug', () {
+    group('string.slug', () {
       final schema = VString().slug();
 
       test('should pass for valid slug', () {
@@ -729,7 +729,7 @@ void main() {
 
       test('should return error code slug', () {
         final errors = schema.errors('NOT VALID');
-        expect(errors!.first.code, 'slug');
+        expect(errors!.first.code, 'string.slug');
       });
 
       test('should support custom message', () {
@@ -739,7 +739,7 @@ void main() {
       });
     });
 
-    group('password', () {
+    group('string.password', () {
       final schema = VString().password();
 
       test('should pass for strong password', () {
@@ -768,7 +768,7 @@ void main() {
 
       test('should return error code password', () {
         final errors = schema.errors('weak');
-        expect(errors!.first.code, 'password');
+        expect(errors!.first.code, 'string.password');
       });
 
       test('should reject underscore with default specialChars', () {
@@ -798,7 +798,7 @@ void main() {
       });
     });
 
-    group('jwt', () {
+    group('string.jwt', () {
       final schema = VString().jwt();
 
       test('should pass for valid JWT', () {
@@ -824,7 +824,7 @@ void main() {
 
       test('should return error code jwt', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'jwt');
+        expect(errors!.first.code, 'string.jwt');
       });
 
       test('should support custom message', () {
@@ -834,7 +834,7 @@ void main() {
       });
     });
 
-    group('card', () {
+    group('string.card', () {
       final schema = VString().card();
       final visa = VString().card(brands: [const VisaBrand()]);
       final mastercard = VString().card(brands: [const MastercardBrand()]);
@@ -863,7 +863,7 @@ void main() {
 
       test('should return error code card', () {
         final errors = schema.errors('1234567890123456');
-        expect(errors!.first.code, 'card');
+        expect(errors!.first.code, 'string.card');
       });
 
       test('should support custom message', () {
@@ -935,7 +935,7 @@ void main() {
 
       test('should return error code card when brand does not match', () {
         final errors = visa.errors('5555555555554444');
-        expect(errors!.first.code, 'card');
+        expect(errors!.first.code, 'string.card');
       });
 
       test('should accept any brand when brands is empty', () {
@@ -1007,7 +1007,7 @@ void main() {
 
       test('should return error code invalid_phone', () {
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'invalid_phone');
+        expect(errors!.first.code, 'string.phone');
       });
 
       test('should support custom message', () {
@@ -1027,7 +1027,7 @@ void main() {
       });
     });
 
-    group('base64', () {
+    group('string.base64', () {
       final schema = VString().base64();
 
       test('should pass for valid base64 with padding', () {
@@ -1079,7 +1079,7 @@ void main() {
       });
     });
 
-    group('mac', () {
+    group('string.mac', () {
       final schema = VString().mac();
 
       test('should pass with colon separator', () {
@@ -1107,7 +1107,7 @@ void main() {
       });
     });
 
-    group('semver', () {
+    group('string.semver', () {
       final schema = VString().semver();
 
       test('should pass basic version', () {
@@ -1159,7 +1159,7 @@ void main() {
       });
     });
 
-    group('iban', () {
+    group('string.iban', () {
       final schema = VString().iban();
 
       test('should pass for valid GB IBAN', () {
@@ -1187,7 +1187,7 @@ void main() {
       });
     });
 
-    group('json', () {
+    group('string.json', () {
       final schema = VString().json();
 
       test('should pass for object', () {
@@ -1324,7 +1324,7 @@ void main() {
       });
     });
 
-    group('cvv', () {
+    group('string.cvv', () {
       final schema = VString().cvv();
 
       test('should pass for 3 digits', () {
@@ -1400,7 +1400,7 @@ void main() {
       test('should return error code postal_code', () {
         final schema = VString().postalCode(pattern: const UsZipPattern());
         final errors = schema.errors('bad');
-        expect(errors!.first.code, 'postal_code');
+        expect(errors!.first.code, 'string.postal_code');
       });
 
       group('CaPostalCodePattern mode', () {
@@ -1475,7 +1475,7 @@ void main() {
       test('returns error code tax_id', () {
         final schema = VString().taxId(pattern: const _DummyTaxIdPattern());
         final errors = schema.errors('xyz');
-        expect(errors!.first.code, 'tax_id');
+        expect(errors!.first.code, 'string.tax_id');
       });
 
       test('UsSsnPattern accepts formatted', () {
@@ -1670,7 +1670,7 @@ void main() {
         final schema =
             VString().licensePlate(pattern: const _DummyPlatePattern());
         final errors = schema.errors('nope');
-        expect(errors!.first.code, 'license_plate');
+        expect(errors!.first.code, 'string.license_plate');
       });
 
       test('UkPlatePattern accepts AB12 CDE', () {
@@ -2103,7 +2103,7 @@ void main() {
         expect(errors, isNotNull);
         expect(errors!.length, 2);
         expect(errors[0].code, 'string.too_small');
-        expect(errors[1].code, 'contains');
+        expect(errors[1].code, 'string.contains');
       });
 
       test('should chain startsWith and endsWith', () {
@@ -2182,7 +2182,7 @@ void main() {
 
       test('should return correct error code', () {
         final errs = schema.errors('');
-        expect(errs!.first.code, 'not_empty');
+        expect(errs!.first.code, 'string.not_empty');
       });
     });
 

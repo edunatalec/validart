@@ -6,6 +6,12 @@
 /// [VDateCode], [VArrayCode], [VMapCode], [VObjectCode], [VEnumCode],
 /// [VLiteralCode], [VUnionCode].
 ///
+/// Every string emitted via `error.code` follows the `<type>.<action>`
+/// convention (e.g. `string.email`, `number.positive`, `int.even`). The
+/// three generic fallbacks (`required`, `invalid_type`, `custom`) stay
+/// flat because they are type-agnostic — `VLocale` uses them as the
+/// backstop when a prefixed key has no match.
+///
 /// Sealed classes are implicitly abstract, so these types exist only as
 /// namespaces for `static const` fields — they are never instantiated or
 /// extended outside this library.
@@ -41,7 +47,7 @@ sealed class VStringCode {
   static const invalidType = 'string.invalid_type';
 
   /// String must not be empty.
-  static const notEmpty = 'not_empty';
+  static const notEmpty = 'string.not_empty';
 
   /// String is shorter than the minimum length.
   static const tooSmall = 'string.too_small';
@@ -59,98 +65,98 @@ sealed class VStringCode {
   static const numeric = 'string.numeric';
 
   /// String is not a valid email address.
-  static const email = 'invalid_email';
+  static const email = 'string.email';
 
   /// String is not a valid URL.
-  static const url = 'invalid_url';
+  static const url = 'string.url';
 
   /// String is not a valid UUID.
-  static const uuid = 'invalid_uuid';
+  static const uuid = 'string.uuid';
 
   /// String is not a valid IP address.
-  static const ip = 'invalid_ip';
+  static const ip = 'string.ip';
 
   /// String does not match the expected format.
-  static const format = 'invalid_format';
+  static const format = 'string.format';
 
   /// String is not a valid date representation — distinct from
   /// [VDateCode] which operates on [DateTime] values.
-  static const date = 'invalid_date';
+  static const date = 'string.date';
 
   /// String is not a valid time.
-  static const time = 'invalid_time';
+  static const time = 'string.time';
 
   /// String does not contain the required substring.
-  static const contains = 'contains';
+  static const contains = 'string.contains';
 
   /// String does not start with the required prefix.
-  static const startsWith = 'starts_with';
+  static const startsWith = 'string.starts_with';
 
   /// String does not end with the required suffix.
-  static const endsWith = 'ends_with';
+  static const endsWith = 'string.ends_with';
 
   /// String is not equal to the expected value.
-  static const equals = 'equals';
+  static const equals = 'string.equals';
 
   /// String contains non-letter characters.
-  static const alpha = 'alpha';
+  static const alpha = 'string.alpha';
 
   /// String contains non-alphanumeric characters.
-  static const alphanumeric = 'alphanumeric';
+  static const alphanumeric = 'string.alphanumeric';
 
   /// String is not a valid slug.
-  static const slug = 'slug';
+  static const slug = 'string.slug';
 
   /// String does not meet password requirements.
-  static const password = 'password';
+  static const password = 'string.password';
 
   /// String is not a valid JWT.
-  static const jwt = 'jwt';
+  static const jwt = 'string.jwt';
 
   /// String is not a valid credit card number.
-  static const card = 'card';
+  static const card = 'string.card';
 
   /// String is not a valid phone number.
-  static const phone = 'invalid_phone';
+  static const phone = 'string.phone';
 
   /// String is not valid Base64.
-  static const base64 = 'base64';
+  static const base64 = 'string.base64';
 
   /// String is not a valid hex color.
-  static const hexColor = 'hex_color';
+  static const hexColor = 'string.hex_color';
 
   /// String is not a valid MAC address.
-  static const mac = 'mac';
+  static const mac = 'string.mac';
 
   /// String is not a valid Semantic Version (SemVer).
-  static const semver = 'semver';
+  static const semver = 'string.semver';
 
   /// String is not a valid MongoDB ObjectId.
-  static const mongoId = 'mongo_id';
+  static const mongoId = 'string.mongo_id';
 
   /// String is not a valid ULID.
-  static const ulid = 'ulid';
+  static const ulid = 'string.ulid';
 
   /// String is not a valid NanoID.
-  static const nanoId = 'nano_id';
+  static const nanoId = 'string.nano_id';
 
   /// String is not a valid IBAN.
-  static const iban = 'iban';
+  static const iban = 'string.iban';
 
   /// String is not valid JSON.
-  static const json = 'json';
+  static const json = 'string.json';
 
   /// String is not a valid CVV.
-  static const cvv = 'cvv';
+  static const cvv = 'string.cvv';
 
   /// String is not a valid postal code for the given pattern.
-  static const postalCode = 'postal_code';
+  static const postalCode = 'string.postal_code';
 
   /// String is not a valid tax ID for the given pattern.
-  static const taxId = 'tax_id';
+  static const taxId = 'string.tax_id';
 
   /// String is not a valid license plate for the given pattern.
-  static const licensePlate = 'license_plate';
+  static const licensePlate = 'string.license_plate';
 }
 
 /// Error codes shared by [VInt] and [VDouble] — range and sign checks
@@ -166,16 +172,16 @@ sealed class VNumberCode {
   static const notInRange = 'number.not_in_range';
 
   /// Number is not positive.
-  static const positive = 'positive';
+  static const positive = 'number.positive';
 
   /// Number is not negative.
-  static const negative = 'negative';
+  static const negative = 'number.negative';
 
   /// Number is not a multiple of the required factor.
-  static const multipleOf = 'multiple_of';
+  static const multipleOf = 'number.multiple_of';
 
   /// Number is not finite.
-  static const finite = 'finite';
+  static const finite = 'number.finite';
 }
 
 /// Error codes emitted by [VInt] and its validators.
@@ -188,13 +194,13 @@ sealed class VIntCode {
   static const invalidType = 'int.invalid_type';
 
   /// Integer is not even.
-  static const even = 'even';
+  static const even = 'int.even';
 
   /// Integer is not odd.
-  static const odd = 'odd';
+  static const odd = 'int.odd';
 
   /// Integer is not prime.
-  static const prime = 'prime';
+  static const prime = 'int.prime';
 }
 
 /// Error codes emitted by [VDouble] and its validators.
@@ -207,11 +213,11 @@ sealed class VDoubleCode {
   static const invalidType = 'double.invalid_type';
 
   /// Double does not have a fractional part.
-  static const decimal = 'decimal';
+  static const decimal = 'double.decimal';
 
   /// Double is not a whole number — distinct from [VStringCode.integer]
   /// which validates that a string is parseable as an `int`.
-  static const integer = 'integer';
+  static const integer = 'double.integer';
 }
 
 /// Error codes emitted by [VBool] and its validators.
@@ -224,10 +230,10 @@ sealed class VBoolCode {
   static const invalidType = 'bool.invalid_type';
 
   /// Value is not `true`.
-  static const isTrue = 'is_true';
+  static const isTrue = 'bool.is_true';
 
   /// Value is not `false`.
-  static const isFalse = 'is_false';
+  static const isFalse = 'bool.is_false';
 }
 
 /// Error codes emitted by [VDate] and its validators.
@@ -249,13 +255,13 @@ sealed class VDateCode {
   static const notInRange = 'date.not_in_range';
 
   /// Date is not a weekday.
-  static const weekday = 'weekday';
+  static const weekday = 'date.weekday';
 
   /// Date is not a weekend.
-  static const weekend = 'weekend';
+  static const weekend = 'date.weekend';
 
   /// Age derived from date is outside the required range.
-  static const age = 'age';
+  static const age = 'date.age';
 }
 
 /// Error codes emitted by [VArray] and its validators.
@@ -274,10 +280,10 @@ sealed class VArrayCode {
   static const tooBig = 'array.too_big';
 
   /// Array contains duplicate values.
-  static const unique = 'unique';
+  static const unique = 'array.unique';
 
   /// Array does not contain all required values.
-  static const containsAll = 'contains_all';
+  static const containsAll = 'array.contains_all';
 }
 
 /// Error codes emitted by [VMap] and its validators.
@@ -290,10 +296,10 @@ sealed class VMapCode {
   static const invalidType = 'map.invalid_type';
 
   /// Map contains an unrecognized key.
-  static const unrecognizedKey = 'unrecognized_key';
+  static const unrecognizedKey = 'map.unrecognized_key';
 
   /// Two fields that should be equal are not.
-  static const fieldsNotEqual = 'fields_not_equal';
+  static const fieldsNotEqual = 'map.fields_not_equal';
 }
 
 /// Error codes emitted by [VObject] and its validators.
@@ -316,7 +322,7 @@ sealed class VEnumCode {
   static const invalidType = 'enum.invalid_type';
 
   /// Value is not a valid enum member.
-  static const invalid = 'invalid_enum';
+  static const invalid = 'enum.invalid';
 }
 
 /// Error codes emitted by [VLiteral] and its validators.
@@ -329,7 +335,7 @@ sealed class VLiteralCode {
   static const invalidType = 'literal.invalid_type';
 
   /// Value does not match the expected literal.
-  static const invalid = 'invalid_literal';
+  static const invalid = 'literal.invalid';
 }
 
 /// Error codes emitted by [VUnion] and its validators.
@@ -342,5 +348,5 @@ sealed class VUnionCode {
   static const invalidType = 'union.invalid_type';
 
   /// Value does not match any union option.
-  static const invalid = 'invalid_union';
+  static const invalid = 'union.invalid';
 }

@@ -40,9 +40,9 @@ void main() {
         final errors = schema.errors(['valid@email.com', 'bad', 'also-bad']);
         expect(errors, isNotNull);
         expect(errors!.length, 2);
-        expect(errors[0].code, 'invalid_email');
+        expect(errors[0].code, 'string.email');
         expect(errors[0].path, [1]);
-        expect(errors[1].code, 'invalid_email');
+        expect(errors[1].code, 'string.email');
         expect(errors[1].path, [2]);
       });
 
@@ -123,7 +123,7 @@ void main() {
       });
     });
 
-    group('unique', () {
+    group('array.unique', () {
       final schema = VArray<String>(VString()).unique();
 
       test('should pass when all elements are unique', () {
@@ -137,7 +137,7 @@ void main() {
       test('should return error code unique', () {
         final errors = schema.errors(['x', 'x']);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'unique');
+        expect(errors!.first.code, 'array.unique');
       });
 
       test('should support custom message', () {
@@ -166,7 +166,7 @@ void main() {
         final schema = VArray<String>(VString()).contains(['x']);
         final errors = schema.errors(['a', 'b']);
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'contains_all');
+        expect(errors!.first.code, 'array.contains_all');
       });
 
       test('should support custom message', () {
@@ -268,7 +268,7 @@ void main() {
         expect(errors, isNotNull);
         expect(errors!.length, 2);
         expect(errors[0].code, 'array.too_small');
-        expect(errors[1].code, 'unique');
+        expect(errors[1].code, 'array.unique');
       });
     });
 

@@ -513,7 +513,7 @@ void main() {
           );
 
       final errors = await schema.errorsAsync('not-an-email');
-      expect(errors!.first.code, 'invalid_email');
+      expect(errors!.first.code, 'string.email');
     });
 
     test('accepts null via inner nullable', () async {
@@ -607,7 +607,7 @@ void main() {
       ]);
 
       final errors = await schema.errorsAsync('hello');
-      expect(errors!.first.code, 'invalid_union');
+      expect(errors!.first.code, 'union.invalid');
       expect(errors.first.context, isNotNull);
       expect(errors.first.context!.length, 2);
     });
@@ -687,7 +687,7 @@ void main() {
       });
 
       expect(errors, isNotNull);
-      expect(errors!.any((e) => e.code == 'unrecognized_key'), isTrue);
+      expect(errors!.any((e) => e.code == 'map.unrecognized_key'), isTrue);
       expect(errors.any((e) => e.code == 'custom'), isTrue);
     });
 

@@ -23,7 +23,7 @@ void main() {
       test('should return error with code is_true', () {
         final errs = schema.errors(false);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'is_true');
+        expect(errs!.first.code, 'bool.is_true');
       });
 
       test('should use custom message', () {
@@ -47,7 +47,7 @@ void main() {
       test('should return error with code is_false', () {
         final errs = schema.errors(true);
         expect(errs, isNotNull);
-        expect(errs!.first.code, 'is_false');
+        expect(errs!.first.code, 'bool.is_false');
       });
 
       test('should use custom message', () {

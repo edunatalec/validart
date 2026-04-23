@@ -39,77 +39,99 @@ class VLocale {
   /// keys form the remainder of the error code path.
   const VLocale([this._translations = const {}]);
 
-  static const _defaults = <String, String>{
-    // General — used as fallback for every type-specific `required` /
-    // `invalid_type` lookup.
+  static const _defaults = <String, Object>{
+    // Generic fallbacks — used when a prefixed key (e.g. `string.required`)
+    // has no match in the nested groups below. The resolver drops the
+    // prefix and retries here before giving up.
     'required': 'Required',
     'invalid_type': 'Expected {expected}, received {received}',
-
-    // String
-    'not_empty': 'Must not be empty',
-    'string.too_small': 'Must be at least {min} characters',
-    'string.too_big': 'Must be at most {max} characters',
-    'string.length': 'Must be exactly {length} characters',
-    'string.integer': 'Must be a valid integer',
-    'string.numeric': 'Must be a valid number',
-    'invalid_email': 'Invalid email address',
-    'invalid_url': 'Invalid URL',
-    'invalid_uuid': 'Invalid UUID',
-    'invalid_ip': 'Invalid IP address',
-    'invalid_format': 'Invalid format',
-    'invalid_date': 'Invalid date',
-    'invalid_time': 'Invalid time',
-    'contains': 'Must contain "{substring}"',
-    'starts_with': 'Must start with "{prefix}"',
-    'ends_with': 'Must end with "{suffix}"',
-    'equals': 'Must be equal to "{expected}"',
-    'alpha': 'Must contain only letters',
-    'alphanumeric': 'Must contain only letters and numbers',
-    'slug': 'Must be a valid slug',
-    'password':
-        'Password must have at least 8 characters, including uppercase, lowercase, digit, and special character',
-    'jwt': 'Invalid JWT',
-    'card': 'Invalid credit card number',
-    'invalid_phone': 'Invalid phone number',
-
-    // Number
-    'number.too_small': 'Must be at least {min}',
-    'number.too_big': 'Must be at most {max}',
-    'number.not_in_range': 'Must be between {min} and {max}',
-    'positive': 'Must be positive',
-    'negative': 'Must be negative',
-    'multiple_of': 'Must be a multiple of {factor}',
-    'even': 'Must be even',
-    'odd': 'Must be odd',
-    'prime': 'Must be prime',
-    'finite': 'Must be finite',
-    'decimal': 'Must be a decimal number',
-    'integer': 'Must be an integer',
-
-    // Bool
-    'is_true': 'Must be true',
-    'is_false': 'Must be false',
-
-    // Date
-    'date.too_small': 'Must be after {date}',
-    'date.too_big': 'Must be before {date}',
-    'date.not_in_range': 'Must be between {min} and {max}',
-    'weekday': 'Must be a weekday',
-    'weekend': 'Must be a weekend',
-
-    // Array
-    'array.too_small': 'Must have at least {min} items',
-    'array.too_big': 'Must have at most {max} items',
-    'unique': 'Must contain unique values',
-    'contains_all': 'Must contain all required values',
-
-    // Composite
-    'invalid_enum': 'Invalid value. Expected one of: {values}',
-    'invalid_literal': 'Expected "{expected}", received "{received}"',
-    'invalid_union': 'Value does not match any of the union types',
-    'unrecognized_key': 'Unrecognized key "{key}"',
-    'fields_not_equal': '{field} must be equal to {other}',
     'custom': 'Invalid value',
+
+    'string': <String, String>{
+      'not_empty': 'Must not be empty',
+      'too_small': 'Must be at least {min} characters',
+      'too_big': 'Must be at most {max} characters',
+      'length': 'Must be exactly {length} characters',
+      'integer': 'Must be a valid integer',
+      'numeric': 'Must be a valid number',
+      'email': 'Invalid email address',
+      'url': 'Invalid URL',
+      'uuid': 'Invalid UUID',
+      'ip': 'Invalid IP address',
+      'format': 'Invalid format',
+      'date': 'Invalid date',
+      'time': 'Invalid time',
+      'phone': 'Invalid phone number',
+      'contains': 'Must contain "{substring}"',
+      'starts_with': 'Must start with "{prefix}"',
+      'ends_with': 'Must end with "{suffix}"',
+      'equals': 'Must be equal to "{expected}"',
+      'alpha': 'Must contain only letters',
+      'alphanumeric': 'Must contain only letters and numbers',
+      'slug': 'Must be a valid slug',
+      'password':
+          'Password must have at least 8 characters, including uppercase, lowercase, digit, and special character',
+      'jwt': 'Invalid JWT',
+      'card': 'Invalid credit card number',
+    },
+
+    'number': <String, String>{
+      'too_small': 'Must be at least {min}',
+      'too_big': 'Must be at most {max}',
+      'not_in_range': 'Must be between {min} and {max}',
+      'positive': 'Must be positive',
+      'negative': 'Must be negative',
+      'multiple_of': 'Must be a multiple of {factor}',
+      'finite': 'Must be finite',
+    },
+
+    'int': <String, String>{
+      'even': 'Must be even',
+      'odd': 'Must be odd',
+      'prime': 'Must be prime',
+    },
+
+    'double': <String, String>{
+      'decimal': 'Must be a decimal number',
+      'integer': 'Must be an integer',
+    },
+
+    'bool': <String, String>{
+      'is_true': 'Must be true',
+      'is_false': 'Must be false',
+    },
+
+    'date': <String, String>{
+      'too_small': 'Must be after {date}',
+      'too_big': 'Must be before {date}',
+      'not_in_range': 'Must be between {min} and {max}',
+      'weekday': 'Must be a weekday',
+      'weekend': 'Must be a weekend',
+    },
+
+    'array': <String, String>{
+      'too_small': 'Must have at least {min} items',
+      'too_big': 'Must have at most {max} items',
+      'unique': 'Must contain unique values',
+      'contains_all': 'Must contain all required values',
+    },
+
+    'map': <String, String>{
+      'unrecognized_key': 'Unrecognized key "{key}"',
+      'fields_not_equal': '{field} must be equal to {other}',
+    },
+
+    'enum': <String, String>{
+      'invalid': 'Invalid value. Expected one of: {values}',
+    },
+
+    'literal': <String, String>{
+      'invalid': 'Expected "{expected}", received "{received}"',
+    },
+
+    'union': <String, String>{
+      'invalid': 'Value does not match any of the union types',
+    },
   };
 
   /// Translates an error [code] with optional [params] interpolation.

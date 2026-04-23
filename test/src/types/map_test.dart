@@ -14,23 +14,23 @@ void main() {
       test('should pass for valid map', () {
         final schema = VMap({
           'name': VString().min(1),
-          'age': VInt().min(0),
+          'date.age': VInt().min(0),
         });
-        expect(schema.validate({'name': 'Alice', 'age': 30}), isTrue);
+        expect(schema.validate({'name': 'Alice', 'date.age': 30}), isTrue);
       });
 
       test('should fail when a field is invalid', () {
         final schema = VMap({
           'name': VString().min(3),
-          'age': VInt().min(0),
+          'date.age': VInt().min(0),
         });
-        expect(schema.validate({'name': 'Al', 'age': 30}), isFalse);
+        expect(schema.validate({'name': 'Al', 'date.age': 30}), isFalse);
       });
 
       test('should fail when required field is missing', () {
         final schema = VMap({
           'name': VString().min(1),
-          'age': VInt(),
+          'date.age': VInt(),
         });
         expect(schema.validate({'name': 'Alice'}), isFalse);
       });
@@ -69,13 +69,13 @@ void main() {
       test('should return multiple field errors', () {
         final schema = VMap({
           'name': VString().min(3),
-          'age': VInt().min(18),
+          'date.age': VInt().min(18),
         });
-        final errors = schema.errors({'name': 'Al', 'age': 5});
+        final errors = schema.errors({'name': 'Al', 'date.age': 5});
         expect(errors, isNotNull);
         expect(errors!.length, 2);
         expect(errors[0].path, ['name']);
-        expect(errors[1].path, ['age']);
+        expect(errors[1].path, ['date.age']);
       });
     });
 
@@ -129,7 +129,7 @@ void main() {
       test('should return new VMap with only picked keys', () {
         final schema = VMap({
           'name': VString(),
-          'age': VInt(),
+          'date.age': VInt(),
           'email': VString().email(),
         });
         final picked = schema.pick(['name', 'email']);
@@ -139,7 +139,7 @@ void main() {
       test('picked schema should not require omitted fields', () {
         final schema = VMap({
           'name': VString(),
-          'age': VInt(),
+          'date.age': VInt(),
         });
         final picked = schema.pick(['name']);
         expect(picked.validate({'name': 'Alice'}), isTrue);
@@ -159,10 +159,10 @@ void main() {
       test('should return new VMap without omitted keys', () {
         final schema = VMap({
           'name': VString(),
-          'age': VInt(),
+          'date.age': VInt(),
           'email': VString().email(),
         });
-        final omitted = schema.omit(['age']);
+        final omitted = schema.omit(['date.age']);
         expect(
           omitted.validate({'name': 'Alice', 'email': 'a@b.com'}),
           isTrue,
@@ -172,9 +172,9 @@ void main() {
       test('omitted schema should not validate removed fields', () {
         final schema = VMap({
           'name': VString(),
-          'age': VInt(),
+          'date.age': VInt(),
         });
-        final omitted = schema.omit(['age']);
+        final omitted = schema.omit(['date.age']);
         expect(omitted.validate({'name': 'Alice'}), isTrue);
       });
     });
@@ -182,13 +182,13 @@ void main() {
     group('extend', () {
       test('should add new fields to schema', () {
         final schema = VMap({'name': VString()});
-        final extended = schema.extend({'age': VInt()});
-        expect(extended.validate({'name': 'Alice', 'age': 30}), isTrue);
+        final extended = schema.extend({'date.age': VInt()});
+        expect(extended.validate({'name': 'Alice', 'date.age': 30}), isTrue);
       });
 
       test('extended schema should require new fields', () {
         final schema = VMap({'name': VString()});
-        final extended = schema.extend({'age': VInt()});
+        final extended = schema.extend({'date.age': VInt()});
         expect(extended.validate({'name': 'Alice'}), isFalse);
       });
 
@@ -212,10 +212,10 @@ void main() {
 
       test('extend should preserve strict flag from base', () {
         final base = VMap({'name': VString()}).strict();
-        final extended = base.extend({'age': VInt()});
+        final extended = base.extend({'date.age': VInt()});
 
         expect(
-          extended.validate({'name': 'Alice', 'age': 30, 'extra': true}),
+          extended.validate({'name': 'Alice', 'date.age': 30, 'extra': true}),
           isFalse,
         );
       });
@@ -244,14 +244,14 @@ void main() {
     group('merge', () {
       test('should merge two VMap schemas', () {
         final schema1 = VMap({'name': VString()});
-        final schema2 = VMap({'age': VInt()});
+        final schema2 = VMap({'date.age': VInt()});
         final merged = schema1.merge(schema2);
-        expect(merged.validate({'name': 'Alice', 'age': 30}), isTrue);
+        expect(merged.validate({'name': 'Alice', 'date.age': 30}), isTrue);
       });
 
       test('merged schema should require fields from both', () {
         final schema1 = VMap({'name': VString()});
-        final schema2 = VMap({'age': VInt()});
+        final schema2 = VMap({'date.age': VInt()});
         final merged = schema1.merge(schema2);
         expect(merged.validate({'name': 'Alice'}), isFalse);
       });
@@ -325,7 +325,7 @@ void main() {
       test('should make all fields optional', () {
         final schema = VMap({
           'name': VString(),
-          'age': VInt(),
+          'date.age': VInt(),
         });
         final partial = schema.partial();
         expect(partial.validate(<String, dynamic>{}), isTrue);
@@ -334,7 +334,7 @@ void main() {
       test('partial should still validate provided fields', () {
         final schema = VMap({
           'name': VString().min(3),
-          'age': VInt().min(0),
+          'date.age': VInt().min(0),
         });
         final partial = schema.partial();
         expect(partial.validate({'name': 'Al'}), isFalse);
@@ -343,19 +343,19 @@ void main() {
       test('partial should accept missing fields', () {
         final schema = VMap({
           'name': VString(),
-          'age': VInt(),
+          'date.age': VInt(),
         });
         final partial = schema.partial();
         expect(partial.validate({'name': 'Alice'}), isTrue);
       });
 
       test('partial should not mutate the original schema', () {
-        final base = VMap({'name': VString(), 'age': VInt()});
+        final base = VMap({'name': VString(), 'date.age': VInt()});
 
         base.partial();
 
-        expect(base.validate({'name': null, 'age': 10}), isFalse);
-        expect(base.validate({'name': 'Alice', 'age': null}), isFalse);
+        expect(base.validate({'name': null, 'date.age': 10}), isFalse);
+        expect(base.validate({'name': 'Alice', 'date.age': null}), isFalse);
       });
     });
 
@@ -372,7 +372,7 @@ void main() {
         final schema = VMap({'name': VString()}).strict();
         final errors = schema.errors({'name': 'Alice', 'extra': 'value'});
         expect(errors, isNotNull);
-        expect(errors!.first.code, 'unrecognized_key');
+        expect(errors!.first.code, 'map.unrecognized_key');
         expect(errors.first.path, ['extra']);
       });
 
@@ -390,8 +390,8 @@ void main() {
         });
         expect(errors, isNotNull);
         expect(errors!.length, 2);
-        expect(errors[0].code, 'unrecognized_key');
-        expect(errors[1].code, 'unrecognized_key');
+        expect(errors[0].code, 'map.unrecognized_key');
+        expect(errors[1].code, 'map.unrecognized_key');
       });
     });
 
@@ -415,10 +415,10 @@ void main() {
         final schema = VMap({'name': VString()}).passthrough();
         final result = schema.parse({
           'name': 'Alice',
-          'age': 30,
+          'date.age': 30,
           'active': true,
         });
-        expect(result!.keys, containsAll(['name', 'age', 'active']));
+        expect(result!.keys, containsAll(['name', 'date.age', 'active']));
       });
     });
 
@@ -685,7 +685,7 @@ void main() {
     group('kitchen sink (all types combined)', () {
       final schema = V.map({
         'name': V.string().min(1),
-        'age': V.int().between(0, 150),
+        'date.age': V.int().between(0, 150),
         'height': V.double().positive(),
         'active': V.bool().isTrue(),
         'joined': V.date().before(DateTime(2030)),
@@ -700,7 +700,7 @@ void main() {
 
       final good = {
         'name': 'Alice',
-        'age': 30,
+        'date.age': 30,
         'height': 1.65,
         'active': true,
         'joined': DateTime(2024, 1, 15),
@@ -725,7 +725,7 @@ void main() {
       test('reports path-precise errors for every failing field', () {
         final bad = {
           'name': '',
-          'age': 200,
+          'date.age': 200,
           'height': -1.0,
           'active': false,
           'joined': DateTime(2040),
@@ -743,7 +743,7 @@ void main() {
           paths,
           containsAll(<Object>[
             'name',
-            'age',
+            'date.age',
             'height',
             'active',
             'joined',

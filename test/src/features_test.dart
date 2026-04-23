@@ -28,7 +28,7 @@ void main() {
     });
 
     test('should use locale message', () {
-      V.setLocale(const VLocale({'not_empty': 'Não pode ser vazio'}));
+      V.setLocale(const VLocale({'string.not_empty': 'Não pode ser vazio'}));
       final schema = VString().notEmpty();
       final errs = schema.errors('');
       expect(errs!.first.message, 'Não pode ser vazio');
@@ -165,7 +165,7 @@ void main() {
 
     test('should use locale message with params', () {
       V.setLocale(const VLocale({
-        'fields_not_equal': '{field} deve ser igual a {other}',
+        'map.fields_not_equal': '{field} deve ser igual a {other}',
       }));
       final schema = V.map({
         'password': V.string(),
