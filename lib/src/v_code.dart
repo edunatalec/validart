@@ -310,6 +310,9 @@ sealed class VObjectCode {
   /// Value provided to an object schema has the wrong type. Falls back
   /// to [VCode.invalidType].
   static const invalidType = 'object.invalid_type';
+
+  /// Two object fields declared via `equalFields` are not equal.
+  static const fieldsNotEqual = 'object.fields_not_equal';
 }
 
 /// Error codes emitted by [VEnum] and its validators.

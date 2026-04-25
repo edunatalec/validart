@@ -127,6 +127,52 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
+  /// Creates a [VArray] schema that validates a `List<T>` using this
+  /// schema as the element validator.
+  ///
+  /// ```dart
+  /// V.object<User>()
+  ///     .field('name', (u) => u.name, V.string())
+  ///     .array()
+  ///     .validate([User(name: 'Jo'), User(name: 'Ana')]);
+  /// ```
+  VArray<T> array() => VArray<T>(this);
+
+  /// Requires the fields named [fieldA] and [fieldB] to compare equal
+  /// via `==`. Both names must already be declared via [field] before
+  /// calling this method.
+  ///
+  /// ```dart
+  /// V.object<SignUpDto>()
+  ///     .field('password', (d) => d.password, V.string().password())
+  ///     .field('confirm', (d) => d.confirm, V.string())
+  ///     .equalFields('password', 'confirm');
+  /// ```
+  VObject<T> equalFields(String fieldA, String fieldB, {String? message}) {
+    final entryA = _fields.firstWhere(
+      (f) => f.name == fieldA,
+      orElse: () => throw ArgumentError(
+        "The provided field '$fieldA' does not exist in the schema.",
+      ),
+    );
+    final entryB = _fields.firstWhere(
+      (f) => f.name == fieldB,
+      orElse: () => throw ArgumentError(
+        "The provided field '$fieldB' does not exist in the schema.",
+      ),
+    );
+
+    return add(
+      ObjectEqualFieldsValidator<T>(
+        fieldA: fieldA,
+        fieldB: fieldB,
+        extractorA: entryA.extractor,
+        extractorB: entryB.extractor,
+      ),
+      message: message,
+    );
+  }
+
   @override
   bool get hasAsync {
     if (super.hasAsync) return true;

@@ -9,6 +9,7 @@ import 'package:validart/src/validators/array/min_length_list_validator.dart';
 import 'package:validart/src/validators/array/unique_validator.dart';
 import 'package:validart/src/validators/bool/is_false_validator.dart';
 import 'package:validart/src/validators/map/equal_fields_validator.dart';
+import 'package:validart/src/validators/object/equal_fields_validator.dart';
 import 'package:validart/src/validators/bool/is_true_validator.dart';
 import 'package:validart/src/validators/date/after_validator.dart';
 import 'package:validart/src/validators/date/age_validator.dart';

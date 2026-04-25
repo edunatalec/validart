@@ -15,6 +15,13 @@ class _TaggedFolder {
   _TaggedFolder(this.name, this.tags);
 }
 
+class _SignUp {
+  final String email;
+  final String password;
+  final String confirm;
+  _SignUp(this.email, this.password, this.confirm);
+}
+
 enum _AccountStatus { active, suspended, deleted }
 
 class _KitchenSinkEntity {
@@ -277,6 +284,149 @@ void main() {
         final errs = schema.errors(_TaggedFolder('Docs', ['hello', 'ab']));
         expect(errs, isNotNull);
         expect(errs!.first.path, ['tags', 1]);
+      });
+    });
+
+    group('array', () {
+      test('should validate List<T> through VObject.array()', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(1))
+            .array();
+
+        expect(
+          schema.validate([Folder(name: 'Docs'), Folder(name: 'Photos')]),
+          isTrue,
+        );
+      });
+
+      test('should fail with item index + field name in error path', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(3))
+            .array();
+
+        final errors =
+            schema.errors([Folder(name: 'Documents'), Folder(name: 'x')]);
+
+        expect(errors, isNotNull);
+        expect(errors!.first.path, [1, 'name']);
+        expect(errors.first.code, 'string.too_small');
+      });
+
+      test('should chain array-level validators', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(1))
+            .array()
+            .min(1)
+            .unique();
+
+        expect(schema.validate([Folder(name: 'A')]), isTrue);
+        expect(schema.validate(<Folder>[]), isFalse);
+      });
+
+      test('should propagate field validation inside arrays', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(5))
+            .array();
+
+        expect(schema.validate([Folder(name: 'Docs')]), isFalse);
+        expect(schema.validate([Folder(name: 'Photos')]), isTrue);
+      });
+    });
+
+    group('equalFields', () {
+      test('should pass when two fields are equal', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string().email())
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields('password', 'confirm');
+
+        expect(
+          schema.validate(_SignUp('a@b.com', 'secret', 'secret')),
+          isTrue,
+        );
+      });
+
+      test('should fail when two fields differ', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string().email())
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields('password', 'confirm');
+
+        expect(
+          schema.validate(_SignUp('a@b.com', 'secret', 'other')),
+          isFalse,
+        );
+      });
+
+      test('should emit object.fields_not_equal with interpolated message', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string().email())
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields('password', 'confirm');
+
+        final errors = schema.errors(_SignUp('a@b.com', 'secret', 'other'));
+
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'object.fields_not_equal');
+        expect(errors.first.message, 'password must be equal to confirm');
+      });
+
+      test('should throw ArgumentError when field name is unknown', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string().email())
+            .field('password', (d) => d.password, V.string().min(1));
+
+        expect(
+          () => schema.equalFields('password', 'missing'),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('should respect custom message override', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields(
+              'password',
+              'confirm',
+              message: 'Senhas devem coincidir',
+            );
+
+        final errors = schema.errors(_SignUp('a@b.com', 'secret', 'other'));
+
+        expect(errors, isNotNull);
+        expect(errors!.first.message, 'Senhas devem coincidir');
+      });
+
+      test('should respect locale override', () {
+        V.setLocale(
+          const VLocale({
+            'object.fields_not_equal': '{field} difere de {other}',
+          }),
+        );
+
+        final schema = V
+            .object<_SignUp>()
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields('password', 'confirm');
+
+        final errors = schema.errors(_SignUp('a@b.com', 'secret', 'other'));
+
+        expect(errors, isNotNull);
+        expect(errors!.first.message, 'password difere de confirm');
       });
     });
 

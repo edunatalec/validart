@@ -135,6 +135,10 @@ class VLocale {
       'fields_not_equal': '{field} must be equal to {other}',
     },
 
+    'object': <String, String>{
+      'fields_not_equal': '{field} must be equal to {other}',
+    },
+
     'enum': <String, String>{
       'invalid': 'Invalid value. Expected one of: {values}',
     },
