@@ -112,6 +112,9 @@ class VObject<T> extends VType<T> {
 
   /// Creates a [VObject] — chain [field] to add type-safe field extractors.
   ///
+  /// Pass [message] to override the default translation used
+  /// when the input is `null`.
+  ///
   /// ```dart
   /// final schema = VObject<User>()
   ///     .field('name', (u) => u.name, V.string());
@@ -154,6 +157,8 @@ class VObject<T> extends VType<T> {
   /// Requires the fields named [fieldA] and [fieldB] to compare equal
   /// via `==`. Both names must already be declared via [field] before
   /// calling this method.
+  ///
+  /// Runs in the validation phase.
   ///
   /// ```dart
   /// V.object<SignUpDto>()
@@ -317,6 +322,8 @@ class VObject<T> extends VType<T> {
 
   /// Adds a custom validation targeting a specific field [path]. The [check]
   /// receives the whole instance and the emitted error is scoped to [path].
+  ///
+  /// Runs in the validation phase.
   ///
   /// ```dart
   /// V.object<User>()
