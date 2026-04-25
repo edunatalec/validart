@@ -37,12 +37,17 @@ class VTransformed<I, O> extends VType<O> {
       preprocessed = fn(preprocessed);
     }
 
+    if (preprocessed == null) {
+      if (_hasDefault) return _runPipeline(_defaultValue as O);
+      if (_isNullable) return VSuccess<O?>(null);
+    }
+
     final result = _inner.safeParse(preprocessed);
 
     switch (result) {
       case VSuccess(:final value):
         if (value == null) return VSuccess<O?>(null);
-        return VSuccess<O?>(_transformFn(value as I));
+        return _runPipeline(_transformFn(value as I));
       case VFailure(:final errors):
         return VFailure<O?>(errors);
     }
@@ -60,6 +65,11 @@ class VTransformed<I, O> extends VType<O> {
       preprocessed = await fn(preprocessed);
     }
 
+    if (preprocessed == null) {
+      if (_hasDefault) return _runPipelineAsync(_defaultValue as O);
+      if (_isNullable) return VSuccess<O?>(null);
+    }
+
     final result = _inner.hasAsync
         ? await _inner.safeParseAsync(preprocessed)
         : _inner.safeParse(preprocessed);
@@ -67,7 +77,7 @@ class VTransformed<I, O> extends VType<O> {
     switch (result) {
       case VSuccess(:final value):
         if (value == null) return VSuccess<O?>(null);
-        return VSuccess<O?>(_transformFn(value as I));
+        return _runPipelineAsync(_transformFn(value as I));
       case VFailure(:final errors):
         return VFailure<O?>(errors);
     }
@@ -120,6 +130,11 @@ class VTransformedAsync<I, O> extends VType<O> {
       preprocessed = await fn(preprocessed);
     }
 
+    if (preprocessed == null) {
+      if (_hasDefault) return _runPipelineAsync(_defaultValue as O);
+      if (_isNullable) return VSuccess<O?>(null);
+    }
+
     final result = _inner.hasAsync
         ? await _inner.safeParseAsync(preprocessed)
         : _inner.safeParse(preprocessed);
@@ -127,7 +142,7 @@ class VTransformedAsync<I, O> extends VType<O> {
     switch (result) {
       case VSuccess(:final value):
         if (value == null) return VSuccess<O?>(null);
-        return VSuccess<O?>(await _transformFn(value as I));
+        return _runPipelineAsync(await _transformFn(value as I));
       case VFailure(:final errors):
         return VFailure<O?>(errors);
     }

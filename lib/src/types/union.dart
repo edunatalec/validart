@@ -52,7 +52,7 @@ class VUnion extends VType<Object> {
     for (final option in _options) {
       final result = option.safeParse(input);
 
-      if (result.isValid) return VSuccess<Object?>(input);
+      if (result.isValid) return _runPipeline(input as Object);
 
       optionErrors.add((result as VFailure).errors);
     }
@@ -90,7 +90,7 @@ class VUnion extends VType<Object> {
           ? await option.safeParseAsync(input)
           : option.safeParse(input);
 
-      if (result.isValid) return VSuccess<Object?>(input);
+      if (result.isValid) return _runPipelineAsync(input as Object);
 
       optionErrors.add((result as VFailure).errors);
     }

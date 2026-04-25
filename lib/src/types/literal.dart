@@ -33,7 +33,7 @@ class VLiteral<T> extends VType<T> {
     final input = resolution.input;
 
     if (input == _expected) {
-      return VSuccess<T?>(_expected);
+      return _runPipeline(_expected);
     }
 
     return VFailure<T?>([
