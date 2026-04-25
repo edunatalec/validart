@@ -45,7 +45,7 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
   - [Transform](#transform)
   - [Preprocess](#preprocess)
 - [Modifiers](#modifiers)
-  - [Custom `required` message per schema](#custom-required-message-per-schema)
+  - [Custom pre-pipeline messages per schema](#custom-pre-pipeline-messages-per-schema)
 - [Async Validation](#async-validation)
   - [More async primitives](#more-async-primitives)
 - [Form Errors](#form-errors)
@@ -55,7 +55,6 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
   - [`refine` with `dependsOn` for error aggregation on `VMap` / `VObject`](#refine-with-dependson-for-error-aggregation-on-vmap--vobject)
 - [i18n (Internationalization)](#i18n-internationalization)
   - [Type-specific overrides](#type-specific-overrides)
-  - [Per-validator override](#per-validator-override)
   - [Manual translation](#manual-translation)
   - [Error codes](#error-codes)
   - [Complete translation template](#complete-translation-template)
@@ -84,7 +83,7 @@ schema.validate('invalid');          // false
 
 // Get structured errors
 final errors = schema.errors('invalid');
-// [VError(code: invalid_email, message: Invalid email address)]
+// [VError(code: 'string.email', message: 'Invalid email address')]
 
 // Parse — throws on failure
 final value = schema.parse('user@example.com'); // 'user@example.com'
@@ -416,7 +415,8 @@ Errors include field paths:
 
 ```dart
 final errors = userSchema.errors({'name': '', 'email': 'bad'});
-// [VError(code: string.too_small, path: [name]), VError(code: invalid_email, path: [email])]
+// [VError(code: 'string.too_small', path: ['name']),
+//  VError(code: 'string.email',     path: ['email'])]
 ```
 
 ### Schema Composition
@@ -543,8 +543,8 @@ users.errors([
   {'name': 'Alice', 'email': 'alice@ex.com'},
   {'name': '',     'email': 'not-an-email'},
 ]);
-// [VError(code: string.too_small, path: [1, name]),
-//  VError(code: string.email,     path: [1, email])]
+// [VError(code: 'string.too_small', path: [1, 'name']),
+//  VError(code: 'string.email',     path: [1, 'email'])]
 ```
 
 ## Object (Entity Validation)
@@ -662,6 +662,8 @@ V.object<User>()
   );
 ```
 
+`VObject<T>.refineFieldRaw(check, path:)` mirrors `VMap.refineFieldRaw` — the callback receives the `T` instance after the cast but **before** any per-field pipeline runs. Reach for it when the rule must execute regardless of per-field results, or when it depends on the input as it arrived. See the [refineField vs refineFieldRaw table under Map](#refinefield-vs-refinefieldraw) for the full comparison; the semantics are identical, only the callback signature changes (`Map` for `VMap`, `T` for `VObject<T>`).
+
 ### Conditional Validation
 
 `.when(field, equals:, then:)` applies extra validators only when another field has a specific value:
@@ -706,7 +708,7 @@ final merged = identity.merge(contactOnly); // name + email
 
 > Note: unlike TypeScript, `pick`/`omit` do not generate a subset _type_. The input still has to be a full instance of `T` — only the validation surface is narrowed. For partial/dynamic payloads (CRUD UPDATE via JSON), reach for `VMap.partial()` instead.
 >
-> `partial()`, `strict()` and `passthrough()` from `VMap` are **not** available on `VObject` — they don't map to nominal Dart classes whose fields are declared up front. See the CHANGELOG of 1.4.0 for the full rationale.
+> `partial()`, `strict()` and `passthrough()` from `VMap` are **not** available on `VObject`. Each one assumes a runtime-shapeable container (extra/missing keys, all-fields-optional), but a `VObject<T>` validates instances of a nominal Dart class — the field set is fixed at compile time and the type system already rejects unknown keys. For partial / patch payloads coming as JSON, validate them with `VMap.partial()` and convert to `T` after parsing.
 
 ## Array
 
@@ -885,6 +887,8 @@ Containers add an extra block between the type check and the entity-level valida
 | 9 | Entity-level validators | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See *`refine` with `dependsOn`* below. |
 | 10 | Entity-level transforms | `.transform<O>(fn)` | Only run if every step above passed. Rare on containers, but works the same as on primitives. |
 
+> `.strict()` (step 5) and `.passthrough()` (step 8) are conceptually opposite — only one applies to any given schema. If both flags somehow get set on the same `VMap`, the strict check still runs first and rejects unknown keys before passthrough has a chance to copy them.
+
 ```dart
 // Why refineFieldRaw runs before per-field — a raw casing check.
 V.map({
@@ -984,24 +988,35 @@ V.string().defaultValue('').min(3).parse(null); // throws VException
 V.string().defaultValue('hello').min(3).parse(null); // 'hello'
 ```
 
-### Custom `required` message per schema
+### Custom pre-pipeline messages per schema
 
-Every factory (`V.string()`, `V.int()`, `V.bool()`, `V.date()`, `V.map()`, `V.array()`, `V.object()`, `V.enm()`, `V.literal()`, `V.union()`) accepts an optional `message` that customizes the `required` error (fired on `null` input) without touching the locale:
+Every factory (`V.string()`, `V.int()`, `V.bool()`, `V.date()`, `V.map()`, `V.array()`, `V.object()`, `V.enm()`, `V.literal()`, `V.union()`) accepts two independent message overrides for the errors emitted **before** the validation pipeline starts. They mirror Zod's `required_error` / `invalid_type_error` separation — `required` is typically a user-facing label, while `invalid_type` is a developer-facing signal, so keep them separate when the messages should differ.
+
+- **`message:`** — overrides the `required` error fired when input is `null` and the schema is neither `nullable()` nor has a `defaultValue`.
+- **`invalidTypeMessage:`** — overrides the `invalid_type` error fired when input is non-null but has the wrong runtime type for the schema (e.g. `42` against `V.string()`).
 
 ```dart
-V.bool(message: 'You must accept the terms').isTrue();
-V.string(message: 'Name is required').min(1);
-V.int(message: 'Age is required').between(0, 150);
+final email = V.string(
+  message: 'Email is required',
+  invalidTypeMessage: 'Email must be text',
+).email();
+
+email.errors(null);            // 'Email is required'   (required)
+email.errors(42);              // 'Email must be text'  (invalid_type)
+email.errors('user@x.com');    // null — passes
+email.errors('not-an-email');  // 'Invalid email address'  (validator-level, NOT factory)
 ```
 
-Fallback chain for the `required` error: factory `message` (per schema) → locale translation → default English.
+Each parameter is independent — set just one, or both. Without a factory override, the locale template is used (and `invalidTypeMessage` falls back to `'Expected {expected}, received {received}'`, with type info preserved).
 
-Individual validators (`.email(message: ...)`, `.min(n, message: ...)`, `.refine(fn, message: ...)`, ...) accept their own `message` for the error they produce. The factory-level one fires only on `null` input; the validator-level one fires only when that validator rejects a non-null value — both can coexist on the same schema:
+Individual validators (`.email(message: ...)`, `.min(n, message: ...)`, `.refine(fn, message: ...)`, ...) accept their own `message` for the error they produce. The factory-level ones fire only on pre-pipeline errors above; the validator-level one fires only when that validator rejects a non-null, correctly-typed value — both can coexist on the same schema:
 
 ```dart
 V.string(message: 'Name is required')
     .min(3, message: (n) => 'At least $n chars');
 ```
+
+> **Out of scope:** `V.enm(...)` and `V.literal(...)` emit `enum.invalid` / `literal.invalid` codes (not `invalid_type`) when the value doesn't match — those are *value* errors, not *type* errors. Both factories accept `invalidTypeMessage:` for API uniformity, but the override is a no-op there; use a `VLocale` entry to customize those codes.
 
 ## Async Validation
 
@@ -1053,16 +1068,26 @@ final user = await loader.parseAsync('550e8400-...'); // User
 
 ## Form Errors
 
-Convert errors to a map keyed by field name:
+Three field-keyed accessors on `VFailure`, each fitting a different UI shape:
+
+| Method | Returns | Use when |
+|---|---|---|
+| `toMapFirst()` | `Map<String, String>` — one error per field (the first registered) | the input renders a single inline message (most form UIs) |
+| `toMapAll()` | `Map<String, List<String>>` — every error per field, in order | a help panel that lists every rule a field broke (e.g. password policy) |
+| `rootMessages()` | `List<String>` — every error with empty `path` | form-wide rules that don't belong to one input (banner / summary) |
+| `toMap()` | alias for `toMapFirst()` | backwards compatibility |
 
 ```dart
 final result = schema.safeParse(data);
 
-if (result case VFailure(:final errors)) {
-  final map = result.toMap();
-  // {'email': 'Invalid email address', 'name': 'Required'}
+if (result case VFailure() && final f) {
+  final fieldErrors = f.toMapFirst();   // {'email': 'Invalid email address', 'name': 'Required'}
+  final allErrors   = f.toMapAll();     // {'pwd': ['Must be ≥ 8 chars', 'Invalid pattern', ...]}
+  final formErrors  = f.rootMessages(); // ['endDate must be after startDate']
 }
 ```
+
+The three methods partition the errors cleanly — each `VError` lands in exactly one of `toMapFirst()`/`toMapAll()` (when `path` is non-empty) or `rootMessages()` (when `path` is empty). To handle every error in a single pass, iterate `failure.errors` directly (see *Reading raw errors* below).
 
 ### Reading raw errors
 
@@ -1180,7 +1205,17 @@ schema.errors({
 // ]
 ```
 
-`dependsOn` accepts any field declared in the base schema OR injected via any `when.then` block. Unknown keys throw an `AssertionError` at construction time. The same parameter is available on `refineAsync`. Without `dependsOn`, the conservative skip-on-any-failure behavior is preserved.
+`dependsOn` accepts any field declared in the base schema OR injected via any `when.then` block. Unknown keys throw an `AssertionError` at construction time. The same parameter is available on `refineAsync` and `refineField`.
+
+Three modes summarised:
+
+| `dependsOn` value | Refine runs when |
+|---|---|
+| omitted (default) | no field failed (conservative — protects naive casts in the callback) |
+| `const {'a', 'b'}` | every listed dep passed; aggregates with unrelated field errors |
+| `const {}` (empty) | always — opt-out of the conservative skip; callback **must** be defensive about missing fields |
+
+Use `dependsOn: const {}` for audit / logging / always-on rules where the callback safely handles partially-parsed input (e.g. uses `m['x'] as String?` instead of `m['x'] as String`). Without that explicit opt-in, a refine without `dependsOn` is silently skipped whenever any field fails.
 
 ## i18n (Internationalization)
 
@@ -1189,17 +1224,21 @@ Set translations using `VLocale`:
 ```dart
 V.setLocale(const VLocale({
   'required': 'Campo obrigatório',
-  'invalid_email': 'Email inválido',
+  'string.email': 'Email inválido',
   'string.too_small': 'Mínimo de {min} caracteres',
 }));
 ```
 
-Only override what you need — everything else falls back to English defaults. Switch locale at runtime:
+Only override what you need — everything else falls back to English defaults. Switch locale at runtime by passing a different `VLocale` (define your own constants per language; the package ships only English defaults):
 
 ```dart
-V.setLocale(const VLocale(ptBrTranslations));
-V.setLocale(const VLocale(esTranslations));
-V.setLocale(const VLocale()); // reset to English
+const ptBr = VLocale({
+  'required': 'Campo obrigatório',
+  'string.email': 'Email inválido',
+});
+
+V.setLocale(ptBr);
+V.setLocale(const VLocale()); // reset to English defaults
 ```
 
 ### Type-specific overrides
@@ -1227,13 +1266,7 @@ V.bool().errors(null)!.first.message;   // 'Campo obrigatório' (generic fallbac
 
 Lookup order for any prefixed code (e.g. `string.required`): custom prefixed → custom generic (`required`) → default prefixed → default generic → the code itself.
 
-### Per-validator override
-
-Bypasses the locale entirely for a single validator call:
-
-```dart
-V.string().min(3, message: (n) => 'At least $n chars');
-```
+For per-schema overrides at the factory level (`V.string(message: ..., invalidTypeMessage: ...)`) and per-validator overrides on individual chain calls (`.email(message: ...)`, `.min(n, message: ...)`), see *[Custom pre-pipeline messages per schema](#custom-pre-pipeline-messages-per-schema)*. Both bypass the locale for the specific error they target.
 
 ### Manual translation
 
@@ -1293,6 +1326,9 @@ Two equivalent formats are supported — pick the one you prefer, or mix them.
 #### Flat format
 
 Same groups as the nested format, just spelled out with the `<type>.<action>` prefix on each key.
+
+<details>
+<summary>Click to expand the full flat template (~110 keys)</summary>
 
 ```dart
 V.setLocale(const VLocale({
@@ -1404,11 +1440,16 @@ V.setLocale(const VLocale({
 }));
 ```
 
+</details>
+
 **Interpolation tokens** — each key can use `{param}` placeholders that are substituted at validation time. The most common ones: `{min}`, `{max}`, `{length}`, `{factor}`, `{expected}`, `{received}`, `{substring}`, `{prefix}`, `{suffix}`, `{date}`, `{key}`, `{field}`, `{other}`, `{values}`, `{name}` (for pluggable patterns like postal codes and tax IDs). Leaving a token in the translated string preserves the dynamic value in the output; omit tokens you don't want to render.
 
 #### Nested format
 
 Same content, grouped by type — easier to maintain when translating several keys of the same namespace.
+
+<details>
+<summary>Click to expand the full nested template</summary>
 
 ```dart
 V.setLocale(const VLocale({
@@ -1543,6 +1584,8 @@ V.setLocale(const VLocale({
   },
 }));
 ```
+
+</details>
 
 #### Mixing formats
 
