@@ -28,6 +28,19 @@ class _TaxPayer {
   _TaxPayer(this.country, this.taxId);
 }
 
+class _Profile {
+  final String name;
+  final int age;
+  final String email;
+  final String? bio;
+  _Profile({
+    required this.name,
+    required this.age,
+    required this.email,
+    this.bio,
+  });
+}
+
 enum _AccountStatus { active, suspended, deleted }
 
 class _KitchenSinkEntity {
@@ -684,6 +697,565 @@ void main() {
               .refineField((f) => true, path: 'missing'),
           throwsA(isA<AssertionError>()),
         );
+      });
+    });
+
+    group('immutability (pick/omit/merge return fresh instances)', () {
+      test('pick returns a new VObject distinct from the source', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int());
+
+        final picked = base.pick(['name']);
+
+        expect(identical(base, picked), isFalse);
+        expect(base.schema.keys.toList(), ['name', 'age']);
+        expect(picked.schema.keys.toList(), ['name']);
+      });
+
+      test('mutating the picked schema does not affect the source', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int());
+        final picked = base.pick(['name']);
+
+        picked.field('email', (p) => p.email, V.string().email());
+
+        expect(base.schema.keys.toList(), ['name', 'age']);
+        expect(picked.schema.keys.toList(), ['name', 'email']);
+      });
+
+      test('omit returns a new VObject distinct from the source', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int());
+        final omitted = base.omit(['age']);
+
+        expect(identical(base, omitted), isFalse);
+      });
+
+      test('merge returns a new VObject distinct from both sources', () {
+        final a = V.object<_Profile>().field('name', (p) => p.name, V.string());
+        final b = V.object<_Profile>().field('age', (p) => p.age, V.int());
+
+        final merged = a.merge(b);
+
+        expect(identical(merged, a), isFalse);
+        expect(identical(merged, b), isFalse);
+      });
+    });
+
+    group('composition algebra', () {
+      test('pick + empty list yields a schema with no fields', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .pick(<String>[]);
+
+        expect(schema.schema, isEmpty);
+        expect(
+          schema.validate(_Profile(name: 'Jo', age: 30, email: 'a@b.com')),
+          isTrue,
+        );
+      });
+
+      test('omit + every key yields a schema with no fields', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .omit(['name', 'age']);
+
+        expect(schema.schema, isEmpty);
+      });
+
+      test('pick(K).pick(K) is idempotent', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .field('email', (p) => p.email, V.string().email());
+
+        final once = base.pick(['name', 'age']);
+        final twice = once.pick(['name', 'age']);
+
+        expect(twice.schema.keys.toList(), once.schema.keys.toList());
+      });
+
+      test('pick + omit cancel each other when keys disjoint', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int());
+
+        final picked = base.pick(['name']);
+        final pickedAndOmitted = picked.omit(['age']);
+
+        expect(pickedAndOmitted.schema.keys.toList(), ['name']);
+      });
+
+      test('pick after omit drops the omitted key', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int());
+
+        final result = base.omit(['age']).pick(['age', 'name']);
+
+        expect(result.schema.keys.toList(), ['name']);
+      });
+
+      test('merge with itself duplicates field entries', () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string().min(1));
+
+        final merged = base.merge(base);
+
+        expect(merged.schema.keys.length, 1);
+        expect(
+          merged.errors(_Profile(name: '', age: 0, email: 'a@b.com'))?.length,
+          2,
+          reason: 'both copies of the same validator should fire',
+        );
+      });
+
+      test('merge order: base fields appear before other fields', () {
+        final a = V.object<_Profile>().field('name', (p) => p.name, V.string());
+        final b = V.object<_Profile>().field('age', (p) => p.age, V.int());
+
+        final merged = a.merge(b);
+
+        expect(merged.schema.keys.toList(), ['name', 'age']);
+      });
+    });
+
+    group('state preservation through pick/omit/merge', () {
+      test('pick preserves nullable from base', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .nullable()
+            .pick(['name']);
+
+        expect(schema.validate(null), isTrue);
+      });
+
+      test('omit preserves defaultValue from base', () {
+        final fallback =
+            _Profile(name: 'fallback', age: 0, email: 'fallback@x.com');
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .defaultValue(fallback)
+            .omit(['age']);
+
+        expect(schema.parse(null), fallback);
+      });
+
+      test('pick preserves entity-level refine from base', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .refine((p) => p.age >= 0, code: 'neg_age')
+            .pick(['name']);
+
+        final errs = _Profile(name: 'Jo', age: -1, email: 'a@b.com');
+
+        expect(
+          schema.errors(errs)?.first.code,
+          'neg_age',
+          reason:
+              'refine must survive pick even when it depends on dropped field',
+        );
+      });
+
+      test('pick preserves equalFields validator (extractor still works)', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string().email())
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields('password', 'confirm')
+            .pick(['email']);
+
+        expect(
+          schema.validate(_SignUp('a@b.com', 'x', 'y')),
+          isFalse,
+          reason: 'equalFields extractor was captured before pick',
+        );
+      });
+
+      test('merge ORs nullable from both sides (true || false → true)', () {
+        final nullable = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .nullable();
+        final notNullable =
+            V.object<_Profile>().field('age', (p) => p.age, V.int());
+
+        expect(nullable.merge(notNullable).validate(null), isTrue);
+        expect(notNullable.merge(nullable).validate(null), isTrue);
+      });
+
+      test('merge concatenates pipeline steps (both refines fire)', () {
+        final a = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .refine((p) => p.name != 'forbidden_a', code: 'a_violation');
+        final b = V
+            .object<_Profile>()
+            .field('age', (p) => p.age, V.int())
+            .refine((p) => p.age > 0, code: 'b_violation');
+
+        final merged = a.merge(b);
+
+        final errors = merged
+            .errors(_Profile(name: 'forbidden_a', age: 0, email: 'a@b.com'));
+        expect(
+          errors?.map((e) => e.code).toSet(),
+          containsAll(<String>['a_violation', 'b_violation']),
+        );
+      });
+
+      test('merge propagates whenRules from both sides', () {
+        final a = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .when('name', equals: 'trigger_a', then: {
+          'name': V.string().min(100),
+        });
+        final b = V
+            .object<_Profile>()
+            .field('age', (p) => p.age, V.int())
+            .when('age', equals: 7, then: {
+          'age': V.int().min(100),
+        });
+
+        final merged = a.merge(b);
+
+        expect(merged.whenRules.length, 2);
+      });
+    });
+
+    group('when edge cases', () {
+      test('equals: null fires when extractor returns null', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().nullable())
+            .field('name', (f) => f.name, V.string())
+            .when('id', equals: null, then: {
+          'name': V.string().min(20),
+        });
+
+        expect(schema.validate(Folder(name: 'Documents')), isFalse);
+        expect(
+          schema.validate(Folder(
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'x',
+          )),
+          isTrue,
+          reason: 'when does not fire when id is non-null',
+        );
+      });
+
+      test('then: {} (empty) is a no-op even if condition matches', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .when('country', equals: 'US', then: const {});
+
+        expect(schema.validate(_TaxPayer('US', 'x')), isTrue);
+      });
+
+      test('multiple when rules can fire on the same input independently', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string().min(1))
+            .when('country', equals: 'US', then: {
+          'taxId': V.string().min(9),
+        }).when('country', equals: 'US', then: {
+          'taxId': V.string().contains('-'),
+        });
+
+        expect(schema.validate(_TaxPayer('US', '123-45-6789')), isTrue);
+        expect(schema.validate(_TaxPayer('US', '123456789')), isFalse);
+      });
+
+      test('when on the same field as then runs additional validation', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .when('name', equals: 'x', then: {
+          'name': V.string().min(5),
+        });
+
+        expect(schema.validate(Folder(name: 'x')), isFalse);
+        expect(schema.validate(Folder(name: 'normal')), isTrue);
+      });
+
+      test('whenRules getter returns an unmodifiable view', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .when('name', equals: 'x', then: const {});
+
+        expect(schema.whenRules, hasLength(1));
+        expect(schema.whenRules.first.field, 'name');
+        expect(schema.whenRules.first.equals, 'x');
+      });
+    });
+
+    group('equalFields edge cases', () {
+      test('comparing a field to itself is always equal', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .equalFields('name', 'name');
+
+        expect(schema.validate(Folder(name: 'anything')), isTrue);
+      });
+
+      test('two null extractor values compare equal (null == null)', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().nullable())
+            .field('aliasId', (f) => f.id, V.string().nullable())
+            .equalFields('id', 'aliasId');
+
+        expect(schema.validate(Folder(name: 'x')), isTrue);
+      });
+
+      test('two list-typed fields use Dart identity equality (not deep)', () {
+        // Reminder: List `==` is identity in Dart. equalFields exposes that.
+        final shared = ['a', 'b'];
+        final schema = V
+            .object<_TaggedFolder>()
+            .field('tags', (f) => f.tags, V.array(V.string()))
+            .field('mirror', (f) => f.tags, V.array(V.string()))
+            .equalFields('tags', 'mirror');
+
+        expect(
+          schema.validate(_TaggedFolder('docs', shared)),
+          isTrue,
+          reason: 'both extractors return the same list reference',
+        );
+      });
+
+      test('multiple equalFields rules accumulate', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string())
+            .field('password', (d) => d.password, V.string())
+            .field('confirm', (d) => d.confirm, V.string())
+            .equalFields('email', 'password')
+            .equalFields('password', 'confirm');
+
+        final errors = schema.errors(_SignUp('a@b.com', 'pwd', 'pwd'));
+
+        expect(errors?.length, 1);
+        expect(errors!.first.code, 'object.fields_not_equal');
+      });
+    });
+
+    group('refineField edge cases', () {
+      test('multiple refineField on same path collects multiple errors', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .refineField((f) => f.name.length >= 3, path: 'name', message: 'A')
+            .refineField((f) => f.name.length >= 5, path: 'name', message: 'B');
+
+        final errors = schema.errors(Folder(name: 'ab'));
+        expect(errors?.length, 2);
+      });
+
+      test('refineField predicate can read across multiple fields', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('email', (p) => p.email, V.string().email())
+            .refineField(
+              (p) => p.email.contains(p.name),
+              path: 'email',
+              message: 'email must contain the name',
+            );
+
+        expect(
+          schema.validate(_Profile(name: 'jo', age: 30, email: 'jo@x.com')),
+          isTrue,
+        );
+        expect(
+          schema.validate(_Profile(name: 'ana', age: 30, email: 'jo@x.com')),
+          isFalse,
+        );
+      });
+    });
+
+    group('extreme mixing (kitchen sink for new methods)', () {
+      test(
+          'all composition operators in a single chain produce expected errors',
+          () {
+        final base = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string().min(1))
+            .field('age', (p) => p.age, V.int().between(0, 150))
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .when('age', equals: 0, then: {
+          'name': V.string().min(20),
+        }).refineField(
+          (p) => p.email.endsWith('@example.com'),
+          path: 'email',
+          message: 'must be example.com',
+        );
+
+        final audit =
+            V.object<_Profile>().field('email', (p) => p.email, V.string());
+
+        final extended = base.omit(['bio']).merge(audit);
+
+        final ok = _Profile(
+          name: 'Alice',
+          age: 30,
+          email: 'a@example.com',
+          bio: 'optional bio still set on the instance',
+        );
+        expect(extended.validate(ok), isTrue);
+
+        final whenViolation =
+            _Profile(name: 'Bob', age: 0, email: 'b@example.com');
+        final errors = extended.errors(whenViolation);
+        expect(errors, isNotNull);
+        expect(
+          errors!.any((e) => e.path.first == 'name'),
+          isTrue,
+          reason: 'when fired because age == 0',
+        );
+
+        final emailViolation =
+            _Profile(name: 'Carol', age: 30, email: 'c@other.com');
+        final emailErrors = extended.errors(emailViolation);
+        expect(emailErrors!.first.message, 'must be example.com');
+      });
+
+      test('nested array of objects with conditional rules', () {
+        final personSchema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string().min(1))
+            .when('country', equals: 'US', then: {
+          'taxId': V.string().contains('-'),
+        });
+
+        final listSchema = personSchema.array().min(1);
+
+        expect(
+          listSchema.validate([
+            _TaxPayer('US', '123-45-6789'),
+            _TaxPayer('BR', '123456789'),
+          ]),
+          isTrue,
+        );
+
+        final errors = listSchema.errors([
+          _TaxPayer('US', '123456789'),
+          _TaxPayer('BR', '987654321'),
+        ]);
+        expect(errors, isNotNull);
+        expect(errors!.first.path.first, 0);
+      });
+
+      test('VObject inside VMap inside VObject, all with composition', () {
+        final inner = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(1))
+            .field('id', (f) => f.id, V.string().nullable())
+            .pick(['name']);
+
+        final mapSchema = V.map({
+          'folder': inner,
+        });
+
+        expect(
+          mapSchema.validate({'folder': Folder(name: 'Docs')}),
+          isTrue,
+        );
+
+        final errors = mapSchema.errors({'folder': Folder(name: '')});
+        expect(errors!.first.path, ['folder', 'name']);
+      });
+    });
+
+    group('runtime contracts', () {
+      test(
+          'field declared twice keeps both validators (last extractor wins '
+          'in extract())', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(1))
+            .field('name', (f) => f.name, V.string().min(20));
+
+        expect(schema.validate(Folder(name: 'Documents')), isFalse);
+        expect(schema.errors(Folder(name: 'Documents'))?.length, 1);
+      });
+
+      test('whenRules are mutated in place when calling .when() on a copy', () {
+        final base =
+            V.object<Folder>().field('name', (f) => f.name, V.string());
+
+        final copy = base.pick(['name']);
+
+        copy.when('name', equals: 'x', then: const {});
+
+        expect(base.whenRules, isEmpty);
+        expect(copy.whenRules, hasLength(1));
+      });
+
+      test('pick of zero matching keys returns empty schema (not the original)',
+          () {
+        final base =
+            V.object<Folder>().field('name', (f) => f.name, V.string());
+
+        final picked = base.pick(['nonexistent']);
+
+        expect(picked.schema, isEmpty);
+        expect(identical(picked, base), isFalse);
+      });
+
+      test('omit with non-existent keys is a no-op (returns equivalent schema)',
+          () {
+        final base =
+            V.object<Folder>().field('name', (f) => f.name, V.string().min(5));
+
+        final omitted = base.omit(['nonexistent', 'also_missing']);
+
+        expect(omitted.schema.keys.toList(), ['name']);
+        expect(omitted.validate(Folder(name: 'Doc')), isFalse);
+        expect(omitted.validate(Folder(name: 'Documents')), isTrue);
+      });
+
+      test('VObject with zero fields still runs entity-level refines', () {
+        final schema = V.object<Folder>().refine(
+              (f) => f.name.isNotEmpty,
+              code: 'empty_name',
+            );
+
+        expect(schema.validate(Folder(name: 'ok')), isTrue);
+        expect(schema.validate(Folder(name: '')), isFalse);
+      });
+
+      test('pick onto already-empty schema returns empty', () {
+        final empty = V.object<Folder>();
+
+        expect(empty.pick(['name']).schema, isEmpty);
       });
     });
 
