@@ -24,6 +24,13 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
   - [Conditional Validation](#conditional-validation)
   - [Array of Maps](#array-of-maps)
 - [Object (Entity Validation)](#object-entity-validation)
+  - [DTO Pattern](#dto-pattern)
+  - [Errors and Entity-Level Rules](#errors-and-entity-level-rules)
+  - [Array of Entities](#array-of-entities)
+  - [Cross-Field Validation](#cross-field-validation-1)
+  - [Custom Field Validation](#custom-field-validation-1)
+  - [Conditional Validation](#conditional-validation-1)
+  - [Schema Composition](#schema-composition-1)
 - [Array](#array)
 - [Other Types](#other-types)
   - [Enum](#enum)
@@ -149,7 +156,7 @@ V.string().password(specialChars: r'!@#$%^&*()-_+=<>?')
 
 #### Numeric strings
 
-`integer` and `numeric` validate that the string *represents* a number, without converting the output type. Use them when the pipeline value must stay a `String` (form fields, query params). For conversion use `V.coerce.int()` / `V.coerce.double()` instead.
+`integer` and `numeric` validate that the string _represents_ a number, without converting the output type. Use them when the pipeline value must stay a `String` (form fields, query params). For conversion use `V.coerce.int()` / `V.coerce.double()` instead.
 
 ```dart
 V.string().integer().validate('42');   // true
@@ -241,7 +248,7 @@ V.string().postalCode(patterns: [
 ]).validate('SW1A 1AA'); // true
 ```
 
-When multiple patterns are configured, the error's `{name}` param joins each pattern's name with ` / ` — so a single locale template like `'Invalid {name}'` renders as `Invalid US ZIP / Canadian Postal Code / UK Postcode`.
+When multiple patterns are configured, the error's `{name}` param joins each pattern's name with `/` — so a single locale template like `'Invalid {name}'` renders as `Invalid US ZIP / Canadian Postal Code / UK Postcode`.
 
 `CaPostalCodePattern` and `UkPostcodePattern` accept a `mode` to require or forbid the separating space:
 
@@ -507,6 +514,7 @@ class User {
   final String name;
   final String email;
   final int age;
+
   User({required this.name, required this.email, required this.age});
 }
 
@@ -518,12 +526,15 @@ final schema = V.object<User>()
 schema.validate(User(name: 'Jo', email: 'jo@x.com', age: 30)); // true
 ```
 
-Because the schema is a plain value, DTOs can expose it as a `static final` — built once, reused everywhere:
+### DTO Pattern
+
+Because the schema is a plain value, DTOs can expose it as a `static final` — built once per isolate, reused at every call site:
 
 ```dart
 class SignInDto {
   final String email;
   final String password;
+
   const SignInDto({required this.email, required this.password});
 
   static final schema = V.object<SignInDto>()
@@ -531,8 +542,12 @@ class SignInDto {
       .field('password', (dto) => dto.password, V.string().password());
 }
 
-SignInDto.schema.validate(SignInDto(email: 'a@b.com', password: 'Abc!2345'));
+SignInDto.schema.validate(
+  SignInDto(email: 'a@b.com', password: 'Abc!2345'),
+); // true
 ```
+
+### Errors and Entity-Level Rules
 
 Errors include the field name in the path — same convention as `VMap`:
 
@@ -542,7 +557,7 @@ final errors = schema.errors(User(name: '', email: 'bad', age: 30));
 //  VError(code: 'string.email', path: ['email'])]
 ```
 
-Entity-level rules go via `refine()`:
+Entity-level rules that look at the whole instance go via `refine()`:
 
 ```dart
 V.object<User>().refine(
@@ -552,39 +567,48 @@ V.object<User>().refine(
 );
 ```
 
-Validate a list of entities with `.array()` — same chainable operators as any other `VArray`:
+### Array of Entities
+
+Validate a list with `.array()` — chains every operator from `VArray`:
 
 ```dart
 final batch = SignInDto.schema.array().min(1).unique();
 
-batch.validate([SignInDto(email: 'a@b.com', password: 'Str0ng!Pass')]); // true
+batch.validate([
+  SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+]); // true
 ```
 
-Cross-field equality with `.equalFields(a, b)` — canonical use case is DTO password confirmation:
+### Cross-Field Validation
+
+`.equalFields(a, b)` compares two declared fields via `==`. Canonical use case is DTO password confirmation:
 
 ```dart
+class SignUpDto {
+  final String email;
+  final String password;
+  final String confirm;
+  const SignUpDto({
+    required this.email,
+    required this.password,
+    required this.confirm,
+  });
+}
+
 final schema = V.object<SignUpDto>()
   .field('password', (d) => d.password, V.string().password())
   .field('confirm', (d) => d.confirm, V.string())
   .equalFields('password', 'confirm');
 
-schema.errors(SignUpDto(email: 'a@b.com', password: 'secret', confirm: 'other'))
-  ?.first.message;
+schema.errors(
+  SignUpDto(email: 'a@b.com', password: 'Str0ng!Pass', confirm: 'other'),
+)?.first.message;
 // 'password must be equal to confirm'
 ```
 
-Conditional rules with `.when(field, equals:, then:)` — apply extra validators only when another field has a specific value:
+### Custom Field Validation
 
-```dart
-final schema = V.object<TaxPayer>()
-  .field('country', (t) => t.country, V.string())
-  .field('taxId', (t) => t.taxId, V.string())
-  .when('country', equals: 'US', then: {
-    'taxId': V.string().taxId(patterns: [const UsSsnPattern()]),
-  });
-```
-
-Entity-level predicates scoped to a field with `.refineField(check, path:)`:
+`.refineField(check, path:)` runs an entity-level predicate and scopes the error to a specific field path:
 
 ```dart
 V.object<User>()
@@ -596,24 +620,51 @@ V.object<User>()
   );
 ```
 
-Compose schemas with `.pick([...])`, `.omit([...])` and `.merge(other)` — same semantics as `VMap`, but scoped to the typed instance:
+### Conditional Validation
+
+`.when(field, equals:, then:)` applies extra validators only when another field has a specific value:
+
+```dart
+class TaxPayer {
+  final String country;
+  final String taxId;
+  const TaxPayer({required this.country, required this.taxId});
+}
+
+final schema = V.object<TaxPayer>()
+  .field('country', (t) => t.country, V.string())
+  .field('taxId', (t) => t.taxId, V.string())
+  .when('country', equals: 'US', then: {
+    'taxId': V.string().taxId(patterns: [const UsSsnPattern()]),
+  });
+
+schema.validate(TaxPayer(country: 'US', taxId: '123-45-6789')); // true
+schema.validate(TaxPayer(country: 'BR', taxId: 'anything'));    // true
+```
+
+### Schema Composition
+
+`.pick([...])`, `.omit([...])` and `.merge(other)` derive new schemas from existing ones. State (validators, `when` rules, `nullable`, `defaultValue`) propagates across the composition:
 
 ```dart
 final full = V.object<User>()
-  .field('id', (u) => u.id, V.string().uuid())
   .field('name', (u) => u.name, V.string().min(1))
-  .field('age', (u) => u.age, V.int().positive());
+  .field('email', (u) => u.email, V.string().email())
+  .field('age', (u) => u.age, V.int().min(0).max(120));
 
-final identity = full.pick(['id', 'name']);
-final withoutId = full.omit(['id']);
+final publicProfile = full.pick(['name', 'email']); // keeps only 'name', 'email'
+final withoutAge    = full.omit(['age']);           // drops 'age'
 
-final auditFields = V.object<User>()
-  .field('createdAt', (u) => u.createdAt, V.date());
-
-final withAudit = full.merge(auditFields);
+final contactOnly = V.object<User>()
+  .field('email', (u) => u.email, V.string().email());
+final identity = V.object<User>()
+  .field('name', (u) => u.name, V.string().min(1));
+final merged = identity.merge(contactOnly); // name + email
 ```
 
-> Note: unlike TypeScript, `pick`/`omit` do not generate a subset *type*. The input still has to be a full instance of `T` — only the validation surface is narrowed. For partial/dynamic payloads (CRUD UPDATE via JSON), use `VMap` directly with `.partial()`.
+> Note: unlike TypeScript, `pick`/`omit` do not generate a subset _type_. The input still has to be a full instance of `T` — only the validation surface is narrowed. For partial/dynamic payloads (CRUD UPDATE via JSON), reach for `VMap.partial()` instead.
+>
+> `partial()`, `strict()` and `passthrough()` from `VMap` are **not** available on `VObject` — they don't map to nominal Dart classes whose fields are declared up front. See the CHANGELOG of 1.4.0 for the full rationale.
 
 ## Array
 
@@ -743,7 +794,7 @@ V.coerce.date().parse('2024-01-15'); // DateTime(2024, 1, 15)
 > V.coerce.date().parse('30/02/2024'); // throws — calendar-invalid
 > ```
 
-**Coercion vs. string validators** — `V.coerce.int()` converts `'42'` to `42`; `V.string().integer()` keeps `'42'` as `String` but validates that it *could* be converted. Pick coercion when you need the typed value in the output; pick the string validator when the downstream code still expects a `String`.
+**Coercion vs. string validators** — `V.coerce.int()` converts `'42'` to `42`; `V.string().integer()` keeps `'42'` as `String` but validates that it _could_ be converted. Pick coercion when you need the typed value in the output; pick the string validator when the downstream code still expects a `String`.
 
 Chain additional validators after coercion:
 
@@ -1305,13 +1356,13 @@ V.string().cpf();
 
 Five country-specific validators accept pluggable pattern strategies — external packages can contribute new implementations without forking the core. Every one of them takes a **list** of patterns, and validation succeeds when the value matches **any** pattern in the list:
 
-| Validator             | Abstract class        | Built-ins shipped in core                                                               |
-| --------------------- | --------------------- | --------------------------------------------------------------------------------------- |
-| `phone(patterns:)`    | `PhonePattern`        | `E164PhonePattern` (default when `patterns` is omitted)                                 |
-| `card(brands:)`       | `CardBrandPattern`    | `VisaBrand`, `MastercardBrand`, `AmexBrand`, `DinersBrand`, `DiscoverBrand`, `JcbBrand` |
-| `postalCode(patterns:)` | `PostalCodePattern` | `UsZipPattern`, `CaPostalCodePattern`, `UkPostcodePattern`                              |
-| `taxId(patterns:)`    | `TaxIdPattern`        | `UsSsnPattern`, `UkNiNumberPattern`, `CaSinPattern`                                     |
-| `licensePlate(patterns:)` | `LicensePlatePattern` | `UkPlatePattern`                                                                   |
+| Validator                 | Abstract class        | Built-ins shipped in core                                                               |
+| ------------------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| `phone(patterns:)`        | `PhonePattern`        | `E164PhonePattern` (default when `patterns` is omitted)                                 |
+| `card(brands:)`           | `CardBrandPattern`    | `VisaBrand`, `MastercardBrand`, `AmexBrand`, `DinersBrand`, `DiscoverBrand`, `JcbBrand` |
+| `postalCode(patterns:)`   | `PostalCodePattern`   | `UsZipPattern`, `CaPostalCodePattern`, `UkPostcodePattern`                              |
+| `taxId(patterns:)`        | `TaxIdPattern`        | `UsSsnPattern`, `UkNiNumberPattern`, `CaSinPattern`                                     |
+| `licensePlate(patterns:)` | `LicensePlatePattern` | `UkPlatePattern`                                                                        |
 
 Country-specific IDs (e.g. BR CPF/CNPJ, CEP, Mercosul plates) live in extension packages like [validart_br](https://pub.dev/packages/validart_br). A multi-country system can list every accepted pattern in a single schema — no need to build a `V.union` of separate phone/postal/tax schemas.
 
@@ -1354,7 +1405,7 @@ V.string().card(brands: [const EloBrand()]);
 **Error-code behavior with multiple patterns**
 
 - `phone`: the first pattern's `code` is emitted when only one pattern is configured (preserves custom codes like `invalid_phone_br`). With two or more, the generic `VStringCode.phone` (`'string.phone'`) is emitted.
-- `postalCode` / `taxId` / `licensePlate`: the code is always the generic one (`'string.postal_code'`, `'string.tax_id'`, `'string.license_plate'`). The `{name}` interpolation param joins each pattern's `name` with ` / ` — a single template like `'Invalid {name}'` renders as `Invalid US ZIP / UK Postcode` when multiple are configured.
+- `postalCode` / `taxId` / `licensePlate`: the code is always the generic one (`'string.postal_code'`, `'string.tax_id'`, `'string.license_plate'`). The `{name}` interpolation param joins each pattern's `name` with `/` — a single template like `'Invalid {name}'` renders as `Invalid US ZIP / UK Postcode` when multiple are configured.
 
 ## License
 
