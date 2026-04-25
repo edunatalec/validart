@@ -52,9 +52,12 @@ final class VFailure<T> extends VResult<T> {
   /// Converts the errors to a `Map<String, String>` keyed by field path.
   ///
   /// Only includes the first error per path. Errors with an empty path
-  /// (root-level errors emitted by `refine` / `equalFields` on the
-  /// schema root) are intentionally excluded — use [rootMessages] to
-  /// retrieve those, or iterate [errors] directly to handle both at once.
+  /// are intentionally excluded — use [rootMessages] to retrieve those,
+  /// or iterate [errors] directly to handle both at once. Errors land
+  /// here when the validator that emitted them was scoped to a specific
+  /// field path: declared field validators (`V.map({'x': ...})`),
+  /// `refineField(check, path: 'x')`, and `add(validator, path: ['x'])`
+  /// / `addAsync(..., path: ['x'])`.
   ///
   /// ```dart
   /// final result = schema.safeParse(data);
@@ -78,9 +81,12 @@ final class VFailure<T> extends VResult<T> {
   }
 
   /// Returns the messages of every root-level error — i.e. errors with
-  /// an empty `path`, typically emitted by `refine` and `equalFields`
-  /// applied directly on a schema root rather than scoped to a specific
-  /// field via `refineField` (which sets `path: [fieldName]`).
+  /// an empty `path`. Producers include `refine` / `refineAsync` and
+  /// `equalFields` on a container, `add(validator)` / `addAsync(...)`
+  /// without a `path:` argument on any schema, and any validator on a
+  /// primitive schema used as the root (`V.string().min(3).safeParse(x)`).
+  /// Anything scoped to a specific field via `refineField(path: 'x')` or
+  /// `add(..., path: ['x'])` lands in [toMap] instead.
   ///
   /// Use this alongside [toMap] when your form has both per-field
   /// inputs (rendered with the field error inline) AND form-wide rules
