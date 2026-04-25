@@ -1143,6 +1143,7 @@ V.setLocale(const VLocale({
 
   'object.required': 'Required',
   'object.invalid_type': 'Expected {expected}, received {received}',
+  'object.fields_not_equal': '{field} must be equal to {other}',
 
   'enum.required': 'Required',
   'enum.invalid_type': 'Expected {expected}, received {received}',
@@ -1275,6 +1276,7 @@ V.setLocale(const VLocale({
   'object': {
     'required': 'Required',
     'invalid_type': 'Expected {expected}, received {received}',
+    'fields_not_equal': '{field} must be equal to {other}',
   },
 
   'enum': {
