@@ -40,7 +40,7 @@ class AgeValidator extends Validator<DateTime> {
   }
 
   int _calculateAge(DateTime birth, DateTime now) {
-    var years = now.year - birth.year;
+    int years = now.year - birth.year;
 
     final beforeBirthday = now.month < birth.month ||
         (now.month == birth.month && now.day < birth.day);

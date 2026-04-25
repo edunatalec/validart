@@ -736,7 +736,78 @@ void main() {
       expect(errs, isNotNull);
       expect(errs!.first.message, 'raw must be A@B.COM');
     });
+
+    test(
+      'VObject.refineFieldRaw asserts that path exists in the schema',
+      () {
+        // VMap.refineFieldRaw is asserted above; pin the same behavior on
+        // VObject so the parity is enforced by the suite.
+        expect(
+          () => V
+              .object<_RawDemo>()
+              .field('value', (d) => d.value, V.string())
+              .refineFieldRaw(
+                (d) => true,
+                path: 'unknown',
+              ),
+          throwsA(isA<AssertionError>()),
+        );
+      },
+    );
   });
+
+  group('addRaw (public low-level API)', () {
+    test('addRaw on a primitive schema is a semantic no-op', () {
+      // The doc on `addRaw` claims raw steps never run outside container
+      // types. Pin it: a primitive `V.string()` with a raw validator
+      // registered must NOT fail validation that the validator would
+      // reject if it ran.
+      final schema = V.string().addRaw(const _AlwaysFails());
+      expect(schema.validate('hello'), isTrue);
+      expect(schema.errors('hello'), isNull);
+    });
+
+    test('addRaw inside VMap fires the raw step', () {
+      // Direct addRaw on VMap reaches `_runRawValidators` exactly the
+      // same way refineFieldRaw does — confirms the public API is
+      // wired end-to-end and not just a refineFieldRaw private helper.
+      final schema =
+          V.map({'name': V.string()}).addRaw(const _MapRequiresName());
+      final errs = schema.errors({'name': ''});
+      expect(errs, isNotNull);
+      expect(errs!.first.code, 'name_required');
+    });
+
+    test('addRaw with explicit path attaches the error to that path', () {
+      final schema = V.map({'name': V.string()}).addRaw(
+        const _MapRequiresName(),
+        path: const ['name'],
+      );
+      final errs = schema.errors({'name': ''});
+      expect(errs!.first.path, ['name']);
+    });
+  });
+}
+
+class _AlwaysFails extends Validator<String> {
+  const _AlwaysFails();
+
+  @override
+  String get code => 'always_fails';
+
+  @override
+  Map<String, dynamic>? validate(String value) => {};
+}
+
+class _MapRequiresName extends Validator<Map<String, dynamic>> {
+  const _MapRequiresName();
+
+  @override
+  String get code => 'name_required';
+
+  @override
+  Map<String, dynamic>? validate(Map<String, dynamic> value) =>
+      (value['name'] as String?)?.isNotEmpty == true ? null : {};
 }
 
 class _Dummy {

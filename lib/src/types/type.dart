@@ -495,12 +495,6 @@ abstract class VType<T> {
     return null;
   }
 
-  /// Runs the pipeline on [value]. Container types (VMap/VObject) pass
-  /// [carriedErrors] (field-level errors already collected) and
-  /// [failedFieldPaths] (the first-segment field names that failed) so
-  /// entity-level validators with declared `dependsOn` can decide whether
-  /// to skip. A validator without `dependsOn` is skipped if
-  /// [failedFieldPaths] is non-empty (conservative legacy behavior).
   /// Runs every [_RawValidatorStep] registered on this schema against
   /// [input], returning the resulting [VError]s (if any). Used by
   /// container types (VMap, VObject) between the type check and the
@@ -534,6 +528,12 @@ abstract class VType<T> {
     return errors;
   }
 
+  /// Runs the pipeline on [value]. Container types (VMap/VObject) pass
+  /// [carriedErrors] (field-level errors already collected) and
+  /// [failedFieldPaths] (the first-segment field names that failed) so
+  /// entity-level validators with declared `dependsOn` can decide whether
+  /// to skip. A validator without `dependsOn` is skipped if
+  /// [failedFieldPaths] is non-empty (conservative legacy behavior).
   VResult<T?> _runPipeline(
     T value, {
     List<VError> carriedErrors = const [],

@@ -164,11 +164,11 @@ class CaSinPattern extends TaxIdPattern {
 
     if (!RegExp(r'^[1-79]\d{8}$').hasMatch(digits)) return false;
 
-    var sum = 0;
-    var alternate = false;
+    int sum = 0;
+    bool alternate = false;
 
-    for (var i = digits.length - 1; i >= 0; i--) {
-      var n = int.parse(digits[i]);
+    for (int i = digits.length - 1; i >= 0; i--) {
+      int n = int.parse(digits[i]);
 
       if (alternate) {
         n *= 2;

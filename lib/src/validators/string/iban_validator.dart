@@ -38,9 +38,9 @@ class IbanValidator extends Validator<String> {
 
     final numeric = buffer.toString();
 
-    var remainder = 0;
+    int remainder = 0;
 
-    for (var i = 0; i < numeric.length; i += 7) {
+    for (int i = 0; i < numeric.length; i += 7) {
       final end = (i + 7 < numeric.length) ? i + 7 : numeric.length;
       final chunk = '$remainder${numeric.substring(i, end)}';
 
