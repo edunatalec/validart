@@ -74,16 +74,31 @@ class VObject<T> extends VType<T> {
   /// Adds a custom entity-level validation that runs after every field has
   /// been validated.
   ///
-  /// Pass [dependsOn] to declare which schema field names this refine
-  /// depends on. When provided, the refine is skipped only if one of those
-  /// specific fields failed validation, so its error is aggregated
-  /// alongside unrelated field errors in a single pass. When omitted, the
-  /// refine follows the conservative rule: skip if ANY field failed.
+  /// Pass [dependsOn] to declare which schema field names this refine reads.
+  /// When provided, the refine is skipped only if one of those specific
+  /// fields failed validation, so its error is aggregated alongside
+  /// unrelated field errors in a single pass. When omitted, the refine
+  /// follows the conservative rule: skip if ANY field failed (avoids
+  /// dereferencing fields that didn't make it into the parsed instance).
+  ///
+  /// Pass `dependsOn: const {}` (empty set) to opt OUT of the
+  /// conservative skip entirely — the refine runs even when other
+  /// fields failed. The callback must be defensive about
+  /// partially-parsed input (fields that failed are still extracted from
+  /// the original `T`, so accessing them is safe, but their values may
+  /// not satisfy the per-field invariants you'd normally rely on).
+  /// Useful for audit / logging rules that should fire on every
+  /// submission.
   ///
   /// `dependsOn` accepts any field declared on this schema OR injected via
   /// any `when.then` block. Unknown names throw an `AssertionError`.
   ///
   /// ```dart
+  /// // Conservative default — skip if any field failed.
+  /// V.object<Booking>().refine((b) => ...);
+  ///
+  /// // Aggregate alongside unrelated failures — skip only if 'startsAt'
+  /// // or 'endsAt' failed.
   /// V.object<Booking>()
   ///   .field('startsAt', (b) => b.startsAt, V.date())
   ///   .field('endsAt', (b) => b.endsAt, V.date())
@@ -92,6 +107,9 @@ class VObject<T> extends VType<T> {
   ///     code: 'date_range_invalid',
   ///     dependsOn: const {'startsAt', 'endsAt'},
   ///   );
+  ///
+  /// // Always run, even when fields failed (callback must be safe).
+  /// V.object<Booking>().refine((b) => audit(b), dependsOn: const {});
   /// ```
   @override
   VObject<T> refine(
@@ -230,18 +248,17 @@ class VObject<T> extends VType<T> {
   ///     .equalFields('password', 'confirm');
   /// ```
   VObject<T> equalFields(String fieldA, String fieldB, {String? message}) {
-    final entryA = _fields.firstWhere(
-      (f) => f.name == fieldA,
-      orElse: () => throw ArgumentError(
-        "The provided field '$fieldA' does not exist in the schema.",
-      ),
+    assert(
+      _fields.any((f) => f.name == fieldA),
+      "The provided field '$fieldA' does not exist in the schema.",
     );
-    final entryB = _fields.firstWhere(
-      (f) => f.name == fieldB,
-      orElse: () => throw ArgumentError(
-        "The provided field '$fieldB' does not exist in the schema.",
-      ),
+    assert(
+      _fields.any((f) => f.name == fieldB),
+      "The provided field '$fieldB' does not exist in the schema.",
     );
+
+    final entryA = _fields.firstWhere((f) => f.name == fieldA);
+    final entryB = _fields.firstWhere((f) => f.name == fieldB);
 
     return add(
       ObjectEqualFieldsValidator<T>(

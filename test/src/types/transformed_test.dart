@@ -65,7 +65,7 @@ void main() {
     test(
       'inner .nullable() is preserved when the wrapper has no own null-handling',
       () {
-        // Pre-1.4.0 the wrapper consulted only inner; this test pins that
+        // Pre-2.0.0 the wrapper consulted only inner; this test pins that
         // delegation still works when the wrapper itself is neither
         // nullable nor has a default.
         final schema = V.string().nullable().transform<int>((s) => s.length);
@@ -108,9 +108,9 @@ void main() {
   });
 
   group('VTransformed — preprocess on wrapper', () {
-    test('wrapper preprocess runs BEFORE inner (regression — issue 1.4.0)', () {
+    test('wrapper preprocess runs BEFORE inner (regression — fixed 2.0.0)', () {
       // The wrapper's preprocess sees raw input — must run before the
-      // inner schema's pipeline. Pre-1.4.0 this was silently dropped.
+      // inner schema's pipeline. Pre-2.0.0 this was silently dropped.
       var ran = 0;
       final schema = V.string().transform<int>((s) => s.length).preprocess((v) {
         ran++;

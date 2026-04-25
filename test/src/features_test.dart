@@ -1171,6 +1171,34 @@ void main() {
     );
 
     test(
+      'VObject.refineField with dependsOn: const {} runs even when its own '
+      'declared field failed (parity with VMap)',
+      () {
+        var ran = 0;
+        final schema = V
+            .object<_RawDemo>()
+            .field('value', (d) => d.value, V.string().min(5))
+            .field('flag', (d) => d.flag, V.bool())
+            .refineField(
+          (d) {
+            ran++;
+            return true;
+          },
+          path: 'value',
+          dependsOn: const {},
+        );
+
+        schema.errors(const _RawDemo(value: 'no', flag: false));
+        expect(
+          ran,
+          1,
+          reason: 'VObject.refineField with dependsOn: const {} must NOT be '
+              'gated by field failures (mirrors VMap.refineField)',
+        );
+      },
+    );
+
+    test(
       'VMap.refineField with default dependsOn DOES skip when its own field '
       'fails',
       () {

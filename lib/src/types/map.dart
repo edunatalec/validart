@@ -363,14 +363,11 @@ class VMap extends VType<Map<String, dynamic>> {
   /// }).equalFields('password', 'confirm');
   /// ```
   VMap equalFields(String field, String other, {String? message}) {
-    assert(
-      _schema.containsKey(field),
-      "The provided field '$field' does not exist in the schema.",
-    );
-    assert(
-      _schema.containsKey(other),
-      "The provided field '$other' does not exist in the schema.",
-    );
+    // Reuse the same key-existence check as `refine(dependsOn:)` — accepts
+    // both base-schema keys and when.then keys, and emits a uniform
+    // assertion message across all entity-level rules.
+    _assertDependsOnKeys({field, other});
+
     return add(
       EqualFieldsValidator(field: field, other: other),
       message: message,

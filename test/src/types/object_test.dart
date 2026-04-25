@@ -400,7 +400,10 @@ void main() {
         expect(errors.first.message, 'password must be equal to confirm');
       });
 
-      test('should throw ArgumentError when field name is unknown', () {
+      test('should throw AssertionError when field name is unknown', () {
+        // Aligned with VMap.equalFields and refine(dependsOn:) — all
+        // entity-level rules now use `assert` for unknown-key checks,
+        // so the error class is uniform across the API.
         final schema = V
             .object<_SignUp>()
             .field('email', (d) => d.email, V.string().email())
@@ -408,7 +411,7 @@ void main() {
 
         expect(
           () => schema.equalFields('password', 'missing'),
-          throwsA(isA<ArgumentError>()),
+          throwsA(isA<AssertionError>()),
         );
       });
 
