@@ -961,11 +961,22 @@ if (result case VFailure(:final errors)) {
 
 ### Reading raw errors
 
-Each `VError` has a `path` that tells you where the error attached:
+Each `VError` has a `path` that tells you where the error attached. The path determines whether the error lands in `toMap()` (per-field) or in `rootMessages()` (form-wide):
 
-- `path: []` — the error is on the **root** of the schema. This is what entity-level `refine` and `equalFields` emit.
-- `path: ['fieldName']` — field-level, or `refineField(..., path: 'fieldName')`.
-- `path: [0, 'fieldName']` — array index + field (e.g. `VArray<VMap>`).
+| Where the error came from | Emitted `path` | Lands in |
+|---|---|---|
+| Field validator (`V.map({'x': V.string().min(3)})`) | `['x']` | `toMap()` |
+| `refineField(check, path: 'x')` on container | `['x']` | `toMap()` |
+| `add(validator, path: ['x'])` on any schema | `['x']` | `toMap()` |
+| `refine(check)` on container | `[]` | `rootMessages()` |
+| `refineAsync(check)` on container | `[]` | `rootMessages()` |
+| `equalFields(a, b)` on container | `[]` | `rootMessages()` |
+| `add(validator)` without `path:` | `[]` | `rootMessages()` |
+| `addAsync(validator)` without `path:` | `[]` | `rootMessages()` |
+| Any validator on a primitive schema used as the root (`V.string().min(3).safeParse(...)`) | `[]` | `rootMessages()` |
+| Element error inside `VArray` (`V.array(V.map({'x': ...}))`) | `[0, 'x']` | `toMap()` (key `'0.x'`) |
+
+In short: `path` is empty whenever the error is **not** scoped to a single declared field — that includes both intentional form-wide rules (`refine` / `equalFields` on a container) **and** validators applied directly to a primitive schema. Both are surfaced through `rootMessages()`.
 
 Example with a root-level refine:
 
@@ -1000,7 +1011,7 @@ for (final e in errors!) {
 
 ### Root-level errors via `rootMessages()`
 
-`toMap()` is **field-keyed**, so it deliberately excludes errors with an empty `path` — i.e. errors emitted by `refine` / `equalFields` applied directly on a schema root. Those errors typically describe form-wide rules without a single owning field:
+`toMap()` is **field-keyed**, so it deliberately excludes errors with an empty `path`. The full list of producers is in the table under *Reading raw errors* — most commonly that means `refine` / `refineAsync` / `equalFields` applied to a container, but it also covers `add` / `addAsync` without a `path:` argument and any validator on a primitive schema used as the root. Those errors typically describe form-wide rules without a single owning field:
 
 - "if `country == 'BR'`, at least one of `cpf` or `cnpj` is required"
 - "cart cannot mix products from different regions"
@@ -1019,8 +1030,8 @@ if (result case VFailure() && final f) {
 
 Rule of thumb:
 
-- Error belongs to an identifiable field → use `refineField(check, path: 'x')` so it lands in `toMap()` and the input renders it inline.
-- Error belongs to the form as a whole → use `refine(...)` and render `rootMessages()` in a separate banner.
+- Error belongs to an identifiable field → use `refineField(check, path: 'x')` (or pass `path:` to `add` / `refine`) so it lands in `toMap()` and the input renders it inline.
+- Error belongs to the form as a whole → use `refine(...)` / `equalFields(...)` and render `rootMessages()` in a separate banner.
 
 The two methods partition the errors cleanly: every error appears in exactly one of `toMap()` or `rootMessages()`. To handle both at once with a single iteration, walk `failure.errors` directly (see *Reading raw errors* above).
 
