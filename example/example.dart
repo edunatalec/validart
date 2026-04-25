@@ -475,6 +475,40 @@ void objectExamples() {
         code: 'empty_name',
       );
   print(namedFolder.validate(folder)); // true
+
+  // DTO pattern — static final schema, built once per isolate
+  print(
+    SignInDto.schema
+        .validate(const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass')),
+  ); // true
+
+  // array — validate List<T>
+  print(
+    SignInDto.schema.array().validate(const [
+      SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+      SignInDto(email: 'c@d.com', password: 'An0ther!Pass'),
+    ]),
+  ); // true
+
+  // equalFields — password === confirm
+  print(
+    SignUpDto.schema.validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'Str0ng!Pass',
+      ),
+    ),
+  ); // true
+  print(
+    SignUpDto.schema.validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'different',
+      ),
+    ),
+  ); // false
 }
 
 void enumExamples() {
@@ -690,6 +724,35 @@ class Folder {
   final String id;
   final String name;
   Folder({required this.id, required this.name});
+}
+
+class SignInDto {
+  final String email;
+  final String password;
+  const SignInDto({required this.email, required this.password});
+
+  static final schema = V
+      .object<SignInDto>()
+      .field('email', (d) => d.email, V.string().email())
+      .field('password', (d) => d.password, V.string().password());
+}
+
+class SignUpDto {
+  final String email;
+  final String password;
+  final String confirm;
+  const SignUpDto({
+    required this.email,
+    required this.password,
+    required this.confirm,
+  });
+
+  static final schema = V
+      .object<SignUpDto>()
+      .field('email', (d) => d.email, V.string().email())
+      .field('password', (d) => d.password, V.string().password())
+      .field('confirm', (d) => d.confirm, V.string())
+      .equalFields('password', 'confirm');
 }
 
 enum Color { red, green, blue }
