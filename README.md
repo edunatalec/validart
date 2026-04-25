@@ -45,6 +45,10 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
 - [Async Validation](#async-validation)
   - [More async primitives](#more-async-primitives)
 - [Form Errors](#form-errors)
+  - [Reading raw errors](#reading-raw-errors)
+  - [Root-level errors via `rootMessages()`](#root-level-errors-via-rootmessages)
+  - [Custom error codes in refine](#custom-error-codes-in-refine)
+  - [`refine` with `dependsOn` for error aggregation on `VMap` / `VObject`](#refine-with-dependson-for-error-aggregation-on-vmap--vobject)
 - [i18n (Internationalization)](#i18n-internationalization)
   - [Type-specific overrides](#type-specific-overrides)
   - [Per-validator override](#per-validator-override)
@@ -926,7 +930,7 @@ final user = await loader.parseAsync('550e8400-...'); // User
 
 ## Form Errors
 
-Convert errors to a map for Flutter forms:
+Convert errors to a map keyed by field name:
 
 ```dart
 final result = schema.safeParse(data);
@@ -936,6 +940,113 @@ if (result case VFailure(:final errors)) {
   // {'email': 'Invalid email address', 'name': 'Required'}
 }
 ```
+
+### Reading raw errors
+
+Each `VError` has a `path` that tells you where the error attached:
+
+- `path: []` — the error is on the **root** of the schema. This is what entity-level `refine` and `equalFields` emit.
+- `path: ['fieldName']` — field-level, or `refineField(..., path: 'fieldName')`.
+- `path: [0, 'fieldName']` — array index + field (e.g. `VArray<VMap>`).
+
+Example with a root-level refine:
+
+```dart
+final schema = V.map({
+  'startDate': V.date(),
+  'endDate': V.date(),
+}).refine(
+  (m) => (m['endDate'] as DateTime).isAfter(m['startDate'] as DateTime),
+  code: 'date_range_invalid',
+  message: 'endDate must be after startDate',
+);
+
+final errors = schema.errors({
+  'startDate': DateTime(2026, 5, 1),
+  'endDate': DateTime(2026, 4, 1),
+});
+// [VError(code: 'date_range_invalid', message: 'endDate ...', path: [])]
+```
+
+You can iterate and decide where to render each error:
+
+```dart
+for (final e in errors!) {
+  if (e.path.isEmpty) {
+    showFormBanner(e.message);                       // root-level
+  } else {
+    fieldErrors[e.path.first as String] = e.message; // field-level
+  }
+}
+```
+
+### Root-level errors via `rootMessages()`
+
+`toMap()` is **field-keyed**, so it deliberately excludes errors with an empty `path` — i.e. errors emitted by `refine` / `equalFields` applied directly on a schema root. Those errors typically describe form-wide rules without a single owning field:
+
+- "if `country == 'BR'`, at least one of `cpf` or `cnpj` is required"
+- "cart cannot mix products from different regions"
+- "credentials are invalid" / "promo code expired"
+
+Use `rootMessages()` on the `VFailure` to retrieve them as a `List<String>`, separate from field errors:
+
+```dart
+final result = schema.safeParse(data);
+
+if (result case VFailure() && final f) {
+  final fieldErrors = f.toMap();        // Map<String, String> — per-input errors
+  final formErrors = f.rootMessages();  // List<String> — render as a banner
+}
+```
+
+Rule of thumb:
+
+- Error belongs to an identifiable field → use `refineField(check, path: 'x')` so it lands in `toMap()` and the input renders it inline.
+- Error belongs to the form as a whole → use `refine(...)` and render `rootMessages()` in a separate banner.
+
+The two methods partition the errors cleanly: every error appears in exactly one of `toMap()` or `rootMessages()`. To handle both at once with a single iteration, walk `failure.errors` directly (see *Reading raw errors* above).
+
+### Custom error codes in refine
+
+Pass `code:` to assign a machine-readable identifier — useful for i18n keys, analytics, or `error.code == '...'` checks in client code:
+
+```dart
+.refine(check, code: 'date_range_invalid', message: 'end must follow start');
+.refineField(check, path: 'email', message: 'disposable emails not allowed');
+```
+
+Without `code`, the emitted code is `'custom'` (constant `VCode.custom`). The `code:` parameter is also accepted by `refineAsync`.
+
+### `refine` with `dependsOn` for error aggregation on `VMap` / `VObject`
+
+By default, a generic `.refine(check)` on a `VMap` or `VObject` is **skipped** when any field already failed validation — a conservative rule that avoids `cast` crashes on partially-parsed inputs (the failed field is missing from the map passed to `check`). Built-in `equalFields(a, b)` and `refineField(check, path: x)` are the exception: they declare their dependencies internally and run as long as those specific fields passed, so their error is aggregated alongside unrelated field errors.
+
+To get the same aggregation behavior on a custom `refine`, declare its dependencies explicitly:
+
+```dart
+final schema = V.map({
+  'name': V.string().min(3),
+  'startDate': V.date(),
+  'endDate': V.date(),
+}).refine(
+  (m) => (m['endDate'] as DateTime).isAfter(m['startDate'] as DateTime),
+  code: 'date_range_invalid',
+  dependsOn: const {'startDate', 'endDate'},
+);
+
+// `name` fails (too short) AND the date range is wrong → BOTH errors:
+schema.errors({
+  'name': 'Jo',
+  'startDate': DateTime(2026, 5, 1),
+  'endDate': DateTime(2026, 4, 1),
+});
+// [
+//   VError(code: 'string.too_small',     path: ['name']),
+//   VError(code: 'date_range_invalid',   path: []),
+// ]
+```
+
+`dependsOn` accepts any field declared in the base schema OR injected via any `when.then` block. Unknown keys throw an `AssertionError` at construction time. The same parameter is available on `refineAsync`. Without `dependsOn`, the conservative skip-on-any-failure behavior is preserved.
 
 ## i18n (Internationalization)
 
