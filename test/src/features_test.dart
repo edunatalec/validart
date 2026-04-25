@@ -609,6 +609,134 @@ void main() {
       expect(schema.parse(null), 'fallback');
     });
   });
+
+  group('refineFieldRaw vs refineField', () {
+    test(
+      'VMap.refineFieldRaw sees raw values; refineField sees parsed (transforms applied)',
+      () {
+        // The same callback wired through both APIs gives different
+        // results when a field has a transform: refineFieldRaw fires
+        // on the raw input, refineField on the post-pipeline value.
+        final schema = V
+            .map({'email': V.string().toLowerCase()})
+            .refineFieldRaw(
+              (data) => data['email'] == 'A@B.COM',
+              path: 'email',
+              message: 'raw must be A@B.COM',
+            )
+            .refineField(
+              (data) => data['email'] == 'A@B.COM',
+              path: 'email',
+              message: 'parsed must be A@B.COM',
+            );
+
+        // Input 'A@B.COM' raw → raw matches; parsed value is 'a@b.com'
+        // (lowercased), so the parsed callback fails.
+        final errs = schema.errors({'email': 'A@B.COM'});
+        expect(errs, isNotNull);
+        expect(errs!.any((e) => e.message == 'parsed must be A@B.COM'), isTrue);
+        expect(errs.any((e) => e.message == 'raw must be A@B.COM'), isFalse);
+      },
+    );
+
+    test(
+      'VMap.refineFieldRaw runs even when an unrelated field fails its '
+      'per-field validator (no dependsOn gating)',
+      () {
+        // refineField (with implicit dependsOn = {path}) skips when the
+        // declared field fails. refineFieldRaw has no per-field pipeline
+        // to gate on — it runs unconditionally once the input is a
+        // Map<String, dynamic>.
+        final schema = V.map({
+          'a': V.string().min(5),
+          'b': V.string(),
+        }).refineFieldRaw(
+          (data) => data['b'] == 'ok',
+          path: 'b',
+          message: 'b must be ok (raw)',
+        );
+
+        // 'a' fails (length < 5), but the raw rule still runs and
+        // succeeds — its error is absent.
+        final errs = schema.errors({'a': 'no', 'b': 'ok'});
+        expect(errs, isNotNull);
+        expect(errs!.any((e) => e.message == 'b must be ok (raw)'), isFalse);
+
+        // Now flip 'b' to wrong — the raw rule fires alongside the
+        // per-field error for 'a'.
+        final errs2 = schema.errors({'a': 'no', 'b': 'no'});
+        expect(errs2!.any((e) => e.message == 'b must be ok (raw)'), isTrue);
+      },
+    );
+
+    test(
+      'VMap.refineFieldRaw error path is [path] — surfaces inline, not in root',
+      () {
+        final schema = V.map({'name': V.string()}).refineFieldRaw(
+          (data) => false,
+          path: 'name',
+          message: 'always fails',
+        );
+
+        final result = schema.safeParse({'name': 'x'});
+        expect(result, isA<VFailure>());
+        final errs = (result as VFailure).errors;
+        expect(errs.first.path, ['name']);
+        expect(errs.first.message, 'always fails');
+      },
+    );
+
+    test('VMap.refineFieldRaw asserts that path exists in the schema', () {
+      expect(
+        () => V.map({'name': V.string()}).refineFieldRaw(
+          (data) => true,
+          path: 'unknown',
+        ),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
+    test(
+      'VObject.refineFieldRaw runs once the cast succeeded, even when a '
+      'per-field validator fails afterwards',
+      () {
+        final schema = V
+            .object<_RawDemo>()
+            .field('value', (d) => d.value, V.string().min(5))
+            .refineFieldRaw(
+              (d) => d.flag,
+              path: 'value',
+              message: 'flag must be true',
+            );
+
+        // 'value' fails per-field (length < 5); the raw rule still runs
+        // because the cast succeeded and there were no field failures
+        // to gate it on.
+        final errs = schema.errors(const _RawDemo(value: 'no', flag: false));
+        expect(errs!.any((e) => e.message == 'flag must be true'), isTrue);
+      },
+    );
+
+    test('refineFieldRaw runs through async pipeline as well', () async {
+      final schema = V
+          .map({'email': V.string().toLowerCase()})
+          .refineFieldRaw(
+            (data) => data['email'] == 'A@B.COM',
+            path: 'email',
+            message: 'raw must be A@B.COM',
+          )
+          .refineAsync(
+            (m) async => true,
+            dependsOn: const {'email'},
+          );
+
+      // Refine async forces async path; the raw rule still runs and
+      // sees the original casing.
+      final errs = await schema.errorsAsync({'email': 'a@b.com'});
+      expect(errs, isNotNull);
+      expect(errs!.first.message, 'raw must be A@B.COM');
+    });
+  });
 }
 
 class _Dummy {
@@ -618,4 +746,11 @@ class _Dummy {
 class _DemoUser {
   final String name;
   const _DemoUser(this.name);
+}
+
+class _RawDemo {
+  final String value;
+  final bool flag;
+
+  const _RawDemo({required this.value, required this.flag});
 }

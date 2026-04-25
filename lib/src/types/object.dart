@@ -419,6 +419,54 @@ class VObject<T> extends VType<T> {
     );
   }
 
+  /// Adds an entity-level rule scoped to a specific field path that
+  /// runs **before** any per-field iteration. The [check] callback
+  /// receives the `T` instance after the container preprocess and
+  /// type cast — no per-field pipeline has run yet.
+  ///
+  /// Compare with [refineField], whose callback runs after every
+  /// declared field has been individually validated and transformed.
+  /// In practice, since `VObject` does not mutate `T` between the cast
+  /// and the per-field iteration, the two callbacks observe the same
+  /// instance most of the time — the meaningful difference is
+  /// **timing**: [refineFieldRaw] always runs once the input is a
+  /// valid `T`, while [refineField] is gated on the field at [path]
+  /// passing per-field validation. Use [refineFieldRaw] when the rule
+  /// must run regardless of per-field results, or to mirror the same
+  /// semantics across `VMap` and `VObject<T>`.
+  ///
+  /// The error is emitted with `path: [path]` so consumers like
+  /// `valiform`'s `VForm` surface it inline under that field.
+  ///
+  /// ```dart
+  /// V.object<TaxPayer>()
+  ///   .field('country', (t) => t.country, V.string())
+  ///   .field('taxId', (t) => t.taxId, V.string())
+  ///   .refineFieldRaw(
+  ///     (t) => t.country == 'US' ? t.taxId.length == 9 : true,
+  ///     path: 'taxId',
+  ///     message: 'US taxId must be 9 chars',
+  ///   );
+  /// ```
+  VObject<T> refineFieldRaw(
+    bool Function(T instance) check, {
+    required String path,
+    String? message,
+  }) {
+    assert(
+      _fields.any((f) => f.name == path),
+      "The provided path '$path' does not exist in the schema.",
+    );
+
+    addRaw(
+      _RefineValidator<T>(check: check, validatorCode: VCode.custom),
+      message: message,
+      path: [path],
+    );
+
+    return this;
+  }
+
   @override
   bool get hasAsync {
     if (super.hasAsync) return true;
@@ -460,7 +508,10 @@ class VObject<T> extends VType<T> {
       return _typeError<T>(T.toString(), input!);
     }
 
-    final errors = <VError>[];
+    // Raw entity-level validators (refineFieldRaw) run BEFORE any
+    // per-field iteration. They see `typed` as it was after container
+    // preprocess + cast, with no per-field pipeline yet executed.
+    final errors = <VError>[..._runRawValidators(typed)];
 
     for (final field in _fields) {
       final fieldValue = field.extractor(typed);
@@ -522,7 +573,10 @@ class VObject<T> extends VType<T> {
       return _typeError<T>(T.toString(), input!);
     }
 
-    final errors = <VError>[];
+    // Raw entity-level validators (refineFieldRaw) run BEFORE any
+    // per-field iteration. They see `typed` as it was after container
+    // preprocess + cast, with no per-field pipeline yet executed.
+    final errors = <VError>[..._runRawValidators(typed)];
 
     for (final field in _fields) {
       final fieldValue = field.extractor(typed);

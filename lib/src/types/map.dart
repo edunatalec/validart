@@ -398,6 +398,57 @@ class VMap extends VType<Map<String, dynamic>> {
     );
   }
 
+  /// Adds an entity-level rule scoped to a specific field path that
+  /// runs **before** any per-field iteration. The [check] callback
+  /// receives the raw `Map<String, dynamic>` — each value is the
+  /// untouched input to the corresponding field (after the container
+  /// preprocess and type check, but before the field's own preprocess /
+  /// validators / transforms run).
+  ///
+  /// Compare with [refineField], whose callback runs **after** all
+  /// fields have been parsed and transformed. Use [refineFieldRaw] when
+  /// the rule depends on the input as the user typed it (e.g. comparing
+  /// raw casing or whitespace before a `.toLowerCase()` / `.trim()`
+  /// transform applies). For everything else, prefer [refineField].
+  ///
+  /// The error is emitted with `path: [path]` so consumers like
+  /// `valiform`'s `VForm` can surface it inline under that field.
+  /// Unlike [refineField], [refineFieldRaw] has no implicit `dependsOn`
+  /// — it always runs once the input is a `Map<String, dynamic>`,
+  /// regardless of subsequent per-field results.
+  ///
+  /// ```dart
+  /// V.map({
+  ///   'email': V.string().toLowerCase().email(),
+  ///   'expected': V.string(),
+  /// }).refineFieldRaw(
+  ///   (data) => data['email'] == data['expected'],
+  ///   path: 'email',
+  ///   message: 'email must match expected (raw, case-sensitive)',
+  /// );
+  /// ```
+  VMap refineFieldRaw(
+    bool Function(Map<String, dynamic> data) check, {
+    required String path,
+    String? message,
+  }) {
+    assert(
+      _schema.containsKey(path),
+      "The provided path '$path' does not exist in the schema.",
+    );
+
+    addRaw(
+      _RefineValidator<Map<String, dynamic>>(
+        check: check,
+        validatorCode: VCode.custom,
+      ),
+      message: message,
+      path: [path],
+    );
+
+    return this;
+  }
+
   @override
   bool get hasAsync {
     if (super.hasAsync) return true;
@@ -441,7 +492,10 @@ class VMap extends VType<Map<String, dynamic>> {
       );
     }
 
-    final errors = <VError>[];
+    // Raw entity-level validators (refineFieldRaw) run BEFORE any
+    // per-field iteration so their callback sees the input as it
+    // arrived, not the parsed/transformed values.
+    final errors = <VError>[..._runRawValidators(input)];
     final parsed = <String, dynamic>{};
 
     if (_isStrict) {
@@ -526,7 +580,10 @@ class VMap extends VType<Map<String, dynamic>> {
       );
     }
 
-    final errors = <VError>[];
+    // Raw entity-level validators (refineFieldRaw) run BEFORE any
+    // per-field iteration so their callback sees the input as it
+    // arrived, not the parsed/transformed values.
+    final errors = <VError>[..._runRawValidators(input)];
     final parsed = <String, dynamic>{};
 
     if (_isStrict) {

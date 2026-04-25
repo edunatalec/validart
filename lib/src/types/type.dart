@@ -200,6 +200,34 @@ abstract class VType<T> {
     ));
   }
 
+  /// Adds a [Validator] that runs in the **raw** validation phase —
+  /// before any per-field iteration in container schemas (`VMap` /
+  /// `VObject`). The callback inside [validator] sees the input as it
+  /// arrived (after container preprocess and type check), not the
+  /// post-pipeline parsed value that [add] sees.
+  ///
+  /// Used by [VMap.refineFieldRaw] and [VObject.refineFieldRaw]. Outside
+  /// of container types this step never runs, so calling [addRaw] on a
+  /// primitive schema is a no-op semantically (kept here for API
+  /// uniformity).
+  ///
+  /// Use [message] to override the default error message. Use [path] to
+  /// attach the resulting error to a field path instead of the root.
+  /// There is no `dependsOn` parameter: raw validators run before any
+  /// field has been validated, so there are no failures to gate on —
+  /// they always execute when reached.
+  VType<T> addRaw(
+    Validator<T> validator, {
+    String? message,
+    List<Object>? path,
+  }) {
+    return _addStep(_RawValidatorStep<T>(
+      validator,
+      messageOverride: message,
+      path: path,
+    ));
+  }
+
   /// Adds an [AsyncValidator] to the validation phase.
   ///
   /// Makes the schema async-only: sync consumers (`parse`, `validate`,
@@ -473,6 +501,39 @@ abstract class VType<T> {
   /// entity-level validators with declared `dependsOn` can decide whether
   /// to skip. A validator without `dependsOn` is skipped if
   /// [failedFieldPaths] is non-empty (conservative legacy behavior).
+  /// Runs every [_RawValidatorStep] registered on this schema against
+  /// [input], returning the resulting [VError]s (if any). Used by
+  /// container types (VMap, VObject) between the type check and the
+  /// per-field iteration in `safeParse` / `safeParseAsync`.
+  ///
+  /// Always runs every registered raw step — raw validators have no
+  /// `dependsOn` because they execute before any field can fail.
+  List<VError> _runRawValidators(T input) {
+    final errors = <VError>[];
+
+    for (final step in _steps) {
+      if (step
+          case _RawValidatorStep<T>(
+            :final validator,
+            :final messageOverride,
+            :final path,
+          )) {
+        final params = validator.validate(input);
+
+        if (params != null) {
+          final message = messageOverride ?? V.t(validator.code, params);
+          errors.add(VError(
+            code: validator.code,
+            message: message,
+            path: path ?? const [],
+          ));
+        }
+      }
+    }
+
+    return errors;
+  }
+
   VResult<T?> _runPipeline(
     T value, {
     List<VError> carriedErrors = const [],
@@ -900,6 +961,32 @@ final class _TransformStep<T> extends _PipelineStep<T> {
   final T Function(T value) transform;
 
   const _TransformStep({required this.transform});
+}
+
+/// Validator step that runs **before** any per-field iteration in a
+/// container schema (`VMap` / `VObject`). Receives the raw input —
+/// after the container preprocess and type check, but before each
+/// field's own pipeline (preprocess, validators, transforms) runs.
+///
+/// In contrast, [_ValidatorStep] runs inside `_runPipeline` after the
+/// per-field iteration, so its callback sees parsed (post-pipeline)
+/// values. Use [_RawValidatorStep] for entity-level rules that need to
+/// inspect the original casing / whitespace / shape of the input
+/// (e.g. comparing a field's raw value against an expected literal
+/// before a `.toLowerCase()` transform changes it).
+///
+/// Always runs when reached — there are no per-field failures yet to
+/// gate on, so [_RawValidatorStep] does not carry a `dependsOn` set.
+final class _RawValidatorStep<T> extends _PipelineStep<T> {
+  final Validator<T> validator;
+  final String? messageOverride;
+  final List<Object>? path;
+
+  const _RawValidatorStep(
+    this.validator, {
+    this.messageOverride,
+    this.path,
+  });
 }
 
 /// Extracts the first path segment from each error in [errors] as a string,
