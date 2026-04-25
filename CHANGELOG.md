@@ -1,6 +1,17 @@
 # Changelog
 
-## [1.4.0] - 2026-04-24
+## [1.4.0] - 2026-04-25
+
+### Fixed
+
+- **`preprocess(...)` / `preprocessAsync(...)` now actually run on every container type.** All container schemas — `VMap`, `VArray`, `VObject`, `VEnum`, `VLiteral`, `VUnion`, `VTransformed` (and its async counterpart `VTransformedAsync`) — previously overrode `safeParse` / `safeParseAsync` without invoking the base-class preprocess loop, silently dropping any `.preprocess(fn)` / `.preprocessAsync(fn)` registered on them. Only primitives (`VString`, `VInt`, `VDouble`, `VBool`, `VDate`) ever honored preprocessors. Every container now applies sync and async preprocessors before `_resolveNull`, so `V.map({...}).preprocess((raw) => normalize(raw))` and every analogous call transforms the input exactly like it does on primitives. Regression tests were added in `test/src/types/{map,array,enum,literal,union,object}_test.dart` and `test/src/features_test.dart` so the bug cannot return silently.
+- **`refine(...)` now runs on `VLiteral`, `VUnion` and `VTransformed` / `VTransformedAsync`.** Each of these overrode `safeParse` and returned `VSuccess(value)` directly on match instead of routing through `_runPipeline(value)`, so any `.refine(fn)` / `.refineAsync(fn)` step was silently dropped. The overrides now delegate the final success path to `_runPipeline` (or `_runPipelineAsync`), which also makes `add()` custom validators and chained transforms downstream of the fix work as documented.
+- **`VTransformed<I, O>` and `VTransformedAsync<I, O>` honor their own `nullable()` / `defaultValue(O)`.** Previously the wrappers only consulted the inner schema's null-handling, so `V.string().transform<int>((s) => s.length).defaultValue(0).parse(null)` failed with `string.invalid_type` because `0` was forwarded to the inner `VString`. The wrappers now short-circuit on null input when `_hasDefault` or `_isNullable` is set on the wrapper itself — default goes through `_runPipeline` as the transformed output `O`, and nullable returns `VSuccess<O?>(null)` directly. Inner-nullable behavior (`.nullable().transformAsync(...)`) is preserved because the wrapper still delegates when it has no own null-handling set.
+- **Pipeline contract test suite (`test/src/pipeline_contract_test.dart`).** Iterates every concrete `VType` subclass and asserts that `preprocess`, `preprocessAsync`, `refine`, `refineAsync`, `nullable()`, `defaultValue()` and the combination of all of them behave correctly. Adding a new `VType` subclass now requires one call to `_runPipelineContract<T>(...)` — a subclass that forgets to run the base-class preprocess loop (or to route success through `_runPipeline`) fails the contract immediately.
+
+### Known behavior (not yet changed)
+
+- **Entity-level validators short-circuit behind field errors.** `refine`, `equalFields`, and `refineField` live in `_runPipeline`, which only executes when every per-field validation already passed. If any field fails, the entity-level checks are suppressed on that call. Pinned by `test/src/integration_scenarios_test.dart` under the `design: pipeline short-circuit` group. Revisiting this to collect all errors in a single pass is an opportunity for a later release.
 
 ### Added
 
@@ -8,7 +19,7 @@
 - **`VObject<T>.equalFields(fieldA, fieldB, {message})`** — cross-field equality check, mirroring `VMap.equalFields`. Canonical use case is DTO password confirmation. Emits the new error code `VObjectCode.fieldsNotEqual` (`'object.fields_not_equal'`) with default template `'{field} must be equal to {other}'`, customizable per-call via `message:` or globally via `VLocale({'object.fields_not_equal': '...'})`. Throws `ArgumentError` if either field name is not declared on the schema. Backed by a new internal `ObjectEqualFieldsValidator<T>`.
 - **`VObject<T>.when(field, equals:, then:)`** — conditional validation, mirroring `VMap.when`. When the value read from `field` equals `equals`, every validator in `then` is applied to the corresponding field in addition to its baseline validator. Asserts that `field` and every key in `then` are declared on the schema. Propagates through `hasAsync` and `safeParseAsync` when any `then` validator is async.
 - **`VObject<T>.refineField(check, path:, message:)`** — entity-level predicate scoped to a specific field path. The `check` receives the whole `T` instance (so it can compare across fields), and the emitted error's `path` is `[path]`. Mirrors `VMap.refineField` but without the string-keyed lookup.
-- **`VObject<T>.pick(List<String>)` / `.omit(List<String>)`** — derive a new schema containing only / excluding the specified fields. Preserves all pipeline state (validator steps, `when` rules, preprocessors, `nullable`, `defaultValue`). Unlike TypeScript, the input type stays `T` — only the validation surface is narrowed; this is not a subset *type*. For partial/dynamic payloads, use `VMap.partial()` instead.
+- **`VObject<T>.pick(List<String>)` / `.omit(List<String>)`** — derive a new schema containing only / excluding the specified fields. Preserves all pipeline state (validator steps, `when` rules, preprocessors, `nullable`, `defaultValue`). Unlike TypeScript, the input type stays `T` — only the validation surface is narrowed; this is not a subset _type_. For partial/dynamic payloads, use `VMap.partial()` instead.
 - **`VObject<T>.merge(VObject<T> other)`** — combine two schemas of the same `T` into a new one. Fields and pipeline state (validator steps, `when` rules, preprocessors, `nullable`, `defaultValue`) from both sides are concatenated/OR-ed. Useful for composing shared `audit`/`meta` field groups with domain-specific schemas.
 
 ### Changed
@@ -23,7 +34,7 @@
 
 ### Changed
 
-- **Breaking — `V.string().phone()` / `.postalCode()` / `.taxId()` / `.licensePlate()` now accept a list of patterns.** The parameter was renamed from `pattern:` (single `Pattern`) to `patterns:` (non-empty `List<Pattern>`), and validation succeeds when **any** pattern in the list matches — enabling multi-country systems to declare every accepted format in a single schema instead of wrapping multiple schemas in `V.union([...])`. `V.string().phone()` with no argument continues to default to a single `E164PhonePattern` (behavior unchanged). **Migration:** wrap any existing single pattern in a list — `pattern: const UsZipPattern()` → `patterns: [const UsZipPattern()]`. For phone, the emitted error code keeps each pattern's custom `code` when exactly one pattern is configured; with two or more, the generic `VStringCode.phone` is emitted. For postal code / tax ID / license plate, the `{name}` interpolation param now joins each pattern's `name` with ` / ` when multiple are configured — a single template like `'Invalid {name}'` renders correctly in both single- and multi-pattern mode.
+- **Breaking — `V.string().phone()` / `.postalCode()` / `.taxId()` / `.licensePlate()` now accept a list of patterns.** The parameter was renamed from `pattern:` (single `Pattern`) to `patterns:` (non-empty `List<Pattern>`), and validation succeeds when **any** pattern in the list matches — enabling multi-country systems to declare every accepted format in a single schema instead of wrapping multiple schemas in `V.union([...])`. `V.string().phone()` with no argument continues to default to a single `E164PhonePattern` (behavior unchanged). **Migration:** wrap any existing single pattern in a list — `pattern: const UsZipPattern()` → `patterns: [const UsZipPattern()]`. For phone, the emitted error code keeps each pattern's custom `code` when exactly one pattern is configured; with two or more, the generic `VStringCode.phone` is emitted. For postal code / tax ID / license plate, the `{name}` interpolation param now joins each pattern's `name` with `/` when multiple are configured — a single template like `'Invalid {name}'` renders correctly in both single- and multi-pattern mode.
 - **Breaking — all error codes are now domain-prefixed.** Every string emitted by `error.code` follows `<type>.<action>` (e.g. `string.email`, `number.positive`, `int.even`, `bool.is_true`, `date.weekday`, `array.unique`, `enum.invalid`). The three generic fallbacks (`required`, `invalid_type`, `custom`) stay flat in `VCode` — `VLocale` uses them as the backstop when a prefixed key has no match. Constants in the sealed classes keep the same identifiers (`VStringCode.email`, `VIntCode.even`, `VDoubleCode.integer`, etc.); only the string value each one maps to changed. **Migration:** find-and-replace the old flat codes in `VLocale` configurations and in any `error.code == '...'` comparisons. Highlights: `'invalid_email'` → `'string.email'`, `'positive'` → `'number.positive'`, `'even'` → `'int.even'`, `'decimal'` → `'double.decimal'`, `'is_true'` → `'bool.is_true'`, `'weekday'` → `'date.weekday'`, `'unique'` → `'array.unique'`, `'invalid_enum'` → `'enum.invalid'`. Complete mapping table in README.
 - **`VLocale._defaults` is now structured as a nested map** grouping each type's translations (`'string': {'email': '...', 'too_small': '...'}`). Default behavior unchanged — the `_resolve` fallback chain already works with flat or nested lookups. This is purely a readability improvement for maintainers; custom translations can still use either form.
 
@@ -176,3 +187,87 @@ External packages (e.g. `validart_br` with CPF, CNPJ, CEP, Mercosul) can extend 
 - `getErrorMessage()` method
 - Brazilian validators (CPF, CNPJ, CEP) — to be published as `validart_br` package
 - `any()` / `every()` combinators (replaced by `VUnion` and `refine()`)
+
+## [0.1.1] - 2025-02-23
+
+### Fixed
+
+- Added missing `VDate` export to the package exports.
+
+## [0.1.0] - 2025-02-23
+
+### Added
+
+- **`ValidationMode`** support for:
+  - `.cep()`
+  - `.cnpj()`
+  - `.cpf()`
+  - `.phone()`
+- Now, it is possible to validate formatted strings (`ValidationMode.formatted`) or unformatted ones (`ValidationMode.unformatted`).
+- Improved documentation for CPF, CNPJ, CEP, and Phone, explaining how to use `ValidationMode`.
+
+### Changed
+
+- Updated API to support both formatted and unformatted validation for documents and phone numbers.
+
+## [0.0.4] - 2025-02-20
+
+### Added
+
+- Implemented an **assertion** in `VMap.refine()` to ensure the provided `path` exists in the defined object schema.
+  - This prevents referencing non-existent fields, improving validation reliability.
+  - Added a **test case** to verify that an `AssertionError` is thrown when an invalid path is used.
+
+### Changed
+
+- Updated the **README** with more detailed documentation and examples.
+- Improved **API documentation** to ensure full coverage across all public elements.
+
+## [0.0.3] - 2025-02-19
+
+### Added
+
+- Introduced a new primitive validator: `v.date()`, allowing date-based validations.
+- Implemented `.prime()` validator for integers to check if a number is prime.
+- Added new string validators:
+  - `password()`: Ensures password complexity.
+  - `jwt()`: Validates JSON Web Tokens.
+  - `card()`: Validates credit card numbers.
+  - `integer()`: Ensures the string represents a valid integer.
+  - `double()`: Ensures the string represents a valid double.
+  - `slug()`: Ensures the string is a valid slug format (lowercase, hyphens, no spaces or special characters).
+  - `alpha()`: Ensures the string contains only alphabetic characters.
+  - `alphanumeric()`: Ensures the string contains only letters and numbers.
+- Expanded test suite, achieving **100% test coverage**.
+
+### Changed
+
+- Standardized class names for greater consistency across the library.
+- Improved error messages and default validation messages.
+- Adjusted validation logic for maps within arrays, fixing issues with nested validations.
+- Updated **README.md** to include detailed documentation on array validations, including `.array()`, `.unique()`, `.contains()`, `.min()`, `.max()`, and other related methods.
+- Improved examples for **string** and **integer** array validation.
+
+### Fixed
+
+- Resolved bugs related to map validation within arrays, ensuring proper validation behavior.
+
+## [0.0.2] - 2025-02-17
+
+### Changed
+
+- Renamed `string().startsWidth` to `string().startsWith` for consistency.
+- Updated **README** to reflect recent changes and improvements.
+
+### Removed
+
+- Removed `.any()` and `.every()` functions from `.map()` as they were not applicable.
+
+### Added
+
+- Achieved **100% test coverage**, ensuring full validation reliability.
+- Added **default messages** for all validation types, providing a consistent error handling experience.
+
+## [0.0.1] - 2025-02-16
+
+- Initial release
