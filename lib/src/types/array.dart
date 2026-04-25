@@ -15,7 +15,7 @@ class VArray<T> extends VType<List<T>> {
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
-  VArray(this._element, {super.message});
+  VArray(this._element, {super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'array';

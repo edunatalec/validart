@@ -9,7 +9,7 @@ part of 'type.dart';
 class VBool extends VType<bool> {
   /// Creates a [VBool]. Pass [message] to override the default
   /// translation used when the input is `null`.
-  VBool({super.message});
+  VBool({super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'bool';

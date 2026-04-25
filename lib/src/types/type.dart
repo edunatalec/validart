@@ -102,23 +102,34 @@ part 'transformed.dart';
 ///   ..email();     // phase 2: validation
 /// ```
 abstract class VType<T> {
-  /// Creates a [VType]. [message] overrides the default translation for
-  /// the `required` error when input is `null` and the schema is neither
-  /// `nullable()` nor has a `defaultValue`.
+  /// Creates a [VType].
   ///
-  /// Not to be confused with the `message` parameter on individual
-  /// validator methods (`.email(message: ...)`, `.min(n, message: ...)`,
-  /// `.refine(fn, message: ...)`, ...): that one customizes the error of
-  /// a specific validator inside the pipeline; this one customizes the
-  /// pre-validation `required` error fired by `_resolveNull`. Both can
-  /// coexist on the same schema.
-  VType({String? message}) : _message = message;
+  /// - [message] overrides the default translation for the `required`
+  ///   error when input is `null` and the schema is neither `nullable()`
+  ///   nor has a `defaultValue`.
+  /// - [invalidTypeMessage] overrides the default translation for the
+  ///   `invalid_type` error when input is non-null but not assignable
+  ///   to the schema's `T` (e.g. `42` against `V.string()`). When
+  ///   `null`, the locale template (`'Expected {expected}, received
+  ///   {received}'`) is used. Following Zod's `required_error` /
+  ///   `invalid_type_error` separation: `required` is typically a
+  ///   user-facing label, while `invalid_type` is a developer-facing
+  ///   signal — keep them separate when the messages should differ.
+  ///
+  /// Both are independent of validator-level `message` arguments
+  /// (`.email(message: ...)`, `.min(n, message: ...)`, ...) which
+  /// customize errors *inside* the validation pipeline. The two factory
+  /// arguments customize errors emitted *before* the pipeline runs.
+  VType({String? message, String? invalidTypeMessage})
+      : _message = message,
+        _invalidTypeMessage = invalidTypeMessage;
 
   final List<_PipelineStep<T>> _steps = [];
   bool _isNullable = false;
   T? _defaultValue;
   bool _hasDefault = false;
   final String? _message;
+  final String? _invalidTypeMessage;
 
   /// Optional coercion function to convert input to the expected type.
   T Function(Object value)? coercer;
@@ -288,10 +299,11 @@ abstract class VType<T> {
     return VFailure<S?>([
       VError(
         code: _invalidTypeCode,
-        message: V.t(_invalidTypeCode, {
-          'expected': expected,
-          'received': value.runtimeType.toString(),
-        }),
+        message: _invalidTypeMessage ??
+            V.t(_invalidTypeCode, {
+              'expected': expected,
+              'received': value.runtimeType.toString(),
+            }),
       ),
     ]);
   }

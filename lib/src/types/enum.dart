@@ -15,7 +15,7 @@ class VEnum<T extends Enum> extends VType<T> {
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
-  VEnum(this._values, {super.message});
+  VEnum(this._values, {super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'enum';

@@ -14,7 +14,7 @@ class VLiteral<T> extends VType<T> {
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
-  VLiteral(this._expected, {super.message});
+  VLiteral(this._expected, {super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'literal';

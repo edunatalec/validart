@@ -9,7 +9,7 @@ part of 'type.dart';
 class VDate extends VType<DateTime> {
   /// Creates a [VDate]. Pass [message] to override the default
   /// translation used when the input is `null`.
-  VDate({super.message});
+  VDate({super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'date';

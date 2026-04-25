@@ -37,7 +37,7 @@ class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields = [];
   final List<_ObjectWhenRule<T>> _whenRules = [];
 
-  VObject._({super.message});
+  VObject._({super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'object';
@@ -178,7 +178,7 @@ class VObject<T> extends VType<T> {
   /// final schema = VObject<User>()
   ///     .field('name', (u) => u.name, V.string());
   /// ```
-  factory VObject({String? message}) = VObject<T>._;
+  factory VObject({String? message, String? invalidTypeMessage}) = VObject<T>._;
 
   /// Adds a field to the schema with a [name], an [extractor] to read its
   /// value from an instance of [T], and a [validator] schema.
@@ -387,10 +387,15 @@ class VObject<T> extends VType<T> {
   /// Adds a custom validation targeting a specific field [path]. The [check]
   /// receives the whole instance and the emitted error is scoped to [path].
   ///
-  /// Runs in the validation phase. Declares `dependsOn: {path}` internally
-  /// — when the field at [path] fails its own validation, this check is
-  /// skipped; otherwise the result is aggregated alongside any unrelated
-  /// field errors in a single `VFailure`.
+  /// Runs in the validation phase. By default declares
+  /// `dependsOn: {path}` — when the field at [path] fails its own
+  /// validation, this check is skipped; otherwise the result is
+  /// aggregated alongside any unrelated field errors in a single
+  /// `VFailure`. Pass [dependsOn] to override the default — useful when
+  /// the check on [path] also depends on OTHER fields (or to opt out
+  /// of the skip entirely with `dependsOn: const {}`, which makes the
+  /// check always run regardless of field failures; the callback must
+  /// be defensive about partially-parsed input).
   ///
   /// ```dart
   /// V.object<User>()
@@ -405,17 +410,27 @@ class VObject<T> extends VType<T> {
     bool Function(T instance) check, {
     required String path,
     String? message,
+    Set<String>? dependsOn,
   }) {
     assert(
       _fields.any((f) => f.name == path),
       "The provided path '$path' does not exist in the schema.",
     );
+    if (dependsOn != null) {
+      for (final dep in dependsOn) {
+        assert(
+          _fields.any((f) => f.name == dep) ||
+              _whenRules.any((r) => r.then.containsKey(dep)),
+          "The dependsOn key '$dep' does not exist in the schema.",
+        );
+      }
+    }
 
     return add(
       _RefineValidator<T>(check: check, validatorCode: VCode.custom),
       message: message,
       path: [path],
-      dependsOn: {path},
+      dependsOn: dependsOn ?? {path},
     );
   }
 

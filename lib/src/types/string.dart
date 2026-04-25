@@ -12,7 +12,7 @@ class VString extends VType<String> {
 
   /// Creates a [VString]. Pass [message] to override the default
   /// translation used when the input is `null`.
-  VString({super.message});
+  VString({super.message, super.invalidTypeMessage});
 
   @override
   VString add(

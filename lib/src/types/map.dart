@@ -33,7 +33,7 @@ class VMap extends VType<Map<String, dynamic>> {
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
-  VMap(this._schema, {super.message}) {
+  VMap(this._schema, {super.message, super.invalidTypeMessage}) {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
   }
 
@@ -79,10 +79,27 @@ class VMap extends VType<Map<String, dynamic>> {
   /// follows the conservative rule: skip if ANY field failed (avoids
   /// cast crashes on partially-parsed inputs).
   ///
+  /// Pass `dependsOn: const {}` (empty set) to opt OUT of the
+  /// conservative skip entirely — the refine runs even when other
+  /// fields failed. The callback must be defensive about
+  /// partially-parsed input (fields that failed may be missing from
+  /// the map). Useful for audit / logging rules that should fire on
+  /// every submission.
+  ///
   /// `dependsOn` accepts any key declared in the base schema OR injected
   /// via any `when.then` block. Unknown keys throw an `AssertionError`.
   ///
   /// ```dart
+  /// // Conservative default — skip if any field failed.
+  /// V.map({...}).refine((m) => ...);
+  ///
+  /// // Aggregate alongside unrelated failures — skip only if 'a' or
+  /// // 'b' failed.
+  /// V.map({...}).refine((m) => ..., dependsOn: const {'a', 'b'});
+  ///
+  /// // Always run, even when fields failed (callback must be safe).
+  /// V.map({...}).refine((m) => audit(m), dependsOn: const {});
+  ///
   /// V.map({
   ///   'startDate': V.date(),
   ///   'endDate': V.date(),
@@ -363,10 +380,13 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Adds a custom validation that targets a specific field path.
   ///
-  /// Runs in the validation phase. Declares `dependsOn: {path}` internally
-  /// — when the field at [path] fails its own validation, this check is
-  /// skipped; otherwise the result is aggregated alongside any unrelated
-  /// field errors in a single `VFailure`.
+  /// Runs in the validation phase. By default declares
+  /// `dependsOn: {path}` — when the field at [path] fails its own
+  /// validation, this check is skipped; otherwise the result is
+  /// aggregated alongside any unrelated field errors in a single
+  /// `VFailure`. Pass [dependsOn] to override the default — useful when
+  /// the check on [path] also depends on OTHER fields that must have
+  /// passed first (e.g. `email` validation depending on `domain`):
   ///
   /// ```dart
   /// V.map({
@@ -376,16 +396,42 @@ class VMap extends VType<Map<String, dynamic>> {
   ///   path: 'age',
   ///   message: 'Must be at least 18',
   /// );
+  ///
+  /// // Cross-field dependency:
+  /// V.map({
+  ///   'email': V.string().email(),
+  ///   'domain': V.string().min(1),
+  /// }).refineField(
+  ///   (data) => (data['email'] as String).endsWith(data['domain'] as String),
+  ///   path: 'email',
+  ///   dependsOn: const {'email', 'domain'},
+  ///   message: 'email must match the configured domain',
+  /// );
   /// ```
+  ///
+  /// Passing `dependsOn: const {}` (empty set) opts out of the skip
+  /// entirely — the check runs even when other fields failed. Useful
+  /// for audit / logging rules that should fire on every submission;
+  /// the callback must be defensive about partially-parsed input.
   VMap refineField(
     bool Function(Map<String, dynamic> data) check, {
     required String path,
     String? message,
+    Set<String>? dependsOn,
   }) {
     assert(
       _schema.containsKey(path),
       "The provided path '$path' does not exist in the schema.",
     );
+    if (dependsOn != null) {
+      for (final dep in dependsOn) {
+        assert(
+          _schema.containsKey(dep) ||
+              _whenRules.any((r) => r.then.containsKey(dep)),
+          "The dependsOn key '$dep' does not exist in the schema.",
+        );
+      }
+    }
 
     return add(
       _RefineValidator<Map<String, dynamic>>(
@@ -394,7 +440,7 @@ class VMap extends VType<Map<String, dynamic>> {
       ),
       message: message,
       path: [path],
-      dependsOn: {path},
+      dependsOn: dependsOn ?? {path},
     );
   }
 

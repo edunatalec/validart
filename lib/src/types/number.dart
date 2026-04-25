@@ -8,7 +8,7 @@ part of 'type.dart';
 abstract class VNumber<T extends num> extends VType<T> {
   /// Creates a [VNumber]. Pass [message] to override the default
   /// translation used when the input is `null`.
-  VNumber({super.message});
+  VNumber({super.message, super.invalidTypeMessage});
 
   @override
   VNumber<T> add(
@@ -109,7 +109,7 @@ abstract class VNumber<T extends num> extends VType<T> {
 class VInt extends VNumber<int> {
   /// Creates a [VInt]. Pass [message] to override the default
   /// translation used when the input is `null`.
-  VInt({super.message});
+  VInt({super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'int';
@@ -267,7 +267,7 @@ class VInt extends VNumber<int> {
 class VDouble extends VNumber<double> {
   /// Creates a [VDouble]. Pass [message] to override the default
   /// translation used when the input is `null`.
-  VDouble({super.message});
+  VDouble({super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'double';

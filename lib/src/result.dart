@@ -49,24 +49,33 @@ final class VFailure<T> extends VResult<T> {
   @override
   bool get isValid => false;
 
-  /// Converts the errors to a `Map<String, String>` keyed by field path.
+  /// Alias for [toMapFirst]. Kept for backwards compatibility — new
+  /// code should prefer [toMapFirst] (explicitly lossy) or [toMapAll]
+  /// (preserves every error per field).
+  Map<String, String> toMap() => toMapFirst();
+
+  /// Converts the errors to a `Map<String, String>` keyed by field
+  /// path, **keeping only the first error per path**. Errors with an
+  /// empty path are intentionally excluded — use [rootMessages] to
+  /// retrieve those, or iterate [errors] directly to handle both at
+  /// once. Errors land here when the validator that emitted them was
+  /// scoped to a specific field path: declared field validators
+  /// (`V.map({'x': ...})`), `refineField(check, path: 'x')`, and
+  /// `add(validator, path: ['x'])` / `addAsync(..., path: ['x'])`.
   ///
-  /// Only includes the first error per path. Errors with an empty path
-  /// are intentionally excluded — use [rootMessages] to retrieve those,
-  /// or iterate [errors] directly to handle both at once. Errors land
-  /// here when the validator that emitted them was scoped to a specific
-  /// field path: declared field validators (`V.map({'x': ...})`),
-  /// `refineField(check, path: 'x')`, and `add(validator, path: ['x'])`
-  /// / `addAsync(..., path: ['x'])`.
+  /// Use [toMapFirst] when one error per input is enough (typical UI
+  /// where the input renders a single inline message). Use [toMapAll]
+  /// when you want every violation surfaced (e.g., a help panel that
+  /// lists all rules a field broke).
   ///
   /// ```dart
   /// final result = schema.safeParse(data);
   ///
   /// if (result case VFailure(:final errors)) {
-  ///   final map = result.toMap(); // {'email': 'Invalid email address'}
+  ///   final map = result.toMapFirst(); // {'email': 'Invalid email address'}
   /// }
   /// ```
-  Map<String, String> toMap() {
+  Map<String, String> toMapFirst() {
     final map = <String, String>{};
 
     for (final error in errors) {
@@ -74,6 +83,40 @@ final class VFailure<T> extends VResult<T> {
 
       if (key.isNotEmpty && !map.containsKey(key)) {
         map[key] = error.message;
+      }
+    }
+
+    return map;
+  }
+
+  /// Converts the errors to a `Map<String, List<String>>` keyed by
+  /// field path, preserving **every** error per field in registration
+  /// order. Errors with an empty path are excluded — use
+  /// [rootMessages] for those.
+  ///
+  /// Use this when a single field can break multiple rules and you
+  /// want all of them in the UI (e.g., password requirements panel).
+  /// For one-message-per-field flows, use [toMapFirst] instead.
+  ///
+  /// ```dart
+  /// final schema = V.map({
+  ///   'pwd': V.string().min(8).pattern(r'\d').pattern(r'[A-Z]'),
+  /// });
+  /// final result = schema.safeParse({'pwd': 'a'});
+  ///
+  /// if (result case VFailure() && final f) {
+  ///   final all = f.toMapAll();
+  ///   // {'pwd': ['Must be at least 8 characters', 'Invalid pattern', ...]}
+  /// }
+  /// ```
+  Map<String, List<String>> toMapAll() {
+    final map = <String, List<String>>{};
+
+    for (final error in errors) {
+      final key = error.pathString;
+
+      if (key.isNotEmpty) {
+        (map[key] ??= <String>[]).add(error.message);
       }
     }
 

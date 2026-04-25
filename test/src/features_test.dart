@@ -591,11 +591,11 @@ void main() {
       expect(schema.errors(null)!.first.message, 'Campo obrigatório');
     });
 
-    test('message only applies to null input, not other errors', () {
+    test('factory message does NOT override per-validator messages', () {
       final schema = V.string(message: 'X').min(3, message: (_) => 'Too short');
       // null → custom required message
       expect(schema.errors(null)!.first.message, 'X');
-      // 'ab' → min error, not required
+      // 'ab' → min error (post-pipeline), validator-level message wins.
       expect(schema.errors('ab')!.first.message, 'Too short');
     });
 
@@ -608,6 +608,146 @@ void main() {
       final schema = V.string(message: 'X').defaultValue('fallback');
       expect(schema.parse(null), 'fallback');
     });
+  });
+
+  group('factory-level invalidTypeMessage override', () {
+    test('VString — wrong type input', () {
+      expect(
+        V.string(invalidTypeMessage: 'X').errors(42)!.first.message,
+        'X',
+      );
+    });
+
+    test('VInt — wrong type input', () {
+      expect(
+        V.int(invalidTypeMessage: 'X').errors('abc')!.first.message,
+        'X',
+      );
+    });
+
+    test('VDouble — wrong type input', () {
+      expect(
+        V.double(invalidTypeMessage: 'X').errors(true)!.first.message,
+        'X',
+      );
+    });
+
+    test('VBool — wrong type input', () {
+      expect(V.bool(invalidTypeMessage: 'X').errors(0)!.first.message, 'X');
+    });
+
+    test('VDate — wrong type input', () {
+      expect(
+        V.date(invalidTypeMessage: 'X').errors('not a date')!.first.message,
+        'X',
+      );
+    });
+
+    test('VArray — input not a List', () {
+      expect(
+        V
+            .array(V.string(), invalidTypeMessage: 'X')
+            .errors('not a list')!
+            .first
+            .message,
+        'X',
+      );
+    });
+
+    test('VMap — input not a Map', () {
+      expect(
+        V
+            .map({'a': V.string()}, invalidTypeMessage: 'X')
+            .errors('not a map')!
+            .first
+            .message,
+        'X',
+      );
+    });
+
+    test('VObject — input not the entity type', () {
+      expect(
+        V
+            .object<_Dummy>(invalidTypeMessage: 'X')
+            .errors('not a dummy')!
+            .first
+            .message,
+        'X',
+      );
+    });
+
+    test(
+      'VEnum / VLiteral are intentionally out of scope',
+      () {
+        // Pin the boundary: VEnum/VLiteral emit `enum.invalid` /
+        // `literal.invalid` (not `invalid_type`). Both factories accept
+        // `invalidTypeMessage:` for API uniformity, but the override is
+        // a no-op there.
+        expect(
+          V
+              .enm(_DemoColor.values, invalidTypeMessage: 'X')
+              .errors('not red')!
+              .first
+              .code,
+          'enum.invalid',
+        );
+        expect(
+          V.literal('admin', invalidTypeMessage: 'X').errors(42)!.first.code,
+          'literal.invalid',
+        );
+      },
+    );
+
+    test(
+      'still emits invalid_type code (just with a different message)',
+      () {
+        final err = V.string(invalidTypeMessage: 'X').errors(42)!.first;
+        expect(err.code, 'string.invalid_type');
+        expect(err.message, 'X');
+      },
+    );
+
+    test(
+      'factory message: alone does NOT cover invalid_type',
+      () {
+        // Inverse pin — confirms the two parameters are independent.
+        // `message:` covers ONLY required (null input). For wrong-type
+        // input, the locale template is used unless `invalidTypeMessage:`
+        // is set.
+        final schema = V.string(message: 'required label');
+        expect(schema.errors(null)!.first.message, 'required label');
+        expect(
+          schema.errors(42)!.first.message,
+          isNot('required label'),
+          reason: 'message: must NOT bleed into invalid_type — that is '
+              "invalidTypeMessage:'s job",
+        );
+      },
+    );
+
+    test(
+      'both parameters can coexist on the same schema',
+      () {
+        final schema = V.string(
+          message: 'Email is required',
+          invalidTypeMessage: 'Email must be text',
+        );
+        expect(schema.errors(null)!.first.message, 'Email is required');
+        expect(schema.errors(42)!.first.message, 'Email must be text');
+      },
+    );
+
+    test(
+      'validator-level message still wins for post-pipeline errors',
+      () {
+        // After the type check passes, validator-level messages take
+        // over. Factory params ONLY cover pre-pipeline gate errors.
+        final schema = V
+            .string(message: 'r', invalidTypeMessage: 't')
+            .min(3, message: (_) => 'too short');
+        expect(schema.errors('ab')!.first.message, 'too short');
+      },
+    );
   });
 
   group('refineFieldRaw vs refineField', () {
@@ -833,6 +973,265 @@ void main() {
     );
   });
 
+  group('VFailure.toMapFirst / toMapAll', () {
+    test('toMapFirst returns one error per field (the first registered)', () {
+      // Two violations on `pwd`; toMapFirst keeps only the first.
+      final schema = V.map({'pwd': V.string().min(8).alpha()});
+      final result = schema.safeParse({'pwd': '1'});
+      if (result case VFailure() && final f) {
+        final map = f.toMapFirst();
+        expect(map.length, 1);
+        expect(map['pwd'], isNotNull);
+      }
+    });
+
+    test('toMap is an alias for toMapFirst (backwards compatibility)', () {
+      final schema = V.map({'pwd': V.string().min(8)});
+      final result = schema.safeParse({'pwd': 'a'});
+      if (result case VFailure() && final f) {
+        expect(f.toMap(), f.toMapFirst());
+      }
+    });
+
+    test('toMapAll preserves every error per field in registration order', () {
+      final schema = V.map({'pwd': V.string().min(8).alpha()});
+      final result = schema.safeParse({'pwd': '1'});
+      if (result case VFailure() && final f) {
+        final all = f.toMapAll();
+        expect(all['pwd'], isNotNull);
+        expect(all['pwd']!.length, 2);
+        // First was .min(8), second was .alpha() — order matches the
+        // chain, since validators run in registration order.
+        expect(all['pwd']![0], contains('8'));
+      }
+    });
+
+    test('toMapAll excludes root-level errors (path: [])', () {
+      // refine() with empty path emits a root error — must NOT appear
+      // in toMapAll, only in rootMessages.
+      final schema = V.map({'name': V.string().min(1)}).refine((m) => false,
+          message: 'root rule');
+      final result = schema.safeParse({'name': 'x'});
+      if (result case VFailure() && final f) {
+        expect(
+            f.toMapAll().values.expand((v) => v), isNot(contains('root rule')));
+        expect(f.rootMessages(), contains('root rule'));
+      }
+    });
+
+    test('toMapAll returns empty map when there are only root-level errors',
+        () {
+      final schema = V.string().email();
+      final result = schema.safeParse('bad');
+      if (result case VFailure() && final f) {
+        expect(f.toMapAll(), isEmpty);
+        expect(f.rootMessages(), isNotEmpty);
+      }
+    });
+  });
+
+  group('refine — dependsOn: const {} opt-in (always run)', () {
+    test(
+      'VMap.refine with dependsOn: const {} runs even when a field failed',
+      () {
+        // Without an opt-in, refine without dependsOn would skip
+        // conservatively. Pass an explicit EMPTY set to declare
+        // "depends on nothing" → never skip.
+        var ran = 0;
+        final schema = V.map({
+          'name': V.string().min(3),
+        }).refine(
+          (m) {
+            ran++;
+            // Defensive: 'name' may be absent if the field failed.
+            return m['name'] != null;
+          },
+          dependsOn: const {},
+        );
+
+        schema.errors({'name': 'Al'});
+        expect(
+          ran,
+          1,
+          reason: 'dependsOn: const {} must opt out of conservative skip',
+        );
+      },
+    );
+
+    test(
+      'VMap.refine WITHOUT dependsOn DOES skip when a field failed',
+      () {
+        // Pin the contrast — confirms the opt-in is meaningful.
+        var ran = 0;
+        final schema = V.map({
+          'name': V.string().min(3),
+        }).refine((m) {
+          ran++;
+          return true;
+        });
+
+        schema.errors({'name': 'Al'});
+        expect(
+          ran,
+          0,
+          reason: 'no dependsOn = conservative skip when any field fails',
+        );
+      },
+    );
+
+    test(
+      'VObject.refine with dependsOn: const {} also opts out',
+      () {
+        // Mirror the VMap behaviour on VObject for parity.
+        var ran = 0;
+        final schema = V
+            .object<_DependsOnDemo>()
+            .field('a', (d) => d.a, V.string().min(3))
+            .field('b', (d) => d.b, V.string())
+            .refine(
+          (d) {
+            ran++;
+            return true;
+          },
+          dependsOn: const {},
+        );
+
+        // 'a' fails .min(3); refine still runs.
+        schema.errors(const _DependsOnDemo(a: 'x', b: 'ok'));
+        expect(ran, 1);
+      },
+    );
+  });
+
+  group('refineField — dependsOn override', () {
+    test(
+      'VMap.refineField with explicit dependsOn aggregates with unrelated '
+      'fields, but skips when a declared dep fails',
+      () {
+        // The check on `email` ALSO depends on `domain` having passed
+        // its own validation. With the override:
+        //   - if `domain` failed, the check is skipped (cast safety).
+        //   - if `name` (unrelated) failed, the check still runs.
+        final schema = V.map({
+          'email': V.string().email(),
+          'domain': V.string().min(1),
+          'name': V.string().min(3),
+        }).refineField(
+          (data) =>
+              (data['email'] as String).endsWith(data['domain'] as String),
+          path: 'email',
+          dependsOn: const {'email', 'domain'},
+          message: 'email must match domain',
+        );
+
+        // Both deps pass; the unrelated `name` fails. Refine still runs
+        // and emits its error alongside the field error.
+        final errs = schema.errors({
+          'email': 'a@example.com',
+          'domain': 'wrong.com',
+          'name': 'Al',
+        });
+        expect(errs, isNotNull);
+        expect(
+          errs!.any((e) => e.message == 'email must match domain'),
+          isTrue,
+        );
+        expect(errs.any((e) => e.path.first == 'name'), isTrue);
+      },
+    );
+
+    test(
+      'VMap.refineField with dependsOn: const {} runs even when its own '
+      'declared field failed',
+      () {
+        // Empty dependsOn = explicit "always run, callback must be
+        // defensive". Useful for audit / logging rules. Compare with
+        // the default `{path}` which would skip in this scenario.
+        var ran = 0;
+        final schema = V.map({
+          'name': V.string().min(3),
+        }).refineField(
+          (data) {
+            ran++;
+            return true; // refine itself passes
+          },
+          path: 'name',
+          dependsOn: const {},
+        );
+
+        // 'name' fails .min(3) — with the default dependsOn: {path},
+        // the refine would skip. With dependsOn: const {}, it runs.
+        schema.errors({'name': 'Al'});
+        expect(
+          ran,
+          1,
+          reason: 'dependsOn: const {} must NOT be gated by field failures',
+        );
+      },
+    );
+
+    test(
+      'VMap.refineField with default dependsOn DOES skip when its own field '
+      'fails',
+      () {
+        // Pin the contrast: without override, refineField skips when
+        // the field at `path` failed (its own implicit `{path}` dep).
+        var ran = 0;
+        final schema = V.map({
+          'name': V.string().min(3),
+        }).refineField(
+          (data) {
+            ran++;
+            return true;
+          },
+          path: 'name',
+        );
+
+        schema.errors({'name': 'Al'});
+        expect(
+          ran,
+          0,
+          reason: 'default dependsOn: {path} must skip when path failed',
+        );
+      },
+    );
+
+    test(
+      'VMap.refineField asserts dependsOn keys exist in the schema',
+      () {
+        expect(
+          () => V.map({'name': V.string()}).refineField(
+            (data) => true,
+            path: 'name',
+            dependsOn: const {'unknown'},
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      },
+    );
+
+    test(
+      'VObject.refineField with explicit dependsOn behaves identically',
+      () {
+        final schema = V
+            .object<_DependsOnDemo>()
+            .field('a', (d) => d.a, V.string().min(1))
+            .field('b', (d) => d.b, V.string().min(1))
+            .refineField(
+              (d) => d.a == d.b,
+              path: 'a',
+              dependsOn: const {'a', 'b'},
+              message: 'a and b must be equal',
+            );
+
+        // Both deps pass, refine fails → error under [a].
+        final errs = schema.errors(const _DependsOnDemo(a: 'x', b: 'y'));
+        expect(errs!.first.message, 'a and b must be equal');
+        expect(errs.first.path, ['a']);
+      },
+    );
+  });
+
   group('addRaw (public low-level API)', () {
     test('addRaw on a primitive schema is a semantic no-op', () {
       // The doc on `addRaw` claims raw steps never run outside container
@@ -886,6 +1285,14 @@ class _MapRequiresName extends Validator<Map<String, dynamic>> {
   Map<String, dynamic>? validate(Map<String, dynamic> value) =>
       (value['name'] as String?)?.isNotEmpty == true ? null : {};
 }
+
+class _DependsOnDemo {
+  final String a;
+  final String b;
+  const _DependsOnDemo({required this.a, required this.b});
+}
+
+enum _DemoColor { red, green, blue }
 
 class _Dummy {
   const _Dummy();

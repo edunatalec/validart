@@ -16,7 +16,7 @@ class VUnion extends VType<Object> {
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
-  VUnion(this._options, {super.message}) {
+  VUnion(this._options, {super.message, super.invalidTypeMessage}) {
     assert(_options.length >= 2, 'Union must have at least 2 options.');
   }
 
