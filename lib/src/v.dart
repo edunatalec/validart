@@ -100,22 +100,16 @@ sealed class V {
   }) =>
       VMap(schema, message: message);
 
-  /// Creates a [VObject] schema for type-safe entity validation. See
-  /// [string] for [message].
+  /// Creates a [VObject] schema for type-safe entity validation. Chain
+  /// [VObject.field] to add type-safe field extractors. See [string] for
+  /// [message].
   ///
   /// ```dart
-  /// V.object<User>(configure: (o) {
-  ///   o.field('name', (u) => u.name, V.string());
-  /// });
+  /// V.object<User>()
+  ///     .field('name', (u) => u.name, V.string());
   /// ```
-  static VObject<T> object<T>({
-    void Function(VObjectBuilder<T> o)? configure,
-    String? message,
-  }) =>
-      VObject<T>(
-        configure: configure,
-        message: message,
-      );
+  static VObject<T> object<T>({String? message}) =>
+      VObject<T>(message: message);
 
   /// Creates a [VArray] schema for the given [element] type. See [string]
   /// for [message].

@@ -79,5 +79,15 @@ void main() {
 
       expect(a.validate('x'), isTrue);
     });
+
+    test('VObject.field returns VObject<T> (fluent chain)', () {
+      final VObject<String> a = V
+          .object<String>()
+          .field('length', (s) => s.length, V.int().positive())
+          .nullable();
+
+      expect(a.validate('hello'), isTrue);
+      expect(a.validate(null), isTrue);
+    });
   });
 }

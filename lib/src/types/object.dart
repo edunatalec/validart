@@ -12,54 +12,19 @@ class _FieldEntry<T> {
   });
 }
 
-/// Builder for defining type-safe field extraction rules on [VObject].
-///
-/// ```dart
-/// V.object<User>(configure: (o) {
-///   o.field('name', (u) => u.name, V.string().min(2));
-///   o.field('age', (u) => u.age, V.int().positive());
-/// });
-/// ```
-class VObjectBuilder<T> {
-  final List<_FieldEntry<T>> _fields = [];
-
-  /// Adds a field with a [name], an [extractor] to get its value from [T],
-  /// and a [validator] schema.
-  ///
-  /// ```dart
-  /// o.field('email', (u) => u.email, V.string().email());
-  /// ```
-  VObjectBuilder<T> field<F>(
-    String name,
-    F? Function(T instance) extractor,
-    VType<F> validator,
-  ) {
-    _fields.add(_FieldEntry<T>(
-      name: name,
-      extractor: (instance) => extractor(instance),
-      validator: validator,
-    ));
-    return this;
-  }
-
-  List<_FieldEntry<T>> _build() => List.unmodifiable(_fields);
-}
-
 /// Validates class/entity instances of type [T] via type-safe field
 /// extraction callbacks.
 ///
 /// ```dart
-/// final schema = V.object<User>(configure: (o) {
-///   o.field('name', (u) => u.name, V.string().min(2));
-///   o.field('age', (u) => u.age, V.int().positive());
-/// });
+/// final schema = V.object<User>()
+///     .field('name', (u) => u.name, V.string().min(2))
+///     .field('age', (u) => u.age, V.int().positive());
 /// schema.validate(User(name: 'Jo', age: 25)); // true
 /// ```
 class VObject<T> extends VType<T> {
-  final List<_FieldEntry<T>> _fields;
+  final List<_FieldEntry<T>> _fields = [];
 
-  VObject._({required List<_FieldEntry<T>> fields, super.message})
-      : _fields = fields;
+  VObject._({super.message});
 
   @override
   String get typeName => 'object';
@@ -132,26 +97,34 @@ class VObject<T> extends VType<T> {
   Map<String, dynamic> extract(T instance) => Map.fromEntries(
       _fields.map((f) => MapEntry(f.name, f.extractor(instance))));
 
-  /// Creates a [VObject] with optional field [configure] callback.
+  /// Creates a [VObject] — chain [field] to add type-safe field extractors.
   ///
   /// ```dart
-  /// final schema = VObject<User>(configure: (o) {
-  ///   o.field('name', (u) => u.name, V.string());
-  /// });
+  /// final schema = VObject<User>()
+  ///     .field('name', (u) => u.name, V.string());
   /// ```
-  factory VObject({
-    void Function(VObjectBuilder<T> o)? configure,
-    String? message,
-  }) {
-    final List<_FieldEntry<T>> fields;
-    if (configure != null) {
-      final builder = VObjectBuilder<T>();
-      configure(builder);
-      fields = builder._build();
-    } else {
-      fields = [];
-    }
-    return VObject._(fields: fields, message: message);
+  factory VObject({String? message}) = VObject<T>._;
+
+  /// Adds a field to the schema with a [name], an [extractor] to read its
+  /// value from an instance of [T], and a [validator] schema.
+  ///
+  /// ```dart
+  /// V.object<User>()
+  ///     .field('email', (u) => u.email, V.string().email())
+  ///     .field('age', (u) => u.age, V.int().positive());
+  /// ```
+  VObject<T> field<F>(
+    String name,
+    F? Function(T instance) extractor,
+    VType<F> validator,
+  ) {
+    _fields.add(_FieldEntry<T>(
+      name: name,
+      extractor: (instance) => extractor(instance),
+      validator: validator,
+    ));
+
+    return this;
   }
 
   @override

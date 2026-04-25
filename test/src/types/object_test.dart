@@ -77,34 +77,21 @@ void main() {
 
     group('field validation', () {
       test('should validate fields and pass for valid data', () {
-        final schema = VObject<Folder>(
-            configure: (o) => o
-                .field(
-                  'id',
-                  (f) => f.id,
-                  VString().uuid().nullable(),
-                )
-                .field('name', (f) => f.name, VString().min(1)));
+        final schema = VObject<Folder>()
+            .field('id', (f) => f.id, VString().uuid().nullable())
+            .field('name', (f) => f.name, VString().min(1));
         expect(schema.validate(Folder(name: 'Documents')), isTrue);
       });
 
       test('should fail for invalid field', () {
-        final schema = VObject<Folder>(
-            configure: (o) => o.field(
-                  'name',
-                  (f) => f.name,
-                  VString().min(5),
-                ));
+        final schema =
+            VObject<Folder>().field('name', (f) => f.name, VString().min(5));
         expect(schema.validate(Folder(name: 'Doc')), isFalse);
       });
 
       test('should include field name in error path', () {
-        final schema = VObject<Folder>(
-            configure: (o) => o.field(
-                  'name',
-                  (f) => f.name,
-                  VString().min(5),
-                ));
+        final schema =
+            VObject<Folder>().field('name', (f) => f.name, VString().min(5));
         final errors = schema.errors(Folder(name: 'Doc'));
         expect(errors, isNotNull);
         expect(errors!.first.code, 'string.too_small');
@@ -112,12 +99,8 @@ void main() {
       });
 
       test('should validate uuid field', () {
-        final schema = VObject<Folder>(
-            configure: (o) => o.field(
-                  'id',
-                  (f) => f.id,
-                  VString().uuid(),
-                ));
+        final schema =
+            VObject<Folder>().field('id', (f) => f.id, VString().uuid());
         expect(
           schema.validate(Folder(
             id: '550e8400-e29b-41d4-a716-446655440000',
@@ -128,12 +111,8 @@ void main() {
       });
 
       test('should fail for invalid uuid field', () {
-        final schema = VObject<Folder>(
-            configure: (o) => o.field(
-                  'id',
-                  (f) => f.id,
-                  VString().uuid(),
-                ));
+        final schema =
+            VObject<Folder>().field('id', (f) => f.id, VString().uuid());
         final errors = schema.errors(Folder(id: 'not-a-uuid', name: 'Test'));
         expect(errors, isNotNull);
         expect(errors!.first.code, 'string.uuid');
@@ -141,10 +120,9 @@ void main() {
       });
 
       test('should collect multiple field errors', () {
-        final schema = VObject<Folder>(
-            configure: (o) => o
-                .field('id', (f) => f.id, VString().uuid())
-                .field('name', (f) => f.name, VString().min(10)));
+        final schema = VObject<Folder>()
+            .field('id', (f) => f.id, VString().uuid())
+            .field('name', (f) => f.name, VString().min(10));
         final errors = schema.errors(Folder(id: 'bad', name: 'short'));
         expect(errors, isNotNull);
         expect(errors!.length, 2);
@@ -241,12 +219,8 @@ void main() {
     group('combined with VMap', () {
       test('should use VObject inside VMap schema', () {
         final schema = VMap({
-          'folder': VObject<Folder>(
-              configure: (o) => o.field(
-                    'name',
-                    (f) => f.name,
-                    VString().min(1),
-                  )),
+          'folder':
+              VObject<Folder>().field('name', (f) => f.name, VString().min(1)),
         });
         expect(
           schema.validate({'folder': Folder(name: 'Documents')}),
@@ -256,12 +230,8 @@ void main() {
 
       test('should fail when VObject field inside VMap is invalid', () {
         final schema = VMap({
-          'folder': VObject<Folder>(
-              configure: (o) => o.field(
-                    'name',
-                    (f) => f.name,
-                    VString().min(10),
-                  )),
+          'folder':
+              VObject<Folder>().field('name', (f) => f.name, VString().min(10)),
         });
         expect(
           schema.validate({'folder': Folder(name: 'Doc')}),
@@ -271,12 +241,8 @@ void main() {
 
       test('should produce nested path for VObject inside VMap', () {
         final schema = VMap({
-          'folder': VObject<Folder>(
-              configure: (o) => o.field(
-                    'name',
-                    (f) => f.name,
-                    VString().min(10),
-                  )),
+          'folder':
+              VObject<Folder>().field('name', (f) => f.name, VString().min(10)),
         });
         final errors = schema.errors({'folder': Folder(name: 'Doc')});
         expect(errors, isNotNull);
@@ -296,21 +262,17 @@ void main() {
 
     group('VObject with VArray', () {
       test('should validate object containing a list field', () {
-        final schema = VObject<_TaggedFolder>(
-          configure: (o) => o
-              .field('name', (f) => f.name, VString().min(1))
-              .field('tags', (f) => f.tags, VArray<String>(VString().min(1))),
-        );
+        final schema = VObject<_TaggedFolder>()
+            .field('name', (f) => f.name, VString().min(1))
+            .field('tags', (f) => f.tags, VArray<String>(VString().min(1)));
 
         expect(schema.validate(_TaggedFolder('Docs', ['a', 'b'])), isTrue);
         expect(schema.validate(_TaggedFolder('Docs', ['a', ''])), isFalse);
       });
 
       test('should include nested path for array field errors', () {
-        final schema = VObject<_TaggedFolder>(
-          configure: (o) =>
-              o.field('tags', (f) => f.tags, VArray<String>(VString().min(3))),
-        );
+        final schema = VObject<_TaggedFolder>()
+            .field('tags', (f) => f.tags, VArray<String>(VString().min(3)));
 
         final errs = schema.errors(_TaggedFolder('Docs', ['hello', 'ab']));
         expect(errs, isNotNull);
@@ -319,41 +281,40 @@ void main() {
     });
 
     group('kitchen sink (all types combined)', () {
-      final schema = V.object<_KitchenSinkEntity>(
-        configure: (o) => o
-            .field('name', (e) => e.name, V.string().min(1))
-            .field('date.age', (e) => e.age, V.int().between(0, 150))
-            .field('balance', (e) => e.balance, V.double().finite())
-            .field('active', (e) => e.active, V.bool().isTrue())
-            .field(
-              'joined',
-              (e) => e.joined,
-              V.date().before(DateTime(2030)),
-            )
-            .field(
-              'tags',
-              (e) => e.tags,
-              V.string().min(2).array().min(1).unique(),
-            )
-            .field(
-              'prefs',
-              (e) => e.prefs,
-              V.map({
-                'theme': V.literal('dark'),
-                'notifications': V.bool(),
-              }),
-            )
-            .field(
-              'status',
-              (e) => e.status,
-              V.enm(_AccountStatus.values),
-            )
-            .field(
-              'id',
-              (e) => e.id,
-              V.union([V.string().uuid(), V.int().min(1)]),
-            ),
-      );
+      final schema = V
+          .object<_KitchenSinkEntity>()
+          .field('name', (e) => e.name, V.string().min(1))
+          .field('date.age', (e) => e.age, V.int().between(0, 150))
+          .field('balance', (e) => e.balance, V.double().finite())
+          .field('active', (e) => e.active, V.bool().isTrue())
+          .field(
+            'joined',
+            (e) => e.joined,
+            V.date().before(DateTime(2030)),
+          )
+          .field(
+            'tags',
+            (e) => e.tags,
+            V.string().min(2).array().min(1).unique(),
+          )
+          .field(
+            'prefs',
+            (e) => e.prefs,
+            V.map({
+              'theme': V.literal('dark'),
+              'notifications': V.bool(),
+            }),
+          )
+          .field(
+            'status',
+            (e) => e.status,
+            V.enm(_AccountStatus.values),
+          )
+          .field(
+            'id',
+            (e) => e.id,
+            V.union([V.string().uuid(), V.int().min(1)]),
+          );
 
       _KitchenSinkEntity goodEntity() => _KitchenSinkEntity(
             name: 'Alice',

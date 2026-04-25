@@ -208,27 +208,23 @@ void main() {
 
   group('VObject with async field', () {
     test('propagates hasAsync', () {
-      final schema = V.object<_User>(
-        configure: (o) => o.field(
-          'name',
-          (u) => u.name,
-          V.string().refineAsync((v) async => v.isNotEmpty),
-        ),
-      );
+      final schema = V.object<_User>().field(
+            'name',
+            (u) => u.name,
+            V.string().refineAsync((v) async => v.isNotEmpty),
+          );
       expect(schema.hasAsync, isTrue);
     });
 
     test('field path preserved in async errors', () async {
-      final schema = V.object<_User>(
-        configure: (o) => o.field(
-          'name',
-          (u) => u.name,
-          V.string().refineAsync(
-                (v) async => v.length >= 3,
-                code: 'short_name',
-              ),
-        ),
-      );
+      final schema = V.object<_User>().field(
+            'name',
+            (u) => u.name,
+            V.string().refineAsync(
+                  (v) async => v.length >= 3,
+                  code: 'short_name',
+                ),
+          );
       final errors = await schema.errorsAsync(_User('x'));
       expect(errors!.first.code, 'short_name');
       expect(errors.first.path, ['name']);
@@ -615,28 +611,27 @@ void main() {
 
   group('VObject mixed sync/async fields', () {
     test('hasAsync true when any field is async', () {
-      final schema = V.object<_MixedUser>(
-        configure: (o) => o.field('name', (u) => u.name, V.string()).field(
-              'email',
-              (u) => u.email,
-              V.string().refineAsync((v) async => v.contains('@')),
-            ),
-      );
+      final schema =
+          V.object<_MixedUser>().field('name', (u) => u.name, V.string()).field(
+                'email',
+                (u) => u.email,
+                V.string().refineAsync((v) async => v.contains('@')),
+              );
       expect(schema.hasAsync, isTrue);
     });
 
     test('async field error path combines with sync field error', () async {
-      final schema = V.object<_MixedUser>(
-        configure: (o) =>
-            o.field('name', (u) => u.name, V.string().min(3)).field(
-                  'email',
-                  (u) => u.email,
-                  V.string().refineAsync(
-                        (v) async => v.contains('@'),
-                        code: 'bad_email',
-                      ),
+      final schema = V
+          .object<_MixedUser>()
+          .field('name', (u) => u.name, V.string().min(3))
+          .field(
+            'email',
+            (u) => u.email,
+            V.string().refineAsync(
+                  (v) async => v.contains('@'),
+                  code: 'bad_email',
                 ),
-      );
+          );
 
       final errors = await schema.errorsAsync(_MixedUser('ab', 'bad'));
       expect(errors!.length, 2);

@@ -12,7 +12,6 @@ export 'src/types/type.dart'
         VArray,
         VMap,
         VObject,
-        VObjectBuilder,
         VEnum,
         VLiteral,
         VUnion,
