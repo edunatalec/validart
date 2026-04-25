@@ -552,6 +552,27 @@ V.object<User>().refine(
 );
 ```
 
+Validate a list of entities with `.array()` — same chainable operators as any other `VArray`:
+
+```dart
+final batch = SignInDto.schema.array().min(1).unique();
+
+batch.validate([SignInDto(email: 'a@b.com', password: 'Str0ng!Pass')]); // true
+```
+
+Cross-field equality with `.equalFields(a, b)` — canonical use case is DTO password confirmation:
+
+```dart
+final schema = V.object<SignUpDto>()
+  .field('password', (d) => d.password, V.string().password())
+  .field('confirm', (d) => d.confirm, V.string())
+  .equalFields('password', 'confirm');
+
+schema.errors(SignUpDto(email: 'a@b.com', password: 'secret', confirm: 'other'))
+  ?.first.message;
+// 'password must be equal to confirm'
+```
+
 ## Array
 
 Validates `List<T>` — each element goes through the element schema, then the list is checked against the array-level constraints.
