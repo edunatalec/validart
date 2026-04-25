@@ -841,6 +841,24 @@ final schema = V.string()
 schema.parse(42); // '42'
 ```
 
+#### Running preprocess in isolation
+
+Most consumers never call this directly — `parse` / `safeParse` already run the preprocess stage internally. But when bridging Validart into a different pipeline (form libraries that revalidate per-field, snapshot tooling, custom debuggers), you sometimes need to apply only the preprocess chain — without `_resolveNull`, validators, refines, or transforms:
+
+```dart
+final schema = V.string()
+  .preprocess((v) => (v as String).trim())
+  .min(3);
+
+schema.runPreprocessors('  hi  ');     // 'hi' — trim ran, .min(3) did NOT
+await schema.runPreprocessorsAsync(' x '); // 'x' — async-safe variant
+
+schema.hasPreprocessors;                // true
+V.string().hasPreprocessors;            // false
+```
+
+`runPreprocessors` throws `VAsyncRequiredException` when the schema has any `preprocessAsync` registered — use `runPreprocessorsAsync` instead. Both are exposed on every `VType` (primitives, containers, unions, transforms).
+
 ## Modifiers
 
 Available on all types:
