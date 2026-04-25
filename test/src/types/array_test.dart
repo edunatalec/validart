@@ -340,5 +340,49 @@ void main() {
         expect(schema.validate(['ok', null, 'also']), isTrue);
       });
     });
+
+    group('preprocess propagation (regression)', () {
+      test('sync preprocess runs before validation', () {
+        var ran = 0;
+        final schema = V.array(V.string()).preprocess((v) {
+          ran++;
+
+          return v;
+        });
+
+        schema.validate(['a']);
+        expect(ran, 1);
+      });
+
+      test('preprocess can reshape the input before element validation', () {
+        final schema = V.array(V.string().min(2)).preprocess((v) {
+          if (v is String) return [v];
+
+          return v;
+        });
+
+        expect(schema.validate('x'), isFalse);
+        expect(schema.validate('hello'), isTrue);
+      });
+
+      test('async preprocess runs before validation in safeParseAsync',
+          () async {
+        var syncRan = 0;
+        var asyncRan = 0;
+        final schema = V.array(V.string()).preprocess((v) {
+          syncRan++;
+
+          return v;
+        }).preprocessAsync((v) async {
+          asyncRan++;
+
+          return v;
+        });
+
+        await schema.validateAsync(['a']);
+        expect(syncRan, 1);
+        expect(asyncRan, 1);
+      });
+    });
   });
 }

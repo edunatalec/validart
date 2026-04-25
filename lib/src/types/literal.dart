@@ -21,7 +21,14 @@ class VLiteral<T> extends VType<T> {
 
   @override
   VResult<T?> safeParse(Object? value) {
-    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<T>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 

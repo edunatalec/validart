@@ -141,7 +141,14 @@ class VArray<T> extends VType<List<T>> {
       );
     }
 
-    final resolution = _resolveNull<List<T>>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<List<T>>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 
@@ -172,7 +179,18 @@ class VArray<T> extends VType<List<T>> {
 
   @override
   Future<VResult<List<T>?>> safeParseAsync(Object? value) async {
-    final resolution = _resolveNull<List<T>>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      preprocessed = await fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<List<T>>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 

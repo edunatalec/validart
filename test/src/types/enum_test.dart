@@ -82,5 +82,35 @@ void main() {
         expect(schema.validate([Color.red, 'invalid']), isFalse);
       });
     });
+
+    group('preprocess propagation (regression)', () {
+      test('sync preprocess runs before validation', () {
+        var ran = 0;
+        final schema = V.enm(Color.values).preprocess((v) {
+          ran++;
+
+          return v;
+        });
+
+        schema.validate(Color.red);
+        expect(ran, 1);
+      });
+
+      test('preprocess can map a string to an enum value before validation',
+          () {
+        final schema = V.enm(Color.values).preprocess((v) {
+          if (v is String) {
+            return Color.values.firstWhere(
+              (c) => c.name == v,
+              orElse: () => Color.red,
+            );
+          }
+
+          return v;
+        });
+
+        expect(schema.validate('green'), isTrue);
+      });
+    });
   });
 }

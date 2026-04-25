@@ -31,7 +31,13 @@ class VTransformed<I, O> extends VType<O> {
       );
     }
 
-    final result = _inner.safeParse(value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    final result = _inner.safeParse(preprocessed);
 
     switch (result) {
       case VSuccess(:final value):
@@ -44,9 +50,19 @@ class VTransformed<I, O> extends VType<O> {
 
   @override
   Future<VResult<O?>> safeParseAsync(Object? value) async {
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      preprocessed = await fn(preprocessed);
+    }
+
     final result = _inner.hasAsync
-        ? await _inner.safeParseAsync(value)
-        : _inner.safeParse(value);
+        ? await _inner.safeParseAsync(preprocessed)
+        : _inner.safeParse(preprocessed);
 
     switch (result) {
       case VSuccess(:final value):
@@ -94,9 +110,19 @@ class VTransformedAsync<I, O> extends VType<O> {
 
   @override
   Future<VResult<O?>> safeParseAsync(Object? value) async {
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      preprocessed = await fn(preprocessed);
+    }
+
     final result = _inner.hasAsync
-        ? await _inner.safeParseAsync(value)
-        : _inner.safeParse(value);
+        ? await _inner.safeParseAsync(preprocessed)
+        : _inner.safeParse(preprocessed);
 
     switch (result) {
       case VSuccess(:final value):

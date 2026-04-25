@@ -56,5 +56,28 @@ void main() {
       final schema = VLiteral('admin');
       expect(schema.parse('admin'), 'admin');
     });
+
+    group('preprocess propagation (regression)', () {
+      test('sync preprocess runs before validation', () {
+        var ran = 0;
+        final schema = V.literal('admin').preprocess((v) {
+          ran++;
+
+          return v;
+        });
+
+        schema.validate('admin');
+        expect(ran, 1);
+      });
+
+      test('preprocess can normalize the input before literal comparison', () {
+        final schema = V.literal('admin').preprocess(
+              (v) => v is String ? v.trim().toLowerCase() : v,
+            );
+
+        expect(schema.validate('  ADMIN  '), isTrue);
+        expect(schema.validate('user'), isFalse);
+      });
+    });
   });
 }

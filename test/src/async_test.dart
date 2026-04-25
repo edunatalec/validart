@@ -699,6 +699,33 @@ void main() {
       expect(errors!.first.code, 'bad_email');
       expect(errors.first.path, ['email']);
     });
+
+    test(
+        'async field error AND sync when-rule error are both collected in one '
+        'errorsAsync call', () async {
+      final schema = V
+          .object<_MixedUser>()
+          .field(
+            'name',
+            (u) => u.name,
+            V.string().refineAsync(
+                  (v) async => v.length >= 3,
+                  code: 'short_name_async',
+                ),
+          )
+          .field('email', (u) => u.email, V.string())
+          .when('name', equals: 'x', then: {
+        'email': V.string().min(20),
+      });
+
+      final errors = await schema.errorsAsync(_MixedUser('x', 'bad'));
+
+      expect(errors, isNotNull);
+      expect(
+        errors!.map((e) => e.code).toSet(),
+        containsAll(<String>['short_name_async', 'string.too_small']),
+      );
+    });
   });
 
   group('VMap mixed when-rules + async', () {

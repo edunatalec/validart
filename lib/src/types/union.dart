@@ -36,7 +36,14 @@ class VUnion extends VType<Object> {
       );
     }
 
-    final resolution = _resolveNull<Object>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<Object>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 
@@ -61,7 +68,18 @@ class VUnion extends VType<Object> {
 
   @override
   Future<VResult<Object?>> safeParseAsync(Object? value) async {
-    final resolution = _resolveNull<Object>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      preprocessed = await fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<Object>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 

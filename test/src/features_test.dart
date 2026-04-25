@@ -216,6 +216,31 @@ void main() {
       final schema = (V.string().nullable()).transform<int>((s) => s.length);
       expect(schema.parse(null), isNull);
     });
+
+    test(
+        'preprocess on the transformed schema runs before the inner (regression)',
+        () {
+      var ran = 0;
+      final schema = V.string().transform<int>((s) => s.length).preprocess((v) {
+        ran++;
+
+        return v;
+      });
+
+      schema.validate('hello');
+      expect(ran, 1);
+    });
+
+    test(
+        'preprocess on the transformed schema can reshape the input before the '
+        'inner validator sees it', () {
+      final schema = V.string().transform<int>((s) => s.length).preprocess(
+            (v) => v is int ? v.toString() : v,
+          );
+
+      expect(schema.parse(42), 2);
+      expect(schema.parse('hello'), 5);
+    });
   });
 
   group('preprocess', () {

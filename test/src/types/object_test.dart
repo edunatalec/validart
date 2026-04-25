@@ -941,6 +941,118 @@ void main() {
 
         expect(merged.whenRules.length, 2);
       });
+
+      test('pick preserves preprocess on the base schema', () {
+        var preprocessorRan = 0;
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .preprocess((input) {
+          preprocessorRan++;
+          return input;
+        }).pick(['name']);
+
+        schema.validate(_Profile(name: 'Jo', age: 1, email: 'a@b.com'));
+        expect(preprocessorRan, 1);
+      });
+
+      test('omit preserves preprocess on the base schema', () {
+        var preprocessorRan = 0;
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .preprocess((input) {
+          preprocessorRan++;
+          return input;
+        }).omit(['age']);
+
+        schema.validate(_Profile(name: 'Jo', age: 1, email: 'a@b.com'));
+        expect(preprocessorRan, 1);
+      });
+
+      test('merge concatenates preprocessors from both sides in order', () {
+        final order = <String>[];
+        final a = V.object<_Profile>().preprocess((input) {
+          order.add('a');
+
+          return input;
+        });
+        final b = V.object<_Profile>().preprocess((input) {
+          order.add('b');
+
+          return input;
+        });
+
+        a.merge(b).validate(_Profile(name: 'Jo', age: 1, email: 'a@b.com'));
+        expect(order, ['a', 'b']);
+      });
+
+      test('pick preserves defaultValue from base', () {
+        final fallback =
+            _Profile(name: 'fallback', age: 0, email: 'fallback@x.com');
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .defaultValue(fallback)
+            .pick(['name']);
+
+        expect(schema.parse(null), fallback);
+      });
+
+      test('merge propagates defaultValue — other wins when both set', () {
+        final left = _Profile(name: 'left', age: 0, email: 'left@x.com');
+        final right = _Profile(name: 'right', age: 0, email: 'right@x.com');
+
+        final a = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .defaultValue(left);
+        final b = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .defaultValue(right);
+
+        expect(a.merge(b).parse(null), right);
+      });
+
+      test('equalFields survives omit of the referenced field', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string().email())
+            .field('password', (d) => d.password, V.string().min(1))
+            .field('confirm', (d) => d.confirm, V.string().min(1))
+            .equalFields('password', 'confirm')
+            .omit(['confirm']);
+
+        expect(
+          schema.validate(_SignUp('a@b.com', 'x', 'y')),
+          isFalse,
+          reason:
+              'extractor for confirm was captured before omit, so equalFields still fires',
+        );
+      });
+
+      test('merge propagates refineField step from base', () {
+        final a = V
+            .object<_Profile>()
+            .field('email', (p) => p.email, V.string())
+            .refineField(
+              (p) => p.email.endsWith('@example.com'),
+              path: 'email',
+              message: 'must be example.com',
+            );
+        final b = V.object<_Profile>().field('name', (p) => p.name, V.string());
+
+        final merged = a.merge(b);
+        final errors = merged.errors(
+          _Profile(name: 'ok', age: 0, email: 'x@other.com'),
+        );
+
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['email']);
+        expect(errors.first.message, 'must be example.com');
+      });
     });
 
     group('when edge cases', () {
@@ -1001,7 +1113,7 @@ void main() {
         expect(schema.validate(Folder(name: 'normal')), isTrue);
       });
 
-      test('whenRules getter returns an unmodifiable view', () {
+      test('whenRules getter returns a snapshot of registered rules', () {
         final schema = V
             .object<Folder>()
             .field('name', (f) => f.name, V.string())
@@ -1010,6 +1122,86 @@ void main() {
         expect(schema.whenRules, hasLength(1));
         expect(schema.whenRules.first.field, 'name');
         expect(schema.whenRules.first.equals, 'x');
+      });
+
+      test('equals: int compares by value for numeric fields', () {
+        final schema = V
+            .object<_Profile>()
+            .field('age', (p) => p.age, V.int())
+            .field('name', (p) => p.name, V.string())
+            .when('age', equals: 18, then: {
+          'name': V.string().min(50),
+        });
+
+        expect(
+          schema.validate(_Profile(name: 'short', age: 18, email: 'a@b.com')),
+          isFalse,
+        );
+        expect(
+          schema.validate(_Profile(name: 'short', age: 20, email: 'a@b.com')),
+          isTrue,
+        );
+      });
+
+      test('equals: enum value triggers correctly', () {
+        final schema = V
+            .object<_KitchenSinkEntity>()
+            .field('status', (e) => e.status, V.enm(_AccountStatus.values))
+            .field('name', (e) => e.name, V.string())
+            .when('status', equals: _AccountStatus.deleted, then: {
+          'name': V.string().min(100),
+        });
+
+        final deleted = _KitchenSinkEntity(
+          name: 'x',
+          age: 1,
+          balance: 0,
+          active: false,
+          joined: DateTime(2024),
+          tags: const [],
+          prefs: const {},
+          status: _AccountStatus.deleted,
+          id: 1,
+        );
+        final active = _KitchenSinkEntity(
+          name: 'x',
+          age: 1,
+          balance: 0,
+          active: true,
+          joined: DateTime(2024),
+          tags: const [],
+          prefs: const {},
+          status: _AccountStatus.active,
+          id: 1,
+        );
+
+        expect(schema.validate(deleted), isFalse);
+        expect(schema.validate(active), isTrue);
+      });
+
+      test('equals: DateTime compares by == (same instant)', () {
+        final anchor = DateTime.utc(2024, 1, 1);
+        final schema = V
+            .object<_KitchenSinkEntity>()
+            .field('joined', (e) => e.joined, V.date())
+            .field('name', (e) => e.name, V.string())
+            .when('joined', equals: anchor, then: {
+          'name': V.string().min(50),
+        });
+
+        final match = _KitchenSinkEntity(
+          name: 'x',
+          age: 1,
+          balance: 0,
+          active: true,
+          joined: anchor,
+          tags: const [],
+          prefs: const {},
+          status: _AccountStatus.active,
+          id: 1,
+        );
+
+        expect(schema.validate(match), isFalse);
       });
     });
 
@@ -1256,6 +1448,39 @@ void main() {
         final empty = V.object<Folder>();
 
         expect(empty.pick(['name']).schema, isEmpty);
+      });
+
+      test('pick with duplicate keys in the argument list is deduped', () {
+        final base =
+            V.object<Folder>().field('name', (f) => f.name, V.string());
+
+        final picked = base.pick(['name', 'name', 'name']);
+
+        expect(picked.schema.keys.toList(), ['name']);
+      });
+
+      test(
+          'refineField added BEFORE pick retains path even when that field is no '
+          'longer in the pick result', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .field('id', (f) => f.id, V.string().nullable())
+            .refineField(
+              (f) => f.name.length >= 5,
+              path: 'name',
+              message: 'name too short',
+            )
+            .pick(['id']);
+
+        final errors = schema.errors(Folder(name: 'ab'));
+        expect(errors, isNotNull);
+        expect(
+          errors!.first.path,
+          ['name'],
+          reason:
+              'refine step captured before pick keeps its declared path — documents that refineField is entity-level',
+        );
       });
     });
 

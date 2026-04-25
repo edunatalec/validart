@@ -377,7 +377,14 @@ class VObject<T> extends VType<T> {
       );
     }
 
-    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<T>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 
@@ -434,7 +441,18 @@ class VObject<T> extends VType<T> {
 
   @override
   Future<VResult<T?>> safeParseAsync(Object? value) async {
-    final resolution = _resolveNull<T>(_defaultValue, _hasDefault, value);
+    Object? preprocessed = value;
+
+    for (final fn in _preprocessors) {
+      preprocessed = fn(preprocessed);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      preprocessed = await fn(preprocessed);
+    }
+
+    final resolution =
+        _resolveNull<T>(_defaultValue, _hasDefault, preprocessed);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
     final input = resolution.input;
 

@@ -77,5 +77,47 @@ void main() {
       expect(errors.first.context![0].first.code, VStringCode.invalidType);
       expect(errors.first.context![1].first.code, VIntCode.invalidType);
     });
+
+    group('preprocess propagation (regression)', () {
+      test('sync preprocess runs before option matching', () {
+        var ran = 0;
+        final schema = V.union([V.string(), V.int()]).preprocess((v) {
+          ran++;
+
+          return v;
+        });
+
+        schema.validate('x');
+        expect(ran, 1);
+      });
+
+      test('preprocess can coerce the input before option matching', () {
+        final schema = V.union([V.int(), V.string().email()]).preprocess(
+          (v) => v is String ? (int.tryParse(v) ?? v) : v,
+        );
+
+        expect(schema.validate('42'), isTrue);
+        expect(schema.validate('a@b.com'), isTrue);
+      });
+
+      test('async preprocess runs before validation in safeParseAsync',
+          () async {
+        var syncRan = 0;
+        var asyncRan = 0;
+        final schema = V.union([V.string(), V.int()]).preprocess((v) {
+          syncRan++;
+
+          return v;
+        }).preprocessAsync((v) async {
+          asyncRan++;
+
+          return v;
+        });
+
+        await schema.validateAsync('x');
+        expect(syncRan, 1);
+        expect(asyncRan, 1);
+      });
+    });
   });
 }

@@ -849,5 +849,51 @@ void main() {
         expect(result, {'type': 'x', 'data': 'foo', 'extra': 'keep me'});
       });
     });
+
+    group('preprocess propagation (regression)', () {
+      test('sync preprocess runs before validation', () {
+        var ran = 0;
+        final schema = V.map({'name': V.string()}).preprocess((v) {
+          ran++;
+
+          return v;
+        });
+
+        schema.validate({'name': 'Jo'});
+        expect(ran, 1);
+      });
+
+      test('preprocess can transform the input before field validation', () {
+        final schema = V.map({'name': V.string().min(3)}).preprocess((v) {
+          if (v is Map<String, dynamic>) {
+            return {...v, 'name': (v['name'] as String?)?.trim()};
+          }
+
+          return v;
+        });
+
+        expect(schema.validate({'name': '  Jo  '}), isFalse);
+        expect(schema.validate({'name': '  Alice  '}), isTrue);
+      });
+
+      test('async preprocess runs before validation in safeParseAsync',
+          () async {
+        var syncRan = 0;
+        var asyncRan = 0;
+        final schema = V.map({'name': V.string()}).preprocess((v) {
+          syncRan++;
+
+          return v;
+        }).preprocessAsync((v) async {
+          asyncRan++;
+
+          return v;
+        });
+
+        await schema.validateAsync({'name': 'Jo'});
+        expect(syncRan, 1);
+        expect(asyncRan, 1);
+      });
+    });
   });
 }
