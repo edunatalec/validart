@@ -217,7 +217,11 @@ class VObject<T> extends VType<T> {
   /// via `==`. Both names must already be declared via [field] before
   /// calling this method.
   ///
-  /// Runs in the validation phase.
+  /// Runs in the validation phase. Declares `dependsOn: {fieldA, fieldB}`
+  /// internally — when [fieldA] or [fieldB] fails its own validation,
+  /// this check is skipped (the field error already covers the issue);
+  /// otherwise the result is aggregated alongside any unrelated field
+  /// errors in a single `VFailure`.
   ///
   /// ```dart
   /// V.object<SignUpDto>()
@@ -383,7 +387,10 @@ class VObject<T> extends VType<T> {
   /// Adds a custom validation targeting a specific field [path]. The [check]
   /// receives the whole instance and the emitted error is scoped to [path].
   ///
-  /// Runs in the validation phase.
+  /// Runs in the validation phase. Declares `dependsOn: {path}` internally
+  /// — when the field at [path] fails its own validation, this check is
+  /// skipped; otherwise the result is aggregated alongside any unrelated
+  /// field errors in a single `VFailure`.
   ///
   /// ```dart
   /// V.object<User>()

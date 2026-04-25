@@ -252,7 +252,11 @@ class VMap extends VType<Map<String, dynamic>> {
   /// Creates a new schema where all fields are nullable.
   ///
   /// Does not mutate the original schema — inner validators are wrapped so
-  /// that the base schema continues to reject null.
+  /// that the base schema continues to reject null. Preserves all pipeline
+  /// state from the base (validators added via `add`/`equalFields`/
+  /// `refineField`/`refine`, `when` rules, `strict`/`passthrough` flags,
+  /// `nullable`, `defaultValue`, and preprocessors), matching the
+  /// behavior of `extend`/`merge`/`pick`/`omit`.
   ///
   /// ```dart
   /// final schema = V.map({'name': V.string()}).partial();
@@ -267,7 +271,10 @@ class VMap extends VType<Map<String, dynamic>> {
       );
     }
 
-    return VMap(partialSchema);
+    final result = VMap(partialSchema);
+    _copyMapStateTo(result);
+
+    return result;
   }
 
   /// Rejects keys not present in the schema.
@@ -326,7 +333,11 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Validates that two fields have equal values.
   ///
-  /// Runs in the validation phase.
+  /// Runs in the validation phase. Declares `dependsOn: {field, other}`
+  /// internally — when [field] or [other] fails its own validation, this
+  /// check is skipped (the field error already covers the issue);
+  /// otherwise the result is aggregated alongside any unrelated field
+  /// errors in a single `VFailure`.
   ///
   /// ```dart
   /// V.map({
@@ -352,7 +363,10 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Adds a custom validation that targets a specific field path.
   ///
-  /// Runs in the validation phase.
+  /// Runs in the validation phase. Declares `dependsOn: {path}` internally
+  /// — when the field at [path] fails its own validation, this check is
+  /// skipped; otherwise the result is aggregated alongside any unrelated
+  /// field errors in a single `VFailure`.
   ///
   /// ```dart
   /// V.map({

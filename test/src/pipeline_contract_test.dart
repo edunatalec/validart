@@ -24,6 +24,11 @@ void _runPipelineContract<T>({
   required VType<T> Function() factory,
   required Object validInput,
   required T defaultVal,
+  // For containers (VMap/VObject) the dependsOn key is asserted against
+  // the schema at construction; pass a real declared key. For primitives
+  // and other types, dependsOn is accepted but ignored at runtime, so
+  // any string works.
+  String dependsOnKey = 'fake',
 }) {
   group('$typeName pipeline contract', () {
     setUp(() => V.setLocale(const VLocale()));
@@ -137,6 +142,46 @@ void _runPipelineContract<T>({
         reason: '$typeName dropped defaultValue when chained',
       );
     });
+
+    test('refine with dependsOn parameter compiles and runs on valid input',
+        () {
+      // dependsOn is the field-skip mechanism used by VMap/VObject.
+      // For primitives the failedFieldPaths set is always empty, so the
+      // step still executes. Pins the covariant override on every
+      // subclass (it must accept dependsOn).
+      var ran = 0;
+      factory().refine(
+        (v) {
+          ran++;
+
+          return true;
+        },
+        dependsOn: {dependsOnKey},
+      ).validate(validInput);
+      expect(
+        ran,
+        1,
+        reason: '$typeName must run refine(dependsOn:) on valid input',
+      );
+    });
+
+    test(
+      'refineAsync with dependsOn parameter compiles and runs '
+      'on valid input',
+      () async {
+        var ran = 0;
+        final schema = factory().refineAsync(
+          (v) async {
+            ran++;
+
+            return true;
+          },
+          dependsOn: {dependsOnKey},
+        );
+        await schema.validateAsync(validInput);
+        expect(ran, 1, reason: '$typeName dropped refineAsync(dependsOn:)');
+      },
+    );
   });
 }
 
@@ -188,6 +233,7 @@ void main() {
     factory: () => V.map({'name': V.string()}),
     validInput: const {'name': 'Jo'},
     defaultVal: const {'name': 'fallback'},
+    dependsOnKey: 'name',
   );
 
   _runPipelineContract<_Entity>(
@@ -195,6 +241,7 @@ void main() {
     factory: () => V.object<_Entity>().field('name', (e) => e.name, V.string()),
     validInput: const _Entity('Jo'),
     defaultVal: const _Entity('fallback'),
+    dependsOnKey: 'name',
   );
 
   _runPipelineContract<_Color>(

@@ -51,7 +51,10 @@ final class VFailure<T> extends VResult<T> {
 
   /// Converts the errors to a `Map<String, String>` keyed by field path.
   ///
-  /// Only includes the first error per path.
+  /// Only includes the first error per path. Errors with an empty path
+  /// (root-level errors emitted by `refine` / `equalFields` on the
+  /// schema root) are intentionally excluded — use [rootMessages] to
+  /// retrieve those, or iterate [errors] directly to handle both at once.
   ///
   /// ```dart
   /// final result = schema.safeParse(data);
@@ -72,5 +75,42 @@ final class VFailure<T> extends VResult<T> {
     }
 
     return map;
+  }
+
+  /// Returns the messages of every root-level error — i.e. errors with
+  /// an empty `path`, typically emitted by `refine` and `equalFields`
+  /// applied directly on a schema root rather than scoped to a specific
+  /// field via `refineField` (which sets `path: [fieldName]`).
+  ///
+  /// Use this alongside [toMap] when your form has both per-field
+  /// inputs (rendered with the field error inline) AND form-wide rules
+  /// (rendered as a banner / summary line). The list preserves the
+  /// order in which the underlying validators emitted their errors and
+  /// is empty when no root-level error exists.
+  ///
+  /// ```dart
+  /// final schema = V.map({
+  ///   'startDate': V.date(),
+  ///   'endDate': V.date(),
+  /// }).refine(
+  ///   (m) => (m['endDate'] as DateTime).isAfter(m['startDate'] as DateTime),
+  ///   message: 'endDate must be after startDate',
+  /// );
+  ///
+  /// final result = schema.safeParse({
+  ///   'startDate': DateTime(2026, 5, 1),
+  ///   'endDate': DateTime(2026, 4, 1),
+  /// });
+  ///
+  /// if (result case VFailure() && final f) {
+  ///   final fieldErrors = f.toMap();          // {} — no field-level errors
+  ///   final formErrors = f.rootMessages();    // ['endDate must be after ...']
+  /// }
+  /// ```
+  List<String> rootMessages() {
+    return [
+      for (final error in errors)
+        if (error.path.isEmpty) error.message,
+    ];
   }
 }
