@@ -166,6 +166,14 @@ abstract class VType<T> {
   /// `defaultValue(null)` (which is nonsensical but allowed by the type).
   T? get defaultValueOrNull => _hasDefault ? _defaultValue : null;
 
+  /// Returns `true` if at least one preprocessor (sync or async) was
+  /// registered via [preprocess] / [preprocessAsync]. Useful for consumers
+  /// that want to short-circuit a snapshot/preprocess step when there is
+  /// nothing to run — e.g. `valiform`'s per-field validator only mounts
+  /// the container preprocess closure when this is `true`.
+  bool get hasPreprocessors =>
+      _preprocessors.isNotEmpty || _asyncPreprocessors.isNotEmpty;
+
   /// Adds a [Validator] to the validation phase of the pipeline.
   ///
   /// Use [message] to override the default error message. Use [path] to
@@ -284,6 +292,63 @@ abstract class VType<T> {
     return (result as VSuccess<T?>).value;
   }
 
+  /// Runs the synchronous preprocessor chain registered via [preprocess]
+  /// against [value] and returns the result. Does NOT run `_resolveNull`,
+  /// validators, or transforms — only the preprocess stage.
+  ///
+  /// Useful for consumers that need to mirror the schema's preprocess
+  /// stage in their own scoped pipeline. For example, `valiform` calls
+  /// this on a `VMap` / `VObject` to apply container-level preprocess
+  /// before running per-field validators (matching the order
+  /// [safeParse] uses internally).
+  ///
+  /// Throws [VAsyncRequiredException] when the schema has any async
+  /// preprocessor — use [runPreprocessorsAsync] instead.
+  ///
+  /// ```dart
+  /// final schema = V.string().preprocess((v) => (v as String).trim());
+  /// schema.runPreprocessors('  hi  '); // 'hi'
+  /// ```
+  Object? runPreprocessors(Object? value) {
+    if (_asyncPreprocessors.isNotEmpty) {
+      throw const VAsyncRequiredException(
+        methodName: 'runPreprocessors',
+        suggestion: 'runPreprocessorsAsync',
+      );
+    }
+
+    Object? input = value;
+
+    for (final fn in _preprocessors) {
+      input = fn(input);
+    }
+
+    return input;
+  }
+
+  /// Async variant of [runPreprocessors]: runs sync preprocessors first,
+  /// then async preprocessors, in the order they were registered.
+  ///
+  /// ```dart
+  /// final schema = V.string()
+  ///   .preprocess((v) => (v as String).trim())
+  ///   .preprocessAsync((v) async => (v as String).toLowerCase());
+  /// await schema.runPreprocessorsAsync('  HI  '); // 'hi'
+  /// ```
+  Future<Object?> runPreprocessorsAsync(Object? value) async {
+    Object? input = value;
+
+    for (final fn in _preprocessors) {
+      input = fn(input);
+    }
+
+    for (final fn in _asyncPreprocessors) {
+      input = await fn(input);
+    }
+
+    return input;
+  }
+
   /// Parses [value] and returns a [VResult] without throwing.
   ///
   /// Returns [VSuccess] with the parsed value, or [VFailure] with the list
@@ -307,11 +372,7 @@ abstract class VType<T> {
       );
     }
 
-    Object? input = value;
-
-    for (final fn in _preprocessors) {
-      input = fn(input);
-    }
+    Object? input = runPreprocessors(value);
 
     final resolution = _resolveNull<T>(_defaultValue, _hasDefault, input);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;
@@ -343,15 +404,7 @@ abstract class VType<T> {
   /// final result = await schema.safeParseAsync(value);
   /// ```
   Future<VResult<T?>> safeParseAsync(Object? value) async {
-    Object? input = value;
-
-    for (final fn in _preprocessors) {
-      input = fn(input);
-    }
-
-    for (final fn in _asyncPreprocessors) {
-      input = await fn(input);
-    }
+    Object? input = await runPreprocessorsAsync(value);
 
     final resolution = _resolveNull<T>(_defaultValue, _hasDefault, input);
     if (resolution.earlyReturn != null) return resolution.earlyReturn!;

@@ -165,6 +165,85 @@ void _runPipelineContract<T>({
       );
     });
 
+    test('hasPreprocessors is false on a bare factory()', () {
+      expect(
+        factory().hasPreprocessors,
+        isFalse,
+        reason: '$typeName.hasPreprocessors must start as false',
+      );
+    });
+
+    test('hasPreprocessors flips to true after preprocess()', () {
+      expect(
+        factory().preprocess((v) => v).hasPreprocessors,
+        isTrue,
+        reason: '$typeName.hasPreprocessors must reflect preprocess()',
+      );
+    });
+
+    test('hasPreprocessors flips to true after preprocessAsync()', () {
+      expect(
+        factory().preprocessAsync((v) async => v).hasPreprocessors,
+        isTrue,
+        reason: '$typeName.hasPreprocessors must reflect preprocessAsync()',
+      );
+    });
+
+    test('runPreprocessors invokes the registered sync chain', () {
+      var ran = 0;
+      factory().preprocess((v) {
+        ran++;
+
+        return v;
+      }).runPreprocessors(validInput);
+      expect(
+        ran,
+        1,
+        reason: '$typeName.runPreprocessors must execute sync preprocessors',
+      );
+    });
+
+    test(
+      'runPreprocessors throws VAsyncRequiredException on async preprocessor',
+      () {
+        final schema = factory().preprocessAsync((v) async => v);
+        expect(
+          () => schema.runPreprocessors(validInput),
+          throwsA(isA<VAsyncRequiredException>()),
+          reason: '$typeName.runPreprocessors must reject schemas with async '
+              'preprocessors and point callers at runPreprocessorsAsync',
+        );
+      },
+    );
+
+    test(
+      'runPreprocessorsAsync invokes both sync and async preprocessors',
+      () async {
+        var syncRan = 0;
+        var asyncRan = 0;
+        await factory().preprocess((v) {
+          syncRan++;
+
+          return v;
+        }).preprocessAsync((v) async {
+          asyncRan++;
+
+          return v;
+        }).runPreprocessorsAsync(validInput);
+
+        expect(
+          syncRan,
+          1,
+          reason: '$typeName.runPreprocessorsAsync must run sync chain',
+        );
+        expect(
+          asyncRan,
+          1,
+          reason: '$typeName.runPreprocessorsAsync must run async chain',
+        );
+      },
+    );
+
     test(
       'refineAsync with dependsOn parameter compiles and runs '
       'on valid input',

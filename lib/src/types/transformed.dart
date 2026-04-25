@@ -31,11 +31,7 @@ class VTransformed<I, O> extends VType<O> {
       );
     }
 
-    Object? preprocessed = value;
-
-    for (final fn in _preprocessors) {
-      preprocessed = fn(preprocessed);
-    }
+    final Object? preprocessed = runPreprocessors(value);
 
     if (preprocessed == null) {
       if (_hasDefault) return _runPipeline(_defaultValue as O);
@@ -55,15 +51,7 @@ class VTransformed<I, O> extends VType<O> {
 
   @override
   Future<VResult<O?>> safeParseAsync(Object? value) async {
-    Object? preprocessed = value;
-
-    for (final fn in _preprocessors) {
-      preprocessed = fn(preprocessed);
-    }
-
-    for (final fn in _asyncPreprocessors) {
-      preprocessed = await fn(preprocessed);
-    }
+    final Object? preprocessed = await runPreprocessorsAsync(value);
 
     if (preprocessed == null) {
       if (_hasDefault) return _runPipelineAsync(_defaultValue as O);
@@ -120,15 +108,7 @@ class VTransformedAsync<I, O> extends VType<O> {
 
   @override
   Future<VResult<O?>> safeParseAsync(Object? value) async {
-    Object? preprocessed = value;
-
-    for (final fn in _preprocessors) {
-      preprocessed = fn(preprocessed);
-    }
-
-    for (final fn in _asyncPreprocessors) {
-      preprocessed = await fn(preprocessed);
-    }
+    final Object? preprocessed = await runPreprocessorsAsync(value);
 
     if (preprocessed == null) {
       if (_hasDefault) return _runPipelineAsync(_defaultValue as O);

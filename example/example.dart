@@ -603,6 +603,14 @@ void coreExamples() {
   final trimmed = V.string().preprocess((v) => v?.toString().trim() ?? '');
   print(trimmed.parse(42)); // '42'
 
+  // runPreprocessors — apply ONLY the preprocess stage (no validators,
+  // no _resolveNull, no transforms). Useful for consumers like valiform
+  // that need to mirror the container preprocess in their own pipeline.
+  final greeting = V.string().preprocess((v) => (v as String).trim()).min(3);
+  print(greeting.runPreprocessors('  hi  ')); // 'hi' — .min(3) does NOT run
+  print(greeting.hasPreprocessors); // true
+  print(V.string().hasPreprocessors); // false
+
   // safeParse with pattern matching
   final result = V.string().email().safeParse('bad');
   switch (result) {

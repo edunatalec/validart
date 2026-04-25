@@ -424,11 +424,7 @@ class VMap extends VType<Map<String, dynamic>> {
       );
     }
 
-    Object? preprocessed = value;
-
-    for (final fn in _preprocessors) {
-      preprocessed = fn(preprocessed);
-    }
+    final Object? preprocessed = runPreprocessors(value);
 
     final resolution = _resolveNull<Map<String, dynamic>>(
       _defaultValue,
@@ -513,15 +509,7 @@ class VMap extends VType<Map<String, dynamic>> {
 
   @override
   Future<VResult<Map<String, dynamic>?>> safeParseAsync(Object? value) async {
-    Object? preprocessed = value;
-
-    for (final fn in _preprocessors) {
-      preprocessed = fn(preprocessed);
-    }
-
-    for (final fn in _asyncPreprocessors) {
-      preprocessed = await fn(preprocessed);
-    }
+    final Object? preprocessed = await runPreprocessorsAsync(value);
 
     final resolution = _resolveNull<Map<String, dynamic>>(
       _defaultValue,

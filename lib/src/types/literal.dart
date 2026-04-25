@@ -21,11 +21,14 @@ class VLiteral<T> extends VType<T> {
 
   @override
   VResult<T?> safeParse(Object? value) {
-    Object? preprocessed = value;
-
-    for (final fn in _preprocessors) {
-      preprocessed = fn(preprocessed);
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParse',
+        suggestion: 'safeParseAsync',
+      );
     }
+
+    final Object? preprocessed = runPreprocessors(value);
 
     final resolution =
         _resolveNull<T>(_defaultValue, _hasDefault, preprocessed);

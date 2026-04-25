@@ -262,6 +262,140 @@ void main() {
     });
   });
 
+  group('hasPreprocessors (public)', () {
+    test('false on a fresh schema with no preprocessor', () {
+      expect(V.string().hasPreprocessors, isFalse);
+      expect(V.int().hasPreprocessors, isFalse);
+      expect(V.map({'name': V.string()}).hasPreprocessors, isFalse);
+    });
+
+    test('true after a sync preprocess() is registered', () {
+      final schema = V.string().preprocess((v) => v);
+      expect(schema.hasPreprocessors, isTrue);
+    });
+
+    test('true after a preprocessAsync() is registered (async-only)', () {
+      final schema = V.string().preprocessAsync((v) async => v);
+      expect(schema.hasPreprocessors, isTrue);
+    });
+
+    test('true when both sync and async preprocessors are registered', () {
+      final schema =
+          V.string().preprocess((v) => v).preprocessAsync((v) async => v);
+      expect(schema.hasPreprocessors, isTrue);
+    });
+
+    test('refine() / refineAsync() / validators do NOT flip the flag', () {
+      // Only preprocess / preprocessAsync count — pipeline-validation steps
+      // and refines are tracked separately. This is the contract consumers
+      // (e.g. valiform) rely on to gate the snapshot/preprocess closure.
+      expect(V.string().min(3).hasPreprocessors, isFalse);
+      expect(V.string().refine((v) => true).hasPreprocessors, isFalse);
+      expect(
+        V.string().refineAsync((v) async => true).hasPreprocessors,
+        isFalse,
+      );
+    });
+  });
+
+  group('runPreprocessors / runPreprocessorsAsync (public)', () {
+    test('runs sync preprocessors in registration order', () {
+      // Two preprocessors: first appends '-a', second appends '-b'.
+      // Order matters — registration order is execution order.
+      final schema = V
+          .string()
+          .preprocess((v) => '${v as String}-a')
+          .preprocess((v) => '${v as String}-b');
+
+      expect(schema.runPreprocessors('x'), 'x-a-b');
+    });
+
+    test('returns input unchanged when no preprocessors are registered', () {
+      final schema = V.string();
+      expect(schema.runPreprocessors('hello'), 'hello');
+      expect(schema.runPreprocessors(null), null);
+      expect(schema.runPreprocessors(42), 42);
+    });
+
+    test('does NOT run resolveNull or validators', () {
+      // Pipeline has min(3) + defaultValue. runPreprocessors short-circuits
+      // before either: a too-short string doesn't fail validation, and a
+      // null input stays null (default is NOT substituted).
+      final schema =
+          V.string().preprocess((v) => v).defaultValue('default-value').min(3);
+
+      expect(schema.runPreprocessors(null), null);
+      expect(schema.runPreprocessors('a'), 'a');
+      expect(schema.runPreprocessors('hello'), 'hello');
+    });
+
+    test('throws VAsyncRequiredException when async preprocessor is present',
+        () {
+      final schema =
+          V.string().preprocessAsync((v) async => (v as String).trim());
+
+      expect(
+        () => schema.runPreprocessors('  hi  '),
+        throwsA(isA<VAsyncRequiredException>()),
+      );
+    });
+
+    test('runPreprocessorsAsync runs sync first, then async, in order',
+        () async {
+      final schema = V
+          .string()
+          .preprocess((v) => '${v as String}-sync1')
+          .preprocessAsync((v) async => '${v as String}-async1')
+          .preprocess((v) => '${v as String}-sync2')
+          .preprocessAsync((v) async => '${v as String}-async2');
+
+      // Sync chain first (in registration order), then async chain (in
+      // registration order). Mirrors how `safeParseAsync` orchestrates
+      // the two queues internally.
+      expect(
+        await schema.runPreprocessorsAsync('x'),
+        'x-sync1-sync2-async1-async2',
+      );
+    });
+
+    test(
+      'runPreprocessorsAsync works on schemas with only sync preprocessors',
+      () async {
+        final schema = V.string().preprocess((v) => (v as String).trim());
+        expect(await schema.runPreprocessorsAsync('  hi  '), 'hi');
+      },
+    );
+
+    test('VMap container preprocessor is exposed via runPreprocessors', () {
+      // The whole point of making runPreprocessors public: consumers like
+      // valiform need to apply the *container* preprocess in isolation
+      // (without running the per-field validators) when bridging the
+      // pipeline into per-field UI flow.
+      final schema = V.map({
+        'name': V.string(),
+      }).preprocess((raw) {
+        final m = Map<String, dynamic>.from(raw as Map);
+        if ((m['name'] as String).length < 3) m['name'] = 'Anonymous';
+        return m;
+      });
+
+      final result =
+          schema.runPreprocessors({'name': 'A'}) as Map<String, dynamic>;
+      expect(result['name'], 'Anonymous');
+    });
+
+    test('VObject container preprocessor is exposed via runPreprocessors', () {
+      final schema = V.object<_DemoUser>().field(
+            'name',
+            (u) => u.name,
+            V.string(),
+          );
+      // No preprocess registered — runPreprocessors is a passthrough.
+      const u = _DemoUser('Alice');
+      expect(schema.runPreprocessors(u), u);
+    });
+  });
+
   group('when (conditional validation)', () {
     test('should validate conditionally when condition matches', () {
       final schema = V.map({
@@ -479,4 +613,9 @@ void main() {
 
 class _Dummy {
   const _Dummy();
+}
+
+class _DemoUser {
+  final String name;
+  const _DemoUser(this.name);
 }
