@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0] - 2026-04-24
+
+### Changed
+
+- **Breaking — `VObject` now uses a fluent `.field()` API instead of the `configure:` callback builder.** The `VObjectBuilder<T>` class and the `configure:` named parameter on both `V.object<T>(...)` and `VObject<T>(...)` were removed. Field extractors are now chained directly on the schema with the same `.field(name, extractor, validator)` signature, identical to the rest of the library (`V.string().email().min(5)`). Before: `V.object<User>(configure: (o) => o.field('name', (u) => u.name, V.string()).field('age', (u) => u.age, V.int()));` After: `V.object<User>().field('name', (u) => u.name, V.string()).field('age', (u) => u.age, V.int());`. **Migration:** drop `configure: (o) =>` and the `o.` prefix — the rest of the chain is unchanged. Enables the `static final` DTO pattern: `class SignInDto { static final schema = V.object<SignInDto>().field(...).field(...); }`, so the schema is built once per isolate and reused without re-wrapping it in `V.object<X>(...)` at every call site.
+
 ## [1.3.0] - 2026-04-23
 
 ### Added
