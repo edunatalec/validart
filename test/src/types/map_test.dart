@@ -696,7 +696,13 @@ void main() {
         }),
         'role': V.enm(_Role.values),
         'id': V.union([V.string().uuid(), V.int().min(1)]),
-      });
+      }).refineFieldRaw(
+        // Raw rule — runs at step 4 of the container pipeline, before any
+        // field's own preprocess / validators / transforms apply.
+        (data) => data['name'] != 'forbidden',
+        path: 'name',
+        message: 'Name "forbidden" is reserved',
+      );
 
       final good = {
         'name': 'Alice',
@@ -767,6 +773,26 @@ void main() {
       test('rejects missing required field', () {
         final missing = {...good}..remove('name');
         expect(schema.validate(missing), isFalse);
+      });
+
+      test('refineFieldRaw fires alongside per-field validation', () {
+        // The raw rule on `name` runs at step 4 of the pipeline. With the
+        // forbidden value in place, the raw rule fires; per-field
+        // validators on the same input keep running.
+        final blocked = {...good, 'name': 'forbidden'};
+        final errors = schema.errors(blocked);
+        expect(errors, isNotNull);
+        expect(
+          errors!.any(
+            (e) =>
+                e.path.length == 1 &&
+                e.path.first == 'name' &&
+                e.message.contains('forbidden'),
+          ),
+          isTrue,
+          reason: 'kitchen sink schema must surface refineFieldRaw error under '
+              'the [name] path alongside any field-level errors',
+        );
       });
     });
 

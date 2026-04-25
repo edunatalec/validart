@@ -738,6 +738,83 @@ void main() {
     });
 
     test(
+      'VMap.refineFieldRaw runs BEFORE strict()-mode unknown-key check',
+      () {
+        // Pipeline order pinned: step 4 (raw) before step 5 (strict).
+        // The schema has `.strict()` and the input has an unknown key
+        // AND the raw rule fires — both errors must appear.
+        final schema = V.map({'name': V.string()}).strict().refineFieldRaw(
+              (data) => data['name'] != 'forbidden',
+              path: 'name',
+              message: 'name forbidden',
+            );
+
+        final errs = schema.errors({'name': 'forbidden', 'extra': true});
+        expect(errs, isNotNull);
+
+        // Raw rule fired (under the `name` path)…
+        expect(
+          errs!.any(
+              (e) => e.path.first == 'name' && e.message == 'name forbidden'),
+          isTrue,
+          reason: 'refineFieldRaw must run regardless of strict() rejections',
+        );
+        // …AND strict-mode unknown-key error fired.
+        expect(
+          errs.any((e) => e.code == VMapCode.unrecognizedKey),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'VMap.refineFieldRaw runs BEFORE per-field iteration (sees raw values)',
+      () {
+        // Pipeline order pinned: step 4 (raw) before step 6 (per-field
+        // iteration). The field has a `.toLowerCase()` pre-transform; the
+        // raw callback must see the ORIGINAL casing.
+        final schema = V.map({'tag': V.string().toLowerCase()}).refineFieldRaw(
+          (data) => data['tag'] == data['tag'].toString().toUpperCase(),
+          path: 'tag',
+          message: 'tag must be uppercase (raw)',
+        );
+
+        // 'HELLO' raw → all uppercase → raw rule passes.
+        // After the per-field pipeline runs, `.toLowerCase()` reshapes it
+        // to 'hello' — but the raw rule already returned `true`.
+        expect(schema.errors({'tag': 'HELLO'}), isNull);
+
+        // 'hello' raw → not uppercase → raw rule fails.
+        final errs = schema.errors({'tag': 'hello'});
+        expect(errs, isNotNull);
+        expect(errs!.first.message, 'tag must be uppercase (raw)');
+      },
+    );
+
+    test(
+      'VMap.refineFieldRaw works alongside .passthrough()',
+      () {
+        // Passthrough copies unrecognized keys to the parsed output (step
+        // 8); refineFieldRaw runs at step 4. Both must coexist without
+        // either swallowing the other's effect.
+        final schema = V.map({'name': V.string()}).passthrough().refineFieldRaw(
+              (data) => data['name'] != 'forbidden',
+              path: 'name',
+              message: 'name forbidden',
+            );
+
+        // Valid name + extra key → no error, extra is in parsed output.
+        final ok = schema.parse({'name': 'Alice', 'extra': 42});
+        expect(ok!['extra'], 42);
+
+        // Forbidden name + extra key → raw rule fires; the extra key
+        // never makes it to the parsed output because validation failed.
+        final errs = schema.errors({'name': 'forbidden', 'extra': 42});
+        expect(errs!.first.message, 'name forbidden');
+      },
+    );
+
+    test(
       'VObject.refineFieldRaw asserts that path exists in the schema',
       () {
         // VMap.refineFieldRaw is asserted above; pin the same behavior on

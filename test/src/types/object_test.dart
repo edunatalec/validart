@@ -1518,6 +1518,13 @@ void main() {
             'id',
             (e) => e.id,
             V.union([V.string().uuid(), V.int().min(1)]),
+          )
+          .refineFieldRaw(
+            // Raw rule — runs at step 4 of the container pipeline, before
+            // any field's own preprocess / validators / transforms apply.
+            (entity) => entity.name != 'forbidden',
+            path: 'name',
+            message: 'Name "forbidden" is reserved',
           );
 
       _KitchenSinkEntity goodEntity() => _KitchenSinkEntity(
@@ -1627,6 +1634,36 @@ void main() {
             (e) => e.path.length == 2 && e.path[0] == 'tags' && e.path[1] == 1,
           ),
           isTrue,
+        );
+      });
+
+      test('refineFieldRaw fires alongside per-field validation', () {
+        // Raw rule on `name` runs once the cast to T succeeded, before
+        // per-field iteration. Pin the integration with everything else
+        // in the kitchen-sink schema.
+        final blocked = _KitchenSinkEntity(
+          name: 'forbidden',
+          age: goodEntity().age,
+          balance: goodEntity().balance,
+          active: goodEntity().active,
+          joined: goodEntity().joined,
+          tags: goodEntity().tags,
+          prefs: goodEntity().prefs,
+          status: goodEntity().status,
+          id: goodEntity().id,
+        );
+        final errors = schema.errors(blocked);
+        expect(errors, isNotNull);
+        expect(
+          errors!.any(
+            (e) =>
+                e.path.length == 1 &&
+                e.path.first == 'name' &&
+                e.message.contains('forbidden'),
+          ),
+          isTrue,
+          reason: 'kitchen sink schema must surface refineFieldRaw error under '
+              'the [name] path',
         );
       });
     });
