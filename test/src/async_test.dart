@@ -647,6 +647,60 @@ void main() {
     });
   });
 
+  group('VObject mixed when-rules + async', () {
+    test('when-rule async runs only if condition matches', () async {
+      var whenRan = 0;
+
+      final schema = V
+          .object<_MixedUser>()
+          .field('name', (u) => u.name, V.string())
+          .field('email', (u) => u.email, V.string())
+          .when('name', equals: 'trigger', then: {
+        'email': V.string().refineAsync((v) async {
+          whenRan++;
+          return v.contains('@');
+        }),
+      });
+
+      await schema.validateAsync(_MixedUser('other', 'bad'));
+      expect(whenRan, 0);
+
+      await schema.validateAsync(_MixedUser('trigger', 'a@b.com'));
+      expect(whenRan, 1);
+    });
+
+    test('hasAsync true when any when-rule validator is async', () {
+      final schema = V
+          .object<_MixedUser>()
+          .field('name', (u) => u.name, V.string())
+          .field('email', (u) => u.email, V.string())
+          .when('name', equals: 'x', then: {
+        'email': V.string().refineAsync((v) async => true),
+      });
+
+      expect(schema.hasAsync, isTrue);
+    });
+
+    test('when-rule async error includes field path', () async {
+      final schema = V
+          .object<_MixedUser>()
+          .field('name', (u) => u.name, V.string())
+          .field('email', (u) => u.email, V.string())
+          .when('name', equals: 'trigger', then: {
+        'email': V.string().refineAsync(
+              (v) async => v.contains('@'),
+              code: 'bad_email',
+            ),
+      });
+
+      final errors = await schema.errorsAsync(_MixedUser('trigger', 'bad'));
+
+      expect(errors, isNotNull);
+      expect(errors!.first.code, 'bad_email');
+      expect(errors.first.path, ['email']);
+    });
+  });
+
   group('VMap mixed when-rules + async', () {
     test('when-rule async runs only if condition matches', () async {
       var whenRan = 0;

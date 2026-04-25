@@ -22,6 +22,12 @@ class _SignUp {
   _SignUp(this.email, this.password, this.confirm);
 }
 
+class _TaxPayer {
+  final String country;
+  final String taxId;
+  _TaxPayer(this.country, this.taxId);
+}
+
 enum _AccountStatus { active, suspended, deleted }
 
 class _KitchenSinkEntity {
@@ -427,6 +433,257 @@ void main() {
 
         expect(errors, isNotNull);
         expect(errors!.first.message, 'password difere de confirm');
+      });
+    });
+
+    group('pick', () {
+      test('should keep only the requested fields', () {
+        final full = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid().nullable())
+            .field('name', (f) => f.name, V.string().min(1));
+
+        final picked = full.pick(['name']);
+
+        expect(picked.schema.keys.toList(), ['name']);
+      });
+
+      test('should still fail if the picked field is invalid', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid().nullable())
+            .field('name', (f) => f.name, V.string().min(5))
+            .pick(['name']);
+
+        expect(schema.validate(Folder(name: 'Doc')), isFalse);
+      });
+
+      test('should skip validation for omitted fields', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(1))
+            .pick(['name']);
+
+        expect(schema.validate(Folder(id: 'not-a-uuid', name: 'Doc')), isTrue);
+      });
+
+      test('should preserve base state (nullable) after pick', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(1))
+            .nullable()
+            .pick(['name']);
+
+        expect(schema.validate(null), isTrue);
+      });
+
+      test('should ignore keys that do not exist', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string().min(1))
+            .pick(['name', 'missing']);
+
+        expect(schema.schema.keys.toList(), ['name']);
+      });
+    });
+
+    group('omit', () {
+      test('should drop the specified fields', () {
+        final full = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid().nullable())
+            .field('name', (f) => f.name, V.string().min(1));
+
+        final reduced = full.omit(['id']);
+
+        expect(reduced.schema.keys.toList(), ['name']);
+      });
+
+      test('should keep validating the remaining fields', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(5))
+            .omit(['id']);
+
+        expect(schema.validate(Folder(name: 'Doc')), isFalse);
+        expect(schema.validate(Folder(name: 'Documents')), isTrue);
+      });
+
+      test('should preserve base state (nullable) after omit', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(1))
+            .nullable()
+            .omit(['id']);
+
+        expect(schema.validate(null), isTrue);
+      });
+    });
+
+    group('merge', () {
+      test('should combine fields from both schemas', () {
+        final a =
+            V.object<Folder>().field('id', (f) => f.id, V.string().uuid());
+        final b =
+            V.object<Folder>().field('name', (f) => f.name, V.string().min(1));
+
+        final merged = a.merge(b);
+
+        expect(merged.schema.keys.toList(), ['id', 'name']);
+      });
+
+      test('should fail if either side has an invalid field', () {
+        final a =
+            V.object<Folder>().field('id', (f) => f.id, V.string().uuid());
+        final b =
+            V.object<Folder>().field('name', (f) => f.name, V.string().min(5));
+
+        final merged = a.merge(b);
+
+        expect(
+          merged.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'Doc',
+            ),
+          ),
+          isFalse,
+        );
+      });
+
+      test('should preserve state from both sides (nullable OR)', () {
+        final a = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .nullable();
+        final b =
+            V.object<Folder>().field('name', (f) => f.name, V.string().min(1));
+
+        expect(a.merge(b).validate(null), isTrue);
+      });
+    });
+
+    group('when', () {
+      test('should apply conditional validators when condition matches', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .when('country', equals: 'US', then: {
+          'taxId': V.string().min(9),
+        });
+
+        expect(schema.validate(_TaxPayer('US', '123-45-6789')), isTrue);
+        expect(schema.validate(_TaxPayer('US', 'short')), isFalse);
+      });
+
+      test('should skip conditional validators when condition fails', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .when('country', equals: 'US', then: {
+          'taxId': V.string().min(9),
+        });
+
+        expect(schema.validate(_TaxPayer('BR', 'short')), isTrue);
+      });
+
+      test('should include conditional field name in error path', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .when('country', equals: 'US', then: {
+          'taxId': V.string().min(9),
+        });
+
+        final errors = schema.errors(_TaxPayer('US', 'short'));
+
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['taxId']);
+      });
+
+      test('should assert on unknown condition field', () {
+        expect(
+          () => V
+              .object<_TaxPayer>()
+              .field('country', (t) => t.country, V.string())
+              .when('missing', equals: 'US', then: const {}),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('should assert on unknown then field', () {
+        expect(
+          () => V
+              .object<_TaxPayer>()
+              .field('country', (t) => t.country, V.string())
+              .when('country', equals: 'US', then: {
+            'missing': V.string(),
+          }),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('should combine with baseline validators', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string().min(2))
+            .field('taxId', (t) => t.taxId, V.string().min(1))
+            .when('country', equals: 'US', then: {
+          'taxId': V.string().min(9),
+        });
+
+        final errors = schema.errors(_TaxPayer('US', ''));
+
+        expect(errors, isNotNull);
+        expect(errors!.length, 2);
+      });
+    });
+
+    group('refineField', () {
+      test('should emit error scoped to the declared path', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .refineField(
+              (f) => f.name.length >= 5,
+              path: 'name',
+              message: 'Name too short',
+            );
+
+        final errors = schema.errors(Folder(name: 'Doc'));
+
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['name']);
+        expect(errors.first.message, 'Name too short');
+      });
+
+      test('should pass when predicate returns true', () {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .refineField(
+              (f) => f.name.length >= 5,
+              path: 'name',
+              message: 'Name too short',
+            );
+
+        expect(schema.validate(Folder(name: 'Documents')), isTrue);
+      });
+
+      test('should assert on unknown path', () {
+        expect(
+          () => V
+              .object<Folder>()
+              .field('name', (f) => f.name, V.string())
+              .refineField((f) => true, path: 'missing'),
+          throwsA(isA<AssertionError>()),
+        );
       });
     });
 
