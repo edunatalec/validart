@@ -45,8 +45,9 @@ class VMap extends VType<Map<String, dynamic>> {
     Validator<Map<String, dynamic>> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -68,13 +69,39 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
+  /// Adds a custom entity-level validation that runs after every field has
+  /// been validated.
+  ///
+  /// Pass [dependsOn] to declare which schema field keys this refine reads.
+  /// When provided, the refine is skipped only if one of those specific
+  /// fields failed validation, so its error is aggregated alongside
+  /// unrelated field errors in a single pass. When omitted, the refine
+  /// follows the conservative rule: skip if ANY field failed (avoids
+  /// cast crashes on partially-parsed inputs).
+  ///
+  /// `dependsOn` accepts any key declared in the base schema OR injected
+  /// via any `when.then` block. Unknown keys throw an `AssertionError`.
+  ///
+  /// ```dart
+  /// V.map({
+  ///   'startDate': V.date(),
+  ///   'endDate': V.date(),
+  /// }).refine(
+  ///   (m) => (m['endDate'] as DateTime).isAfter(m['startDate'] as DateTime),
+  ///   code: 'date_range_invalid',
+  ///   message: 'endDate must be after startDate',
+  ///   dependsOn: const {'startDate', 'endDate'},
+  /// );
+  /// ```
   @override
   VMap refine(
     bool Function(Map<String, dynamic> value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
-    super.refine(check, message: message, code: code);
+    _assertDependsOnKeys(dependsOn);
+    super.refine(check, message: message, code: code, dependsOn: dependsOn);
     return this;
   }
 
@@ -84,15 +111,49 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
+  /// Async sibling of [refine]. See [refine] for the meaning of
+  /// [dependsOn].
   @override
   VMap refineAsync(
     Future<bool> Function(Map<String, dynamic> value) check, {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
-    super.refineAsync(check, message: message, code: code, timeout: timeout);
+    _assertDependsOnKeys(dependsOn);
+    super.refineAsync(
+      check,
+      message: message,
+      code: code,
+      timeout: timeout,
+      dependsOn: dependsOn,
+    );
     return this;
+  }
+
+  Set<String> _knownKeys() {
+    final keys = <String>{..._schema.keys};
+
+    for (final rule in _whenRules) {
+      keys.addAll(rule.then.keys);
+    }
+
+    return keys;
+  }
+
+  void _assertDependsOnKeys(Set<String>? dependsOn) {
+    if (dependsOn == null) return;
+
+    final known = _knownKeys();
+
+    for (final key in dependsOn) {
+      assert(
+        known.contains(key),
+        "dependsOn key '$key' is not declared in the schema "
+        '(base or when.then).',
+      );
+    }
   }
 
   /// Returns an unmodifiable view of the field schema.
@@ -285,6 +346,7 @@ class VMap extends VType<Map<String, dynamic>> {
     return add(
       EqualFieldsValidator(field: field, other: other),
       message: message,
+      dependsOn: {field, other},
     );
   }
 
@@ -318,6 +380,7 @@ class VMap extends VType<Map<String, dynamic>> {
       ),
       message: message,
       path: [path],
+      dependsOn: {path},
     );
   }
 
@@ -427,11 +490,11 @@ class VMap extends VType<Map<String, dynamic>> {
       }
     }
 
-    if (errors.isNotEmpty) {
-      return VFailure<Map<String, dynamic>?>(errors);
-    }
-
-    return _runPipeline(parsed);
+    return _runPipeline(
+      parsed,
+      carriedErrors: errors,
+      failedFieldPaths: _firstSegments(errors),
+    );
   }
 
   @override
@@ -524,10 +587,10 @@ class VMap extends VType<Map<String, dynamic>> {
       }
     }
 
-    if (errors.isNotEmpty) {
-      return VFailure<Map<String, dynamic>?>(errors);
-    }
-
-    return _runPipelineAsync(parsed);
+    return _runPipelineAsync(
+      parsed,
+      carriedErrors: errors,
+      failedFieldPaths: _firstSegments(errors),
+    );
   }
 }

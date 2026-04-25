@@ -19,8 +19,9 @@ class VDate extends VType<DateTime> {
     Validator<DateTime> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -47,8 +48,9 @@ class VDate extends VType<DateTime> {
     bool Function(DateTime value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
-    super.refine(check, message: message, code: code);
+    super.refine(check, message: message, code: code, dependsOn: dependsOn);
     return this;
   }
 
@@ -64,8 +66,15 @@ class VDate extends VType<DateTime> {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
-    super.refineAsync(check, message: message, code: code, timeout: timeout);
+    super.refineAsync(
+      check,
+      message: message,
+      code: code,
+      timeout: timeout,
+      dependsOn: dependsOn,
+    );
     return this;
   }
 

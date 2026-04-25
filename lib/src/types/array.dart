@@ -25,8 +25,9 @@ class VArray<T> extends VType<List<T>> {
     Validator<List<T>> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -53,8 +54,9 @@ class VArray<T> extends VType<List<T>> {
     bool Function(List<T> value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
-    super.refine(check, message: message, code: code);
+    super.refine(check, message: message, code: code, dependsOn: dependsOn);
     return this;
   }
 
@@ -70,8 +72,15 @@ class VArray<T> extends VType<List<T>> {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
-    super.refineAsync(check, message: message, code: code, timeout: timeout);
+    super.refineAsync(
+      check,
+      message: message,
+      code: code,
+      timeout: timeout,
+      dependsOn: dependsOn,
+    );
     return this;
   }
 

@@ -47,8 +47,9 @@ class VObject<T> extends VType<T> {
     Validator<T> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -70,13 +71,37 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
+  /// Adds a custom entity-level validation that runs after every field has
+  /// been validated.
+  ///
+  /// Pass [dependsOn] to declare which schema field names this refine
+  /// depends on. When provided, the refine is skipped only if one of those
+  /// specific fields failed validation, so its error is aggregated
+  /// alongside unrelated field errors in a single pass. When omitted, the
+  /// refine follows the conservative rule: skip if ANY field failed.
+  ///
+  /// `dependsOn` accepts any field declared on this schema OR injected via
+  /// any `when.then` block. Unknown names throw an `AssertionError`.
+  ///
+  /// ```dart
+  /// V.object<Booking>()
+  ///   .field('startsAt', (b) => b.startsAt, V.date())
+  ///   .field('endsAt', (b) => b.endsAt, V.date())
+  ///   .refine(
+  ///     (b) => b.endsAt.isAfter(b.startsAt),
+  ///     code: 'date_range_invalid',
+  ///     dependsOn: const {'startsAt', 'endsAt'},
+  ///   );
+  /// ```
   @override
   VObject<T> refine(
     bool Function(T value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
-    super.refine(check, message: message, code: code);
+    _assertDependsOnKeys(dependsOn);
+    super.refine(check, message: message, code: code, dependsOn: dependsOn);
     return this;
   }
 
@@ -86,15 +111,49 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
+  /// Async sibling of [refine]. See [refine] for the meaning of
+  /// [dependsOn].
   @override
   VObject<T> refineAsync(
     Future<bool> Function(T value) check, {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
-    super.refineAsync(check, message: message, code: code, timeout: timeout);
+    _assertDependsOnKeys(dependsOn);
+    super.refineAsync(
+      check,
+      message: message,
+      code: code,
+      timeout: timeout,
+      dependsOn: dependsOn,
+    );
     return this;
+  }
+
+  Set<String> _knownKeys() {
+    final keys = <String>{for (final field in _fields) field.name};
+
+    for (final rule in _whenRules) {
+      keys.addAll(rule.then.keys);
+    }
+
+    return keys;
+  }
+
+  void _assertDependsOnKeys(Set<String>? dependsOn) {
+    if (dependsOn == null) return;
+
+    final known = _knownKeys();
+
+    for (final key in dependsOn) {
+      assert(
+        known.contains(key),
+        "dependsOn key '$key' is not declared in the schema "
+        '(base or when.then).',
+      );
+    }
   }
 
   /// Returns an unmodifiable map of field names to their validators.
@@ -188,6 +247,7 @@ class VObject<T> extends VType<T> {
         extractorB: entryB.extractor,
       ),
       message: message,
+      dependsOn: {fieldA, fieldB},
     );
   }
 
@@ -348,6 +408,7 @@ class VObject<T> extends VType<T> {
       _RefineValidator<T>(check: check, validatorCode: VCode.custom),
       message: message,
       path: [path],
+      dependsOn: {path},
     );
   }
 
@@ -434,9 +495,11 @@ class VObject<T> extends VType<T> {
       }
     }
 
-    if (errors.isNotEmpty) return VFailure<T?>(errors);
-
-    return _runPipeline(typed);
+    return _runPipeline(
+      typed,
+      carriedErrors: errors,
+      failedFieldPaths: _firstSegments(errors),
+    );
   }
 
   @override
@@ -506,8 +569,10 @@ class VObject<T> extends VType<T> {
       }
     }
 
-    if (errors.isNotEmpty) return VFailure<T?>(errors);
-
-    return _runPipelineAsync(typed);
+    return _runPipelineAsync(
+      typed,
+      carriedErrors: errors,
+      failedFieldPaths: _firstSegments(errors),
+    );
   }
 }

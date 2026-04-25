@@ -15,8 +15,9 @@ abstract class VNumber<T extends num> extends VType<T> {
     Validator<T> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -118,8 +119,9 @@ class VInt extends VNumber<int> {
     Validator<int> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -146,8 +148,9 @@ class VInt extends VNumber<int> {
     bool Function(int value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
-    super.refine(check, message: message, code: code);
+    super.refine(check, message: message, code: code, dependsOn: dependsOn);
     return this;
   }
 
@@ -163,8 +166,15 @@ class VInt extends VNumber<int> {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
-    super.refineAsync(check, message: message, code: code, timeout: timeout);
+    super.refineAsync(
+      check,
+      message: message,
+      code: code,
+      timeout: timeout,
+      dependsOn: dependsOn,
+    );
     return this;
   }
 
@@ -267,8 +277,9 @@ class VDouble extends VNumber<double> {
     Validator<double> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
-    super.add(validator, message: message, path: path);
+    super.add(validator, message: message, path: path, dependsOn: dependsOn);
     return this;
   }
 
@@ -295,8 +306,9 @@ class VDouble extends VNumber<double> {
     bool Function(double value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
-    super.refine(check, message: message, code: code);
+    super.refine(check, message: message, code: code, dependsOn: dependsOn);
     return this;
   }
 
@@ -312,8 +324,15 @@ class VDouble extends VNumber<double> {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
-    super.refineAsync(check, message: message, code: code, timeout: timeout);
+    super.refineAsync(
+      check,
+      message: message,
+      code: code,
+      timeout: timeout,
+      dependsOn: dependsOn,
+    );
     return this;
   }
 

@@ -459,6 +459,10 @@ void main() {
       expectTranslated(VMapCode.fieldsNotEqual);
     });
 
+    test('VObjectCode', () {
+      expectTranslated(VObjectCode.fieldsNotEqual);
+    });
+
     test('VEnumCode / VLiteralCode / VUnionCode', () {
       expectTranslated(VEnumCode.invalid);
       expectTranslated(VLiteralCode.invalid);

@@ -170,6 +170,10 @@ abstract class VType<T> {
   ///
   /// Use [message] to override the default error message. Use [path] to
   /// attach the resulting error to a nested location instead of the root.
+  /// Use [dependsOn] (only meaningful inside `VMap`/`VObject`) to declare
+  /// which schema field keys this validator depends on; the validator is
+  /// skipped only when one of those specific fields fails. When omitted,
+  /// the conservative rule applies (skip on any field error).
   ///
   /// ```dart
   /// V.string().add(const EmailValidator(), message: 'Not a valid email');
@@ -178,11 +182,13 @@ abstract class VType<T> {
     Validator<T> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
     return _addStep(_ValidatorStep<T>(
       validator,
       messageOverride: message,
       path: path,
+      dependsOn: dependsOn,
     ));
   }
 
@@ -190,7 +196,7 @@ abstract class VType<T> {
   ///
   /// Makes the schema async-only: sync consumers (`parse`, `validate`,
   /// `safeParse`, `errors`) will throw `VAsyncRequiredException`; use the
-  /// `*Async` variants.
+  /// `*Async` variants. See [add] for the meaning of [dependsOn].
   ///
   /// ```dart
   /// V.string().addAsync(const UsernameAvailableValidator());
@@ -199,12 +205,14 @@ abstract class VType<T> {
     AsyncValidator<T> validator, {
     String? message,
     List<Object>? path,
+    Set<String>? dependsOn,
   }) {
     _addStep(_AsyncValidatorStep<T>(
       validate: validator.validate,
       code: validator.code,
       messageOverride: message,
       path: path,
+      dependsOn: dependsOn,
     ));
 
     return this;
@@ -406,7 +414,17 @@ abstract class VType<T> {
     return null;
   }
 
-  VResult<T?> _runPipeline(T value) {
+  /// Runs the pipeline on [value]. Container types (VMap/VObject) pass
+  /// [carriedErrors] (field-level errors already collected) and
+  /// [failedFieldPaths] (the first-segment field names that failed) so
+  /// entity-level validators with declared `dependsOn` can decide whether
+  /// to skip. A validator without `dependsOn` is skipped if
+  /// [failedFieldPaths] is non-empty (conservative legacy behavior).
+  VResult<T?> _runPipeline(
+    T value, {
+    List<VError> carriedErrors = const [],
+    Set<String> failedFieldPaths = const {},
+  }) {
     T current = value;
 
     for (final step in _steps) {
@@ -415,15 +433,20 @@ abstract class VType<T> {
       }
     }
 
-    final errors = <VError>[];
+    final errors = <VError>[...carriedErrors];
 
     for (final step in _steps) {
       if (step
           case _ValidatorStep<T>(
             :final validator,
             :final messageOverride,
-            :final path
+            :final path,
+            :final dependsOn,
           )) {
+        if (_shouldSkipForFailedFields(dependsOn, failedFieldPaths)) {
+          continue;
+        }
+
         final params = validator.validate(current);
 
         if (params != null) {
@@ -448,7 +471,13 @@ abstract class VType<T> {
     return VSuccess<T?>(current);
   }
 
-  Future<VResult<T?>> _runPipelineAsync(T value) async {
+  /// Async sibling of [_runPipeline]. See [_runPipeline] for the meaning
+  /// of [carriedErrors] / [failedFieldPaths].
+  Future<VResult<T?>> _runPipelineAsync(
+    T value, {
+    List<VError> carriedErrors = const [],
+    Set<String> failedFieldPaths = const {},
+  }) async {
     T current = value;
 
     for (final step in _steps) {
@@ -457,15 +486,20 @@ abstract class VType<T> {
       }
     }
 
-    final errors = <VError>[];
+    final errors = <VError>[...carriedErrors];
 
     for (final step in _steps) {
       if (step
           case _ValidatorStep<T>(
             :final validator,
             :final messageOverride,
-            :final path
+            :final path,
+            :final dependsOn,
           )) {
+        if (_shouldSkipForFailedFields(dependsOn, failedFieldPaths)) {
+          continue;
+        }
+
         final params = validator.validate(current);
 
         if (params != null) {
@@ -481,8 +515,13 @@ abstract class VType<T> {
             :final validate,
             :final code,
             :final messageOverride,
-            :final path
+            :final path,
+            :final dependsOn,
           )) {
+        if (_shouldSkipForFailedFields(dependsOn, failedFieldPaths)) {
+          continue;
+        }
+
         final params = await validate(current);
 
         if (params != null) {
@@ -505,6 +544,25 @@ abstract class VType<T> {
     }
 
     return VSuccess<T?>(current);
+  }
+
+  /// Returns `true` when a step should be skipped because its declared
+  /// dependencies (or, when none declared, ANY field) failed validation.
+  /// This is the gate that lets `equalFields` / `refineField` (which
+  /// declare `dependsOn`) run alongside unrelated field errors, while
+  /// keeping generic `refine` (no `dependsOn`) conservative.
+  static bool _shouldSkipForFailedFields(
+    Set<String>? dependsOn,
+    Set<String> failedFieldPaths,
+  ) {
+    if (failedFieldPaths.isEmpty) return false;
+    if (dependsOn == null) return true;
+
+    for (final dep in dependsOn) {
+      if (failedFieldPaths.contains(dep)) return true;
+    }
+
+    return false;
   }
 
   /// Returns `true` if [value] passes all validations.
@@ -648,10 +706,12 @@ abstract class VType<T> {
     bool Function(T value) check, {
     String? message,
     String? code,
+    Set<String>? dependsOn,
   }) {
     return add(
       _RefineValidator<T>(check: check, validatorCode: code ?? VCode.custom),
       message: message,
+      dependsOn: dependsOn,
     );
   }
 
@@ -679,6 +739,7 @@ abstract class VType<T> {
     String? message,
     String? code,
     Duration? timeout,
+    Set<String>? dependsOn,
   }) {
     _addStep(_AsyncValidatorStep<T>(
       validate: (value) async {
@@ -691,6 +752,7 @@ abstract class VType<T> {
       },
       code: code ?? VCode.custom,
       messageOverride: message,
+      dependsOn: dependsOn,
     ));
 
     return this;
@@ -749,7 +811,18 @@ final class _ValidatorStep<T> extends _PipelineStep<T> {
   final String? messageOverride;
   final List<Object>? path;
 
-  const _ValidatorStep(this.validator, {this.messageOverride, this.path});
+  /// When non-null, this step is skipped if any field key in [dependsOn]
+  /// is present in the container's `failedFieldPaths` set. When `null`
+  /// (default), the conservative rule applies — the step is skipped if
+  /// any field at all has failed.
+  final Set<String>? dependsOn;
+
+  const _ValidatorStep(
+    this.validator, {
+    this.messageOverride,
+    this.path,
+    this.dependsOn,
+  });
 }
 
 final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
@@ -758,11 +831,15 @@ final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
   final String? messageOverride;
   final List<Object>? path;
 
+  /// See [_ValidatorStep.dependsOn].
+  final Set<String>? dependsOn;
+
   const _AsyncValidatorStep({
     required this.validate,
     required this.code,
     this.messageOverride,
     this.path,
+    this.dependsOn,
   });
 }
 
@@ -770,4 +847,20 @@ final class _TransformStep<T> extends _PipelineStep<T> {
   final T Function(T value) transform;
 
   const _TransformStep({required this.transform});
+}
+
+/// Extracts the first path segment from each error in [errors] as a string,
+/// dropping errors with empty paths. Used by container types (`VMap`,
+/// `VObject`) to compute the set of failed top-level field names that
+/// `_runPipeline` consults to decide whether entity-level validators
+/// (those declaring `dependsOn`) should run.
+Set<String> _firstSegments(List<VError> errors) {
+  final out = <String>{};
+
+  for (final error in errors) {
+    if (error.path.isEmpty) continue;
+    out.add(error.path.first.toString());
+  }
+
+  return out;
 }

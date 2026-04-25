@@ -65,11 +65,12 @@ void main() {
     });
 
     test('collects every per-field error in a single pass', () {
-      // Important: entity-level validators (equalFields / refineField) are
-      // suppressed while any per-field validator still has errors.
-      // `_runPipeline` (where those live) only fires when field validation
-      // fully passes. See the "design: pipeline short-circuit" group below
-      // for a dedicated probe.
+      // Entity-level validators that declare their dependencies skip when
+      // a declared dependency failed. Here `equalFields('password',
+      // 'confirm')` skips because both depend on failing fields, and
+      // `refineField(..., path: 'email')` skips because `email` failed —
+      // so the result is purely the field-level errors. See the
+      // "design: pipeline aggregation" group below for the full matrix.
       final errors = buildSchema().errors(
         const _SignUpDto(
           email: 'bad',
@@ -356,13 +357,62 @@ void main() {
     });
   });
 
-  group('design: pipeline short-circuit', () {
-    // Entity-level steps added via `.add()` / `.refine()` / `.refineField()` /
-    // `.equalFields()` live in `_runPipeline`, which only executes if every
-    // field-level validation already passed. The tests below pin that
-    // behavior so it does not change silently.
+  group('design: pipeline aggregation', () {
+    // Entity-level validators (`equalFields`, `refineField`, `refine`) live
+    // in `_runPipeline`, which now consults each step's declared
+    // `dependsOn` set against the field-level `failedFieldPaths`. A step
+    // is skipped only when one of its declared deps failed; a step
+    // without `dependsOn` keeps the conservative legacy rule (skip on
+    // any field error). The tests below pin that matrix.
 
-    test('when-rule error suppresses equalFields on the same parse', () {
+    test('equalFields runs even when an unrelated field fails', () {
+      final schema = V.map({
+        'unrelated': V.string().min(10),
+        'a': V.string(),
+        'b': V.string(),
+      }).equalFields('a', 'b');
+
+      final errors = schema.errors({
+        'unrelated': 'short',
+        'a': 'x',
+        'b': 'y',
+      });
+
+      expect(
+        errors!.map((e) => e.code).toSet(),
+        {'string.too_small', 'map.fields_not_equal'},
+        reason: 'equalFields declares dependsOn={a,b}; unrelated failure '
+            'should not gate it',
+      );
+    });
+
+    test('equalFields skips when one of its dependencies fails', () {
+      final schema = V.map({
+        'a': V.string().min(5),
+        'b': V.string(),
+      }).equalFields('a', 'b');
+
+      final errors = schema.errors({'a': 'x', 'b': 'y'});
+
+      expect(errors!.map((e) => e.code).toSet(), {'string.too_small'});
+    });
+
+    test('equalFields fires once every field-level validation passes', () {
+      final schema = V.map({
+        'a': V.string(),
+        'b': V.string(),
+      }).equalFields('a', 'b');
+
+      final errors = schema.errors({'a': 'x', 'b': 'y'});
+      expect(errors!.first.code, 'map.fields_not_equal');
+    });
+
+    test('when-rule error suppresses equalFields whose dep is the same field',
+        () {
+      // Here the when-rule injects a min(5) on `a`; the input fails it.
+      // equalFields depends on `a` and `b`, and `a` is in failedFieldPaths
+      // → skip. (Different reason than "global short-circuit" — it's the
+      // dep gate.)
       final schema = V.map({
         'type': V.string(),
         'a': V.string(),
@@ -377,24 +427,152 @@ void main() {
         'b': 'different',
       });
 
+      expect(errors!.map((e) => e.code).toSet(), {'string.too_small'});
+    });
+
+    test('refineField runs when its path passes', () {
+      final schema = V.map({
+        'unrelated': V.string().min(10),
+        'age': V.int(),
+      }).refineField(
+        (m) => (m['age'] as int) >= 18,
+        path: 'age',
+        message: 'must be 18+',
+      );
+
+      final errors = schema.errors({'unrelated': 'short', 'age': 16});
+
       expect(
         errors!.map((e) => e.code).toSet(),
-        {'string.too_small'},
-        reason: 'equalFields currently short-circuits behind field errors',
+        {'string.too_small', 'custom'},
       );
     });
 
-    test('equalFields fires once every field-level validation passes', () {
+    test('refineField skips when its path fails', () {
       final schema = V.map({
-        'a': V.string(),
-        'b': V.string(),
-      }).equalFields('a', 'b');
+        'age': V.int().min(0),
+      }).refineField(
+        (m) => (m['age'] as int) >= 18,
+        path: 'age',
+        message: 'must be 18+',
+      );
 
-      final errors = schema.errors({'a': 'x', 'b': 'y'});
-      expect(errors!.first.code, 'map.fields_not_equal');
+      final errors = schema.errors({'age': -5});
+
+      expect(errors!.map((e) => e.code).toSet(), {'number.too_small'});
     });
 
-    test('VObject refine also short-circuits on field error', () {
+    test('generic refine without dependsOn keeps the conservative skip', () {
+      final schema = V.map({
+        'a': V.string().min(3),
+        'b': V.int(),
+      }).refine((m) => true, code: 'always_true');
+
+      final errors = schema.errors({'a': 'x', 'b': 5});
+
+      expect(errors!.map((e) => e.code).toSet(), {'string.too_small'});
+    });
+
+    test('refine with dependsOn aggregates when its deps pass', () {
+      final schema = V.map({
+        'a': V.string().min(3),
+        'startDate': V.date(),
+        'endDate': V.date(),
+      }).refine(
+        (m) => (m['endDate'] as DateTime).isAfter(m['startDate'] as DateTime),
+        code: 'date_range',
+        message: 'endDate must be after startDate',
+        dependsOn: const {'startDate', 'endDate'},
+      );
+
+      final errors = schema.errors({
+        'a': 'x',
+        'startDate': DateTime(2026, 5, 1),
+        'endDate': DateTime(2026, 4, 1),
+      });
+
+      expect(
+        errors!.map((e) => e.code).toSet(),
+        {'string.too_small', 'date_range'},
+      );
+    });
+
+    test('refine with dependsOn skips when one dep fails', () {
+      final schema = V.map({
+        'a': V.string(),
+        'startDate': V.date(),
+        'endDate': V.date(),
+      }).refine(
+        (m) => (m['endDate'] as DateTime).isAfter(m['startDate'] as DateTime),
+        code: 'date_range',
+        dependsOn: const {'startDate', 'endDate'},
+      );
+
+      final errors = schema.errors({
+        'a': 'ok',
+        'startDate': 'lixo',
+        'endDate': DateTime(2026, 4, 1),
+      });
+
+      expect(errors!.map((e) => e.code).toSet(), {'date.invalid_type'});
+    });
+
+    test('refine.dependsOn accepts keys injected via when.then', () {
+      final schema = V.map({
+        'role': V.string(),
+        'name': V.string(),
+      }).when('role', equals: 'admin', then: {
+        'permissions': V.array(V.string()),
+      }).refine(
+        (m) => (m['permissions'] as List<dynamic>).isNotEmpty,
+        code: 'needs_permission',
+        dependsOn: const {'permissions'},
+      );
+
+      // Admin with empty permissions → field passes (array is valid),
+      // refine should run and reject.
+      final errors = schema.errors({
+        'role': 'admin',
+        'name': 'A',
+        'permissions': <String>[],
+      });
+
+      expect(errors!.map((e) => e.code).toSet(), {'needs_permission'});
+    });
+
+    test('refine.dependsOn asserts on unknown keys', () {
+      expect(
+        () => V.map({'a': V.string()}).refine(
+          (_) => true,
+          dependsOn: const {'b'},
+        ),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
+    test('VObject equalFields aggregates with unrelated field error', () {
+      final schema = V
+          .object<_SignUpDto>()
+          .field('email', (d) => d.email, V.string().email())
+          .field('password', (d) => d.password, V.string())
+          .field('confirm', (d) => d.confirm, V.string())
+          .field('age', (d) => d.age, V.int())
+          .equalFields('password', 'confirm');
+
+      final errors = schema.errors(const _SignUpDto(
+        email: 'bad',
+        password: 'a',
+        confirm: 'b',
+        age: 30,
+      ));
+
+      expect(
+        errors!.map((e) => e.code).toSet(),
+        {'string.email', 'object.fields_not_equal'},
+      );
+    });
+
+    test('VObject refine without dependsOn still short-circuits', () {
       final schema = V
           .object<_SignUpDto>()
           .field('email', (d) => d.email, V.string().email())
@@ -408,10 +586,30 @@ void main() {
         age: -1,
       ));
 
+      expect(errors!.map((e) => e.code).toSet(), {'string.email'});
+    });
+
+    test('VObject refine with dependsOn aggregates', () {
+      final schema = V
+          .object<_SignUpDto>()
+          .field('email', (d) => d.email, V.string().email())
+          .field('age', (d) => d.age, V.int())
+          .refine(
+        (d) => d.age >= 0,
+        code: 'non_negative_age',
+        dependsOn: const {'age'},
+      );
+
+      final errors = schema.errors(const _SignUpDto(
+        email: 'bad',
+        password: 'x',
+        confirm: 'x',
+        age: -1,
+      ));
+
       expect(
         errors!.map((e) => e.code).toSet(),
-        {'string.email'},
-        reason: 'refine is held back until field validation passes',
+        {'string.email', 'non_negative_age'},
       );
     });
   });
