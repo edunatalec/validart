@@ -510,14 +510,28 @@ class User {
   User({required this.name, required this.email, required this.age});
 }
 
-final schema = V.object<User>(
-  configure: (o) => o
+final schema = V.object<User>()
     .field('name', (u) => u.name, V.string().min(1))
     .field('email', (u) => u.email, V.string().email())
-    .field('age', (u) => u.age, V.int().min(0).max(120)),
-);
+    .field('age', (u) => u.age, V.int().min(0).max(120));
 
 schema.validate(User(name: 'Jo', email: 'jo@x.com', age: 30)); // true
+```
+
+Because the schema is a plain value, DTOs can expose it as a `static final` — built once, reused everywhere:
+
+```dart
+class SignInDto {
+  final String email;
+  final String password;
+  const SignInDto({required this.email, required this.password});
+
+  static final schema = V.object<SignInDto>()
+      .field('email', (dto) => dto.email, V.string().email())
+      .field('password', (dto) => dto.password, V.string().password());
+}
+
+SignInDto.schema.validate(SignInDto(email: 'a@b.com', password: 'Abc!2345'));
 ```
 
 Errors include the field name in the path — same convention as `VMap`:
