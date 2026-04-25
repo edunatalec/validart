@@ -573,6 +573,48 @@ schema.errors(SignUpDto(email: 'a@b.com', password: 'secret', confirm: 'other'))
 // 'password must be equal to confirm'
 ```
 
+Conditional rules with `.when(field, equals:, then:)` — apply extra validators only when another field has a specific value:
+
+```dart
+final schema = V.object<TaxPayer>()
+  .field('country', (t) => t.country, V.string())
+  .field('taxId', (t) => t.taxId, V.string())
+  .when('country', equals: 'US', then: {
+    'taxId': V.string().taxId(patterns: [const UsSsnPattern()]),
+  });
+```
+
+Entity-level predicates scoped to a field with `.refineField(check, path:)`:
+
+```dart
+V.object<User>()
+  .field('age', (u) => u.age, V.int())
+  .refineField(
+    (u) => u.age >= 18,
+    path: 'age',
+    message: 'Must be at least 18',
+  );
+```
+
+Compose schemas with `.pick([...])`, `.omit([...])` and `.merge(other)` — same semantics as `VMap`, but scoped to the typed instance:
+
+```dart
+final full = V.object<User>()
+  .field('id', (u) => u.id, V.string().uuid())
+  .field('name', (u) => u.name, V.string().min(1))
+  .field('age', (u) => u.age, V.int().positive());
+
+final identity = full.pick(['id', 'name']);
+final withoutId = full.omit(['id']);
+
+final auditFields = V.object<User>()
+  .field('createdAt', (u) => u.createdAt, V.date());
+
+final withAudit = full.merge(auditFields);
+```
+
+> Note: unlike TypeScript, `pick`/`omit` do not generate a subset *type*. The input still has to be a full instance of `T` — only the validation surface is narrowed. For partial/dynamic payloads (CRUD UPDATE via JSON), use `VMap` directly with `.partial()`.
+
 ## Array
 
 Validates `List<T>` — each element goes through the element schema, then the list is checked against the array-level constraints.
