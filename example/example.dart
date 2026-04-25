@@ -458,11 +458,10 @@ void objectExamples() {
   print('--- object ---');
 
   // field (type-safe extraction)
-  final folderSchema = V.object<Folder>(
-    configure: (o) => o
-        .field('id', (f) => f.id, V.string().uuid())
-        .field('name', (f) => f.name, V.string().min(1)),
-  );
+  final folderSchema = V
+      .object<Folder>()
+      .field('id', (f) => f.id, V.string().uuid())
+      .field('name', (f) => f.name, V.string().min(1));
   final folder = Folder(
     id: '550e8400-e29b-41d4-a716-446655440000',
     name: 'Docs',
