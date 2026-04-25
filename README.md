@@ -38,6 +38,10 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
   - [Union](#union)
 - [Coercion](#coercion)
 - [Pipeline](#pipeline)
+  - [Pipeline order — primitives](#pipeline-order--primitives)
+  - [Pipeline order — containers (`VMap` / `VObject`)](#pipeline-order--containers-vmap--vobject)
+  - [Pipeline order — `VArray`](#pipeline-order--varray)
+  - [Async pipeline](#async-pipeline)
   - [Transform](#transform)
   - [Preprocess](#preprocess)
 - [Modifiers](#modifiers)
@@ -467,6 +471,40 @@ err.path;    // [age]
 err.message; // Must be at least 18
 ```
 
+#### `refineField` vs `refineFieldRaw`
+
+Both attach a path-keyed entity-level rule, but they differ in **when** the callback runs and **what** it sees:
+
+| | `refineField` (recommended) | `refineFieldRaw` |
+|---|---|---|
+| Callback receives | `Map<String, dynamic>` after every field's preprocess + validators + transforms ran | `Map<String, dynamic>` after the container preprocess + type check, **before** any per-field iteration — each value still as it arrived |
+| Runs when | inside the entity-level pipeline, gated on the field at `path` passing per-field validation (implicit `dependsOn: {path}`) | always, once the input is a valid `Map` — no per-field results to gate on |
+| Use when | the rule depends on parsed/transformed values (the common case) | the rule depends on the raw input as the user typed it — original casing, whitespace, pre-coercion shape |
+
+```dart
+// Same callback, two semantics:
+final schema = V.map({
+  'email': V.string().toLowerCase(),
+})
+.refineFieldRaw(
+  (data) => data['email'] == 'A@B.COM',     // sees raw input
+  path: 'email',
+  message: 'raw must be A@B.COM',
+)
+.refineField(
+  (data) => data['email'] == 'A@B.COM',     // sees lowercased value
+  path: 'email',
+  message: 'parsed must be A@B.COM',
+);
+
+schema.errors({'email': 'A@B.COM'});
+// → only the 'parsed' rule fails; 'raw' rule passed.
+```
+
+`VObject<T>.refineFieldRaw` mirrors `VMap.refineFieldRaw` for typed schemas — the callback receives the `T` instance after the container preprocess and cast, before any per-field pipeline runs. Useful for rules that must execute regardless of per-field results.
+
+In most cases, prefer `refineField`. Reach for `refineFieldRaw` only when the rule explicitly depends on the input as it arrived.
+
 ### Conditional Validation
 
 `when(field, equals: value, then: {...})` applies extra field validators only when another field has a specific value. Ideal for discriminated shapes ("if `type` is `'company'`, then `cnpj` is required") — fields in `then` are merged over the base schema for matching rows, and skipped entirely otherwise.
@@ -809,17 +847,84 @@ V.coerce.int().min(1).parse('0');           // throws VException
 
 ## Pipeline
 
-The validation pipeline runs in three phases:
+Validation runs every step in a fixed order — the order does **not** depend on how you write the chain. `V.string().trim().email()` and `V.string().email().trim()` produce the same result because `trim` (a pre-transform) always runs before `email` (a validator), regardless of position.
 
-1. **Pre-processing** — normalizes the value before validation (`trim`, `toLowerCase`, `toUpperCase`). The order in the chain does not matter — these always run first.
-2. **Validation** — checks constraints on the normalized value (`email`, `min`, `max`, etc.).
-3. **Post-processing** — transforms the validated value (`transform<O>()`). Only runs if validation passes.
+The three high-level phases are **input shaping → validation → output shaping**. Inside each phase the steps run in the order shown below.
+
+### Pipeline order — primitives
+
+For `V.string()`, `V.int()`, `V.double()`, `V.bool()`, `V.date()`, `V.enm()`, `V.literal()` — and also for `V.map()` / `V.object()` / `V.array()` / `V.union()` / `V.transform()` at the top level (containers add extra steps in the middle, see the next section).
+
+| # | Step | Triggered by | Runs in | Notes |
+|---|---|---|---|---|
+| 1 | Sync preprocess | `.preprocess(fn)` | `safeParse` + `safeParseAsync` | Reshapes the raw input. Runs in registration order. |
+| 2 | Async preprocess | `.preprocessAsync(fn)` | `safeParseAsync` only | Sync preprocess chain runs first, then async, both in registration order. |
+| 3 | Null / default resolution | `.nullable()`, `.defaultValue(x)`, factory `message:` | both | If the input is `null`: substitute the default (validated like any input), return null for nullable, or emit the `required` error. |
+| 4 | Type check | (automatic) | both | The input must be assignable to the schema's `T`; otherwise emits `<typeName>.invalid_type`. |
+| 5 | Pre-transforms | string built-ins: `.trim()`, `.toLowerCase()`, `.toUpperCase()`, `.toCamelCase()`, `.toPascalCase()`, `.toSnakeCase()`, `.toScreamingSnakeCase()`, `.toSlug()` | both | These reshape the validated value before any validator sees it — that's why `.trim().email()` and `.email().trim()` behave identically. |
+| 6 | Sync validators | `.min`, `.max`, `.email`, `.url`, every domain validator, `.refine(...)`, `.add(validator)` | both | All sync validators run; their errors are collected (the pipeline does **not** short-circuit on the first error). |
+| 7 | Async validators | `.refineAsync(...)`, `.addAsync(validator)` | `safeParseAsync` only | Interleaved with sync validators **in registration order** — `min(3).refineAsync(...)` runs `min(3)` first; `refineAsync(...).min(3)` runs the async check first. |
+| 8 | Transforms | `.transform<O>(fn)`, `.transformAsync<O>(fn)` | both | Only run if **every** validator above passed. Each transform can change the output type. |
+
+If any validator in step 6 / 7 emits an error, step 8 is skipped and the result is a `VFailure`.
+
+### Pipeline order — containers (`VMap` / `VObject`)
+
+Containers add an extra block between the type check and the entity-level validation pipeline. Steps in **bold** are container-specific; the rest are inherited from the primitive table above.
+
+| # | Step | Triggered by | Notes |
+|---|---|---|---|
+| 1 | Container preprocess | `.preprocess(fn)` / `.preprocessAsync(fn)` on the `V.map(...)` / `V.object<T>()` itself | Receives the raw container value (the whole `Map` / `T`), not individual fields. |
+| 2 | Null / default | `.nullable()`, `.defaultValue(...)` | Same as primitives. |
+| 3 | Type check | (automatic) | `Map<String, dynamic>` for `VMap`, `T` for `VObject<T>`. |
+| 4 | **Raw entity validators** | `.refineFieldRaw(check, path:)` (also `.addRaw(...)`) | Runs **once the type check succeeded, before any per-field iteration**. The callback sees fields **as the user typed them** — no field-level preprocess / validators / transforms have applied yet. Always runs (no `dependsOn` gating, no field has been validated). Useful when a rule depends on raw casing or whitespace that a field's `.trim()` / `.toLowerCase()` would erase. |
+| 5 | **Strict / unknown-key check** | `.strict()` on `VMap` | If enabled, every key not declared in the schema emits an `unrecognized_key` error. |
+| 6 | **Per-field iteration** | Each declared field via `V.map({...})` / `.field(name, extractor, validator)` | Every field runs its **own full pipeline** (steps 1–8 from the primitives table) on the corresponding value. Field errors are aggregated into a single `VFailure`; the field's path is prepended to each error's `path`. |
+| 7 | **`when` rules** | `.when(field, equals:, then: {...})` | When the discriminator matches, the listed extra validators run on the corresponding fields, just like step 6. |
+| 8 | **Passthrough** | `.passthrough()` on `VMap` | Copies any input keys not in the schema onto the parsed output (no validation; the schema decided to keep them). |
+| 9 | Entity-level validators | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See *`refine` with `dependsOn`* below. |
+| 10 | Entity-level transforms | `.transform<O>(fn)` | Only run if every step above passed. Rare on containers, but works the same as on primitives. |
 
 ```dart
-// Both are equivalent — trim always runs before email validation:
-V.string().trim().email();
-V.string().email().trim();
+// Why refineFieldRaw runs before per-field — a raw casing check.
+V.map({
+  'email': V.string().toLowerCase(),
+  'expected': V.string(),
+}).refineFieldRaw(
+  (data) => data['email'] == data['expected'],   // sees uppercase
+  path: 'email',
+  message: 'email must match expected (raw, case-sensitive)',
+);
+// At step 4 the callback sees 'A@B.COM' (raw); only later, at step 6,
+// the field's own .toLowerCase() reshapes it to 'a@b.com'.
 ```
+
+### Pipeline order — `VArray`
+
+Arrays have a similar structure to containers, but with element iteration in place of named-field iteration:
+
+| # | Step | Notes |
+|---|---|---|
+| 1 | Preprocess | Same as primitives. |
+| 2 | Null / default | Same. |
+| 3 | Type check | Must be a `List`. |
+| 4 | Element iteration | Each index runs the element schema's full pipeline. The element's path is prefixed with the integer index (so a failed `name` on element `[1]` lands at `[1, 'name']`). The whole array short-circuits as a `VFailure` when any element fails — array-level validators in step 5 do **not** see partial input. |
+| 5 | Array-level validators | `.min(n)`, `.max(n)`, `.unique()`, `.contains([...])`, `.refine((list) => ...)`, `.add(...)`. |
+| 6 | Transforms | `.transform<O>(fn)` on the array. |
+
+### Async pipeline
+
+Calling `safeParse` (or `validate` / `parse` / `errors`) on a schema with **any** async step throws `VAsyncRequiredException`, with `suggestion` pointing to the corresponding `*Async` consumer. A schema is "async" when:
+
+- it has any `preprocessAsync` / `refineAsync` / `addAsync` / `transformAsync`, or
+- a child schema (field, element, union option, transformed inner) is async.
+
+The `*Async` path runs the same steps as the sync table, with two differences:
+
+1. **Step 1 + step 2** become a single sequence: every sync preprocessor runs first, then every async preprocessor — both in registration order. `runPreprocessorsAsync(value)` exposes this stage as a public method.
+2. **Step 6 + step 7** are interleaved in registration order. `min(3).refineAsync(check)` runs `min(3)` first, then `check`. `refineAsync(check).min(3)` runs `check` first, then `min(3)`. This matters when an async check is expensive — put the cheap sync rejections in front of it.
+
+Sync-only schemas keep running synchronously inside `safeParseAsync`, with no `await` overhead — the async pipeline detects sync children via `hasAsync` and short-circuits on the sync path internally.
 
 ### Transform
 
