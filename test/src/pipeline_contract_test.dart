@@ -1,10 +1,10 @@
 // Contract tests — every concrete [VType] MUST honor the pipeline
 // invariants (preprocess, refine, nullable, defaultValue — sync + async).
 //
-// This file exists to prevent regressions of the 2.0.0 preprocess bug: if
-// someone adds a new VType subclass with its own `safeParse` / `safeParseAsync`
-// override and forgets to run the base-class preprocess loop, the contract
-// test for that type fails immediately.
+// A subclass that overrides `safeParse` / `safeParseAsync` without running
+// the base-class preprocess loop, or routes the success path through
+// `VSuccess(value)` directly instead of `_runPipeline(value)`, fails the
+// contract immediately.
 //
 // To register a new VType, add one more `_runPipelineContract<T>(...)` call
 // in `main()` with a factory and a valid-input fixture.

@@ -1,14 +1,10 @@
 // Dedicated tests for VTransformed<I, O> and VTransformedAsync<I, O>.
 //
-// Other test files exercise these through the .transform / .transformAsync
-// public surface (async_test.dart in particular), but the wrappers have
-// their own _isNullable / _hasDefault / _steps semantics that need
-// dedicated coverage.
-//
-// Architectural reminder (CLAUDE.md):
-// "Wrapper types (VTransformed/VTransformedAsync) MUST check their own
-// _isNullable / _hasDefault before delegating to inner; otherwise
-// .nullable()/.defaultValue() set on the wrapper no-ops."
+// Wrapper types track their own `_isNullable` / `_hasDefault` / `_steps`
+// independent of the inner schema — both layers must be exercised here.
+// The wrapper MUST short-circuit on its own null-handling before
+// delegating to inner, otherwise `.nullable()` / `.defaultValue()` set
+// on the wrapper would silently no-op.
 
 import 'package:test/test.dart';
 import 'package:validart/validart.dart';
@@ -65,9 +61,9 @@ void main() {
     test(
       'inner .nullable() is preserved when the wrapper has no own null-handling',
       () {
-        // Pre-2.0.0 the wrapper consulted only inner; this test pins that
-        // delegation still works when the wrapper itself is neither
-        // nullable nor has a default.
+        // The wrapper delegates to inner when it itself is neither
+        // nullable nor has a default — so inner's `.nullable()` still
+        // accepts null at the wrapper boundary.
         final schema = V.string().nullable().transform<int>((s) => s.length);
         expect(schema.parse(null), isNull);
       },
@@ -108,9 +104,10 @@ void main() {
   });
 
   group('VTransformed — preprocess on wrapper', () {
-    test('wrapper preprocess runs BEFORE inner (regression — fixed 2.0.0)', () {
-      // The wrapper's preprocess sees raw input — must run before the
-      // inner schema's pipeline. Pre-2.0.0 this was silently dropped.
+    test('wrapper preprocess runs BEFORE inner', () {
+      // The wrapper's preprocess sees raw input — it must run before
+      // the inner schema's pipeline so the inner sees the reshaped
+      // value, not the original.
       var ran = 0;
       final schema = V.string().transform<int>((s) => s.length).preprocess((v) {
         ran++;
