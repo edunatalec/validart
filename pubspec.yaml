@@ -1,6 +1,6 @@
 name: validart
 description: A type-safe validation library for Dart, inspired by Zod. Supports parse/safeParse, transforms, coercion, schema composition, and structured errors.
-version: 1.4.0
+version: 2.0.0
 homepage: https://github.com/edunatalec/validart
 repository: https://github.com/edunatalec/validart
 issue_tracker: https://github.com/edunatalec/validart/issues
