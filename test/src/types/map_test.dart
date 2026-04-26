@@ -921,5 +921,107 @@ void main() {
         expect(asyncRan, 1);
       });
     });
+
+    group('whenRules getter', () {
+      test('returns a snapshot of registered conditional rules', () {
+        final schema = V.map({
+          'role': V.string(),
+          'admin_token': V.string(),
+        }).when('role',
+            equals: 'admin', then: {'admin_token': V.string().min(1)});
+
+        expect(schema.whenRules, hasLength(1));
+        expect(schema.whenRules.first.field, 'role');
+        expect(schema.whenRules.first.equals, 'admin');
+        expect(schema.whenRules.first.then.containsKey('admin_token'), isTrue);
+      });
+    });
+
+    group('state propagation (regression)', () {
+      test('extend propagates defaultValue from base to extended schema', () {
+        final base = V.map({'name': V.string()}).defaultValue(
+          const {'name': 'fallback', 'age': 0},
+        );
+
+        final extended = base.extend({'age': V.int()});
+
+        expect(
+          extended.parse(null),
+          {'name': 'fallback', 'age': 0},
+          reason: 'extended schema should inherit the base defaultValue',
+        );
+      });
+    });
+
+    group('assertion errors on schema construction', () {
+      test('when() with a field not declared in the schema throws', () {
+        final schema = V.map({'name': V.string()});
+
+        expect(
+          () => schema.when('missing', equals: 'x', then: const {}),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('refineField() with a path not declared in the schema throws', () {
+        final schema = V.map({'name': V.string()});
+
+        expect(
+          () => schema.refineField((m) => true, path: 'missing'),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+    });
+
+    group('async safeParse behavior', () {
+      test('safeParseAsync rejects non-Map input with invalid_type', () async {
+        final schema =
+            V.map({'name': V.string()}).refineAsync((m) async => m.isNotEmpty);
+
+        final errors = await schema.errorsAsync('not a map');
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'map.invalid_type');
+      });
+
+      test('safeParseAsync runs sync when() rule when container is async',
+          () async {
+        final schema = V
+            .map({
+              'role': V.string(),
+              'admin_token': V.string().min(1),
+            })
+            .refineAsync((m) async => true)
+            .when('role',
+                equals: 'admin', then: {'admin_token': V.string().min(5)});
+
+        expect(
+          await schema.validateAsync({'role': 'admin', 'admin_token': 'abcde'}),
+          isTrue,
+        );
+        expect(
+          await schema.validateAsync({'role': 'admin', 'admin_token': 'no'}),
+          isFalse,
+          reason: 'sync when() rule must still gate the field in async path',
+        );
+      });
+
+      test('safeParseAsync surfaces failing when() rule with field path',
+          () async {
+        final schema = V
+            .map({
+              'role': V.string(),
+              'admin_token': V.string(),
+            })
+            .refineAsync((m) async => true)
+            .when('role',
+                equals: 'admin', then: {'admin_token': V.string().min(5)});
+
+        final errors =
+            await schema.errorsAsync({'role': 'admin', 'admin_token': 'no'});
+
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['admin_token']);
+      });
+    });
   });
 }

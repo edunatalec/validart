@@ -1670,5 +1670,85 @@ void main() {
         );
       });
     });
+
+    group('extract()', () {
+      test('returns a Map keyed by field name with values from the instance',
+          () {
+        final schema = V
+            .object<_SignUp>()
+            .field('email', (d) => d.email, V.string())
+            .field('password', (d) => d.password, V.string())
+            .field('confirm', (d) => d.confirm, V.string());
+
+        final data = schema.extract(_SignUp('a@b.com', 'pw', 'pw'));
+
+        expect(data, {
+          'email': 'a@b.com',
+          'password': 'pw',
+          'confirm': 'pw',
+        });
+      });
+    });
+
+    group('assertion errors on schema construction', () {
+      test('equalFields throws when fieldA does not exist in the schema', () {
+        final schema = V
+            .object<_SignUp>()
+            .field('password', (d) => d.password, V.string())
+            .field('confirm', (d) => d.confirm, V.string());
+
+        expect(
+          () => schema.equalFields('missing', 'confirm'),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test(
+          'refineField with dependsOn key in whenRules.then passes the assertion',
+          () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().nullable())
+            .field('name', (f) => f.name, V.string())
+            .when('name', equals: 'admin', then: {'id': V.string().min(1)});
+
+        expect(
+          () => schema.refineField(
+            (f) => true,
+            path: 'name',
+            dependsOn: const {'id'},
+          ),
+          returnsNormally,
+        );
+      });
+
+      test('refineField with dependsOn key not declared anywhere throws', () {
+        final schema =
+            V.object<Folder>().field('name', (f) => f.name, V.string());
+
+        expect(
+          () => schema.refineField(
+            (f) => true,
+            path: 'name',
+            dependsOn: const {'unknownKey'},
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+    });
+
+    group('async safeParse behavior', () {
+      test('safeParseAsync rejects wrong-typed input with invalid_type',
+          () async {
+        final schema = V
+            .object<Folder>()
+            .field('name', (f) => f.name, V.string())
+            .refineAsync((f) async => f.name.isNotEmpty);
+
+        final errors = await schema.errorsAsync('not a Folder');
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'object.invalid_type');
+      });
+    });
   });
 }

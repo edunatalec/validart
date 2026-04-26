@@ -588,12 +588,6 @@ abstract class VType<T> {
 
     if (errors.isNotEmpty) return VFailure<T?>(errors);
 
-    for (final step in _steps) {
-      if (step case _TransformStep<T>(:final transform)) {
-        current = transform(current);
-      }
-    }
-
     return VSuccess<T?>(current);
   }
 
@@ -662,12 +656,6 @@ abstract class VType<T> {
     }
 
     if (errors.isNotEmpty) return VFailure<T?>(errors);
-
-    for (final step in _steps) {
-      if (step case _TransformStep<T>(:final transform)) {
-        current = transform(current);
-      }
-    }
 
     return VSuccess<T?>(current);
   }
@@ -967,12 +955,6 @@ final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
     this.path,
     this.dependsOn,
   });
-}
-
-final class _TransformStep<T> extends _PipelineStep<T> {
-  final T Function(T value) transform;
-
-  const _TransformStep({required this.transform});
 }
 
 /// Validator step that runs **before** any per-field iteration in a

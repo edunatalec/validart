@@ -199,6 +199,79 @@ void main() {
             'the input',
       );
     });
+
+    test('safeParse called directly on VTransformedAsync throws', () {
+      final schema = V.string().transformAsync<int>((v) async => v.length);
+      expect(
+        () => schema.safeParse('x'),
+        throwsA(isA<VAsyncRequiredException>()),
+      );
+    });
+
+    test('typeName delegates to the inner schema', () {
+      final schema = V.string().transformAsync<int>((v) async => v.length);
+      expect(schema.typeName, 'string');
+    });
+  });
+
+  group('VTransformed — typeName / async pipeline', () {
+    test('typeName delegates to the inner schema', () {
+      final schema = V.string().transform<int>((s) => s.length);
+      expect(schema.typeName, 'string');
+    });
+
+    test('safeParseAsync uses wrapper-level defaultValue on null input',
+        () async {
+      final schema = V
+          .string()
+          .refineAsync((s) async => s.isNotEmpty)
+          .transform<int>((s) => s.length)
+          .defaultValue(7);
+
+      expect(await schema.parseAsync(null), 7);
+    });
+
+    test('safeParseAsync uses wrapper-level nullable on null input', () async {
+      final schema = V
+          .string()
+          .refineAsync((s) async => s.isNotEmpty)
+          .transform<int>((s) => s.length)
+          .nullable();
+
+      expect(await schema.parseAsync(null), isNull);
+    });
+
+    test('safeParseAsync forwards inner null Success without transforming',
+        () async {
+      var transformRan = 0;
+      final schema =
+          V.string().nullable().refineAsync((s) async => true).transform<int>(
+        (s) {
+          transformRan++;
+          return s.length;
+        },
+      );
+
+      expect(await schema.parseAsync(null), isNull);
+      expect(transformRan, 0);
+    });
+
+    test('safeParseAsync forwards inner VFailure without transforming',
+        () async {
+      var transformRan = 0;
+      final schema =
+          V.string().email().refineAsync((s) async => true).transform<int>(
+        (s) {
+          transformRan++;
+          return s.length;
+        },
+      );
+
+      final errors = await schema.errorsAsync('not-an-email');
+      expect(errors, isNotNull);
+      expect(errors!.first.code, 'string.email');
+      expect(transformRan, 0);
+    });
   });
 }
 

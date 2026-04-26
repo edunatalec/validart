@@ -64,6 +64,13 @@ void main() {
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Email inválido');
     });
+
+    test('V.locale exposes the currently active locale', () {
+      const custom = VLocale({'required': 'Campo obrigatório'});
+      V.setLocale(custom);
+
+      expect(V.locale, same(custom));
+    });
   });
 
   group('VCoerce', () {
@@ -110,6 +117,11 @@ void main() {
         final schema = V.coerce.double();
         expect(schema.parse(true), 1.0);
       });
+
+      test('should fail for non-coercible value', () {
+        final schema = V.coerce.double();
+        expect(schema.validate([1, 2, 3]), isFalse);
+      });
     });
 
     group('string', () {
@@ -136,6 +148,11 @@ void main() {
         expect(schema.parse(1), isTrue);
         expect(schema.parse(0), isFalse);
       });
+
+      test('should fail for non-coercible value', () {
+        final schema = V.coerce.bool();
+        expect(schema.validate(3.14), isFalse);
+      });
     });
 
     group('date', () {
@@ -157,6 +174,11 @@ void main() {
       test('should fail for invalid date string', () {
         final schema = V.coerce.date();
         expect(schema.validate('not-a-date'), isFalse);
+      });
+
+      test('should fail for non-DateTime, non-String input', () {
+        final schema = V.coerce.date();
+        expect(schema.validate(42), isFalse);
       });
 
       group('flexible formats', () {

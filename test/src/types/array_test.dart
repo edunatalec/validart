@@ -383,6 +383,15 @@ void main() {
         expect(syncRan, 1);
         expect(asyncRan, 1);
       });
+
+      test('safeParseAsync rejects non-List input with invalid_type', () async {
+        final schema =
+            V.array(V.string()).refineAsync((v) async => v.isNotEmpty);
+
+        final errors = await schema.errorsAsync('not a list');
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'array.invalid_type');
+      });
     });
   });
 }

@@ -105,6 +105,16 @@ void main() {
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.not_in_range');
       });
+
+      test('should support custom message function', () {
+        final custom = VInt().between(
+          1,
+          10,
+          message: (min, max) => 'must be between $min and $max',
+        );
+        final errs = custom.errors(20);
+        expect(errs!.first.message, 'must be between 1 and 10');
+      });
     });
 
     group('multipleOf', () {
@@ -125,6 +135,15 @@ void main() {
         final errs = schema.errors(4);
         expect(errs, isNotNull);
         expect(errs!.first.code, 'number.multiple_of');
+      });
+
+      test('should support custom message function', () {
+        final custom = VInt().multipleOf(
+          3,
+          message: (factor) => 'must be a multiple of $factor',
+        );
+        final errs = custom.errors(4);
+        expect(errs!.first.message, 'must be a multiple of 3');
       });
     });
 

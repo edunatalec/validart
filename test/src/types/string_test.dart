@@ -917,6 +917,18 @@ void main() {
         expect(discover.validate('6011111111111117'), isTrue);
       });
 
+      test('should accept Discover (644-649 prefix range)', () {
+        expect(discover.validate('6445000000000000'), isTrue);
+      });
+
+      test('should accept Discover (622126-622925 prefix range)', () {
+        expect(discover.validate('6221260000000000'), isTrue);
+      });
+
+      test('should reject Discover outside known prefix ranges', () {
+        expect(discover.validate('6700000000000000'), isFalse);
+      });
+
       test('should accept JCB', () {
         expect(jcb.validate('3530111333300000'), isTrue);
       });
@@ -944,6 +956,15 @@ void main() {
         final empty = VString().card(brands: []);
         expect(empty.validate('4111111111111111'), isTrue);
         expect(empty.validate('5555555555554444'), isTrue);
+      });
+
+      test('should expose human-readable name for each built-in brand', () {
+        expect(const VisaBrand().name, 'Visa');
+        expect(const MastercardBrand().name, 'Mastercard');
+        expect(const AmexBrand().name, 'American Express');
+        expect(const DinersBrand().name, 'Diners Club');
+        expect(const DiscoverBrand().name, 'Discover');
+        expect(const JcbBrand().name, 'JCB');
       });
 
       group('mode', () {

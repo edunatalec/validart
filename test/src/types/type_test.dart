@@ -356,5 +356,30 @@ void main() {
 
       expect(result.isValid, isFalse);
     });
+
+    test('async pipeline applies pretransform steps before async validators',
+        () async {
+      final schema = VString().trim().refineAsync(
+            (v) async => v == 'hello',
+            message: 'must equal hello',
+          );
+
+      expect(await schema.validateAsync('  hello  '), isTrue);
+      expect(await schema.validateAsync('  bye  '), isFalse);
+    });
+  });
+
+  group('VType public getters', () {
+    test('isNullable reflects nullable() configuration', () {
+      expect(V.string().isNullable, isFalse);
+      expect(V.string().nullable().isNullable, isTrue);
+    });
+
+    test('partial-wrapped field validators delegate typeName to inner', () {
+      final schema = V.map({'name': V.string(), 'age': V.int()}).partial();
+
+      expect(schema.schema['name']!.typeName, 'string');
+      expect(schema.schema['age']!.typeName, 'int');
+    });
   });
 }
