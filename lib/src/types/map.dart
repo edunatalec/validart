@@ -12,6 +12,18 @@ class _WhenRule {
   });
 }
 
+class _WhenMatchesRule {
+  final bool Function(Map<String, dynamic> input) condition;
+  final Set<String> dependsOn;
+  final Map<String, VType> then;
+
+  const _WhenMatchesRule({
+    required this.condition,
+    required this.dependsOn,
+    required this.then,
+  });
+}
+
 /// Validates `Map<String, dynamic>` values against a field schema.
 ///
 /// Errors from individual fields include the field name in their path.
@@ -26,6 +38,7 @@ class _WhenRule {
 class VMap extends VType<Map<String, dynamic>> {
   final Map<String, VType> _schema;
   final List<_WhenRule> _whenRules = [];
+  final List<_WhenMatchesRule> _whenMatchesRules = [];
   bool _isStrict = false;
   bool _isPassthrough = false;
 
@@ -87,7 +100,8 @@ class VMap extends VType<Map<String, dynamic>> {
   /// every submission.
   ///
   /// `dependsOn` accepts any key declared in the base schema OR injected
-  /// via any `when.then` block. Unknown keys throw an `AssertionError`.
+  /// via any `when.then` / `whenMatches.then` block (or referenced in
+  /// `whenMatches.dependsOn`). Unknown keys throw an `AssertionError`.
   ///
   /// ```dart
   /// // Conservative default — skip if any field failed.
@@ -156,6 +170,11 @@ class VMap extends VType<Map<String, dynamic>> {
       keys.addAll(rule.then.keys);
     }
 
+    for (final rule in _whenMatchesRules) {
+      keys.addAll(rule.then.keys);
+      keys.addAll(rule.dependsOn);
+    }
+
     return keys;
   }
 
@@ -168,7 +187,7 @@ class VMap extends VType<Map<String, dynamic>> {
       assert(
         known.contains(key),
         "dependsOn key '$key' is not declared in the schema "
-        '(base or when.then).',
+        '(base, when.then, or whenMatches.then).',
       );
     }
   }
@@ -181,6 +200,21 @@ class VMap extends VType<Map<String, dynamic>> {
       get whenRules => _whenRules
           .map((r) => (field: r.field, equals: r.equals, then: r.then))
           .toList();
+
+  /// The predicate-based conditional validation rules added via
+  /// [whenMatches].
+  List<
+      ({
+        bool Function(Map<String, dynamic> input) condition,
+        Set<String> dependsOn,
+        Map<String, VType> then,
+      })> get whenMatchesRules => _whenMatchesRules
+      .map((r) => (
+            condition: r.condition,
+            dependsOn: r.dependsOn,
+            then: r.then,
+          ))
+      .toList();
 
   /// Creates a new schema containing only the specified [keys].
   ///
@@ -253,6 +287,7 @@ class VMap extends VType<Map<String, dynamic>> {
 
   void _copyMapStateTo(VMap target) {
     target._whenRules.addAll(_whenRules);
+    target._whenMatchesRules.addAll(_whenMatchesRules);
     target._steps.addAll(_steps);
     target._preprocessors.addAll(_preprocessors);
 
@@ -341,6 +376,63 @@ class VMap extends VType<Map<String, dynamic>> {
     return this;
   }
 
+  /// Applies conditional validation rules based on an arbitrary predicate
+  /// that reads the raw input map.
+  ///
+  /// Use this when [when] is not expressive enough — when the trigger
+  /// depends on a comparison other than `==` (`>`, `oneOf`, etc.) or on
+  /// the combined value of multiple fields. The [condition] receives the
+  /// raw `Map<String, dynamic>` (post-preprocess, post type-check, but
+  /// before per-field parsing). When it returns `true`, every validator
+  /// in [then] is applied to the corresponding field in addition to its
+  /// baseline validator.
+  ///
+  /// [dependsOn] is required: it declares the schema keys the predicate
+  /// reads, so subsequent `refine(dependsOn:)` / `refineField(dependsOn:)`
+  /// rules can reference those fields without tripping the
+  /// `_knownKeys()` assertion. Every key in [dependsOn] must already be
+  /// declared in the base schema OR in a previously registered
+  /// `when.then` / `whenMatches.then`.
+  ///
+  /// The predicate is always synchronous; validators inside [then] may be
+  /// sync or async. A [whenMatches] rule whose [then] contains an async
+  /// validator opts the schema into async mode (`hasAsync == true`).
+  ///
+  /// ```dart
+  /// V.map({
+  ///   'role': V.string(),
+  ///   'level': V.int(),
+  ///   'audit_token': V.string().nullable(),
+  /// }).whenMatches(
+  ///   (m) => m['role'] == 'admin' && (m['level'] as int) > 5,
+  ///   dependsOn: const {'role', 'level'},
+  ///   then: {'audit_token': V.string().min(1)},
+  /// );
+  /// ```
+  VMap whenMatches(
+    bool Function(Map<String, dynamic> input) condition, {
+    required Set<String> dependsOn,
+    required Map<String, VType> then,
+  }) {
+    final known = _knownKeys();
+
+    for (final key in dependsOn) {
+      assert(
+        known.contains(key),
+        "whenMatches dependsOn key '$key' is not declared in the schema "
+        '(base, when.then, or whenMatches.then).',
+      );
+    }
+
+    _whenMatchesRules.add(_WhenMatchesRule(
+      condition: condition,
+      dependsOn: dependsOn,
+      then: then,
+    ));
+
+    return this;
+  }
+
   /// Creates a [VArray] schema that validates a `List<Map<String, dynamic>>`.
   ///
   /// ```dart
@@ -420,15 +512,7 @@ class VMap extends VType<Map<String, dynamic>> {
       _schema.containsKey(path),
       "The provided path '$path' does not exist in the schema.",
     );
-    if (dependsOn != null) {
-      for (final dep in dependsOn) {
-        assert(
-          _schema.containsKey(dep) ||
-              _whenRules.any((r) => r.then.containsKey(dep)),
-          "The dependsOn key '$dep' does not exist in the schema.",
-        );
-      }
-    }
+    _assertDependsOnKeys(dependsOn);
 
     return add(
       _RefineValidator<Map<String, dynamic>>(
@@ -506,6 +590,12 @@ class VMap extends VType<Map<String, dynamic>> {
       }
     }
 
+    for (final rule in _whenMatchesRules) {
+      for (final field in rule.then.values) {
+        if (field.hasAsync) return true;
+      }
+    }
+
     return false;
   }
 
@@ -571,6 +661,26 @@ class VMap extends VType<Map<String, dynamic>> {
 
     for (final rule in _whenRules) {
       if (input[rule.field] == rule.equals) {
+        for (final entry in rule.then.entries) {
+          final fieldValue = input[entry.key];
+          final result = entry.value.safeParse(fieldValue);
+
+          switch (result) {
+            case VSuccess():
+              parsed[entry.key] = result.value;
+            case VFailure():
+              for (final error in result.errors) {
+                errors.add(error.copyWith(
+                  path: [entry.key, ...error.path],
+                ));
+              }
+          }
+        }
+      }
+    }
+
+    for (final rule in _whenMatchesRules) {
+      if (rule.condition(input)) {
         for (final entry in rule.then.entries) {
           final fieldValue = input[entry.key];
           final result = entry.value.safeParse(fieldValue);
@@ -661,6 +771,28 @@ class VMap extends VType<Map<String, dynamic>> {
 
     for (final rule in _whenRules) {
       if (input[rule.field] == rule.equals) {
+        for (final entry in rule.then.entries) {
+          final fieldValue = input[entry.key];
+          final result = entry.value.hasAsync
+              ? await entry.value.safeParseAsync(fieldValue)
+              : entry.value.safeParse(fieldValue);
+
+          switch (result) {
+            case VSuccess():
+              parsed[entry.key] = result.value;
+            case VFailure():
+              for (final error in result.errors) {
+                errors.add(error.copyWith(
+                  path: [entry.key, ...error.path],
+                ));
+              }
+          }
+        }
+      }
+    }
+
+    for (final rule in _whenMatchesRules) {
+      if (rule.condition(input)) {
         for (final entry in rule.then.entries) {
           final fieldValue = input[entry.key];
           final result = entry.value.hasAsync

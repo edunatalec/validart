@@ -661,6 +661,350 @@ void main() {
       });
     });
 
+    group('whenMatches', () {
+      test('predicate reads multiple fields and gates extra validators', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .whenMatches(
+          (p) => p.age >= 18 && p.email.endsWith('@admin.com'),
+          dependsOn: const {'age', 'email'},
+          then: {'bio': V.string().min(5)},
+        );
+
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@admin.com',
+            bio: 'long enough',
+          )),
+          isTrue,
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@admin.com',
+            bio: null,
+          )),
+          isFalse,
+          reason: 'predicate matches → bio must satisfy min(5)',
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 17,
+            email: 'a@admin.com',
+            bio: null,
+          )),
+          isTrue,
+          reason: 'age < 18 → predicate false',
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@user.com',
+            bio: null,
+          )),
+          isTrue,
+          reason: 'email domain not admin → predicate false',
+        );
+      });
+
+      test('error path includes the then field name', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .whenMatches(
+          (p) => p.age >= 18,
+          dependsOn: const {'age'},
+          then: {'bio': V.string().min(5)},
+        );
+
+        final errors = schema.errors(_Profile(
+          name: 'A',
+          age: 30,
+          email: 'a@b.com',
+          bio: 'no',
+        ));
+
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['bio']);
+      });
+
+      test('asserts unknown dependsOn key', () {
+        expect(
+          () => V
+              .object<_TaxPayer>()
+              .field('country', (t) => t.country, V.string())
+              .field('taxId', (t) => t.taxId, V.string())
+              .whenMatches(
+            (t) => true,
+            dependsOn: const {'missing'},
+            then: const {},
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('asserts unknown then key (strict — VObject does not inject keys)',
+          () {
+        expect(
+          () => V
+              .object<_TaxPayer>()
+              .field('country', (t) => t.country, V.string())
+              .whenMatches(
+            (t) => true,
+            dependsOn: const {'country'},
+            then: {'missing': V.string()},
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('multiple whenMatches rules fire independently', () {
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .whenMatches(
+          (p) => p.age >= 18,
+          dependsOn: const {'age'},
+          then: {'bio': V.string().min(2)},
+        ).whenMatches(
+          (p) => p.email.endsWith('@vip.com'),
+          dependsOn: const {'email'},
+          then: {'name': V.string().min(3)},
+        );
+
+        expect(
+          schema.validate(_Profile(
+            name: 'AAA',
+            age: 30,
+            email: 'a@vip.com',
+            bio: 'ok',
+          )),
+          isTrue,
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'AAA',
+            age: 17,
+            email: 'a@vip.com',
+            bio: null,
+          )),
+          isTrue,
+          reason: 'first rule false (age) → bio stays nullable',
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@vip.com',
+            bio: 'ok',
+          )),
+          isFalse,
+          reason: 'second rule fires → name must be >= 3',
+        );
+      });
+
+      test('refine.dependsOn accepts a key declared via whenMatches.then', () {
+        // taxId is declared on the schema; whenMatches.then references it,
+        // refine.dependsOn references it. Should pass the assertion and
+        // gate the refine on taxId failures.
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => t.country == 'US',
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(9)},
+        ).refine(
+          (t) => t.taxId.isNotEmpty,
+          code: 'empty_taxid',
+          dependsOn: const {'taxId'},
+        );
+
+        expect(schema.validate(_TaxPayer('US', '123456789')), isTrue);
+        expect(schema.validate(_TaxPayer('BR', 'whatever')), isTrue);
+      });
+
+      test('hasAsync becomes true when then contains async validator', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => t.country == 'US',
+          dependsOn: const {'country'},
+          then: {
+            'taxId': V.string().refineAsync((s) async => s.startsWith('US-')),
+          },
+        );
+
+        expect(schema.hasAsync, isTrue);
+      });
+
+      test('safeParseAsync runs sync whenMatches when container is async',
+          () async {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .refineAsync((t) async => true)
+            .whenMatches(
+          (t) => t.country == 'US',
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(9)},
+        );
+
+        expect(
+          await schema.validateAsync(_TaxPayer('US', '123456789')),
+          isTrue,
+        );
+        expect(
+          await schema.validateAsync(_TaxPayer('US', 'short')),
+          isFalse,
+        );
+      });
+
+      test('async validator inside then runs through safeParseAsync', () async {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => t.country == 'US',
+          dependsOn: const {'country'},
+          then: {
+            'taxId':
+                V.string().refineAsync((s) async => s == '123', code: 'bad'),
+          },
+        );
+
+        expect(schema.hasAsync, isTrue);
+        expect(
+          await schema.validateAsync(_TaxPayer('US', '123')),
+          isTrue,
+        );
+        expect(
+          await schema.validateAsync(_TaxPayer('US', '999')),
+          isFalse,
+        );
+      });
+
+      test('predicate reading a nullable field treats null as first-class', () {
+        // Pattern: "if bio is not provided, require a longer name as the
+        // public-facing identifier". Mirrors VMap.whenMatches's null
+        // case but on the typed entity side.
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int())
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .whenMatches(
+          (p) => p.bio == null,
+          dependsOn: const {'bio'},
+          then: {'name': V.string().min(5)},
+        );
+
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@b.com',
+            bio: 'something',
+          )),
+          isTrue,
+          reason: 'bio non-null → predicate false → name unrestricted',
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'Alice',
+            age: 30,
+            email: 'a@b.com',
+            bio: null,
+          )),
+          isTrue,
+          reason: 'bio null → predicate true → name has 5 chars',
+        );
+        expect(
+          schema.validate(_Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@b.com',
+            bio: null,
+          )),
+          isFalse,
+          reason: 'bio null → predicate true → name fails min(5)',
+        );
+      });
+
+      test('whenMatchesRules getter returns a snapshot', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => t.country == 'US',
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(9)},
+        );
+
+        expect(schema.whenMatchesRules, hasLength(1));
+        expect(schema.whenMatchesRules.first.dependsOn, {'country'});
+        expect(
+          schema.whenMatchesRules.first.then.containsKey('taxId'),
+          isTrue,
+        );
+        expect(
+          schema.whenMatchesRules.first.condition(_TaxPayer('US', 'x')),
+          isTrue,
+        );
+        expect(
+          schema.whenMatchesRules.first.condition(_TaxPayer('BR', 'x')),
+          isFalse,
+        );
+      });
+
+      test('merge propagates whenMatchesRules from both sides', () {
+        final a = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => t.country == 'US',
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(9)},
+        );
+
+        final b = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => t.country == 'BR',
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(11)},
+        );
+
+        final merged = a.merge(b);
+        expect(merged.whenMatchesRules, hasLength(2));
+      });
+    });
+
     group('refineField', () {
       test('should emit error scoped to the declared path', () {
         final schema = V

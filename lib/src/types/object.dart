@@ -24,6 +24,18 @@ class _ObjectWhenRule<T> {
   });
 }
 
+class _ObjectWhenMatchesRule<T> {
+  final bool Function(T entity) condition;
+  final Set<String> dependsOn;
+  final Map<String, VType> then;
+
+  const _ObjectWhenMatchesRule({
+    required this.condition,
+    required this.dependsOn,
+    required this.then,
+  });
+}
+
 /// Validates class/entity instances of type [T] via type-safe field
 /// extraction callbacks.
 ///
@@ -36,6 +48,7 @@ class _ObjectWhenRule<T> {
 class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields = [];
   final List<_ObjectWhenRule<T>> _whenRules = [];
+  final List<_ObjectWhenMatchesRule<T>> _whenMatchesRules = [];
 
   VObject._({super.message, super.invalidTypeMessage});
 
@@ -91,7 +104,8 @@ class VObject<T> extends VType<T> {
   /// submission.
   ///
   /// `dependsOn` accepts any field declared on this schema OR injected via
-  /// any `when.then` block. Unknown names throw an `AssertionError`.
+  /// any `when.then` / `whenMatches.then` block (or referenced in
+  /// `whenMatches.dependsOn`). Unknown names throw an `AssertionError`.
   ///
   /// ```dart
   /// // Conservative default — skip if any field failed.
@@ -157,6 +171,11 @@ class VObject<T> extends VType<T> {
       keys.addAll(rule.then.keys);
     }
 
+    for (final rule in _whenMatchesRules) {
+      keys.addAll(rule.then.keys);
+      keys.addAll(rule.dependsOn);
+    }
+
     return keys;
   }
 
@@ -169,7 +188,7 @@ class VObject<T> extends VType<T> {
       assert(
         known.contains(key),
         "dependsOn key '$key' is not declared in the schema "
-        '(base or when.then).',
+        '(base, when.then, or whenMatches.then).',
       );
     }
   }
@@ -278,6 +297,21 @@ class VObject<T> extends VType<T> {
           .map((r) => (field: r.field, equals: r.equals, then: r.then))
           .toList();
 
+  /// The predicate-based conditional validation rules added via
+  /// [whenMatches].
+  List<
+      ({
+        bool Function(T entity) condition,
+        Set<String> dependsOn,
+        Map<String, VType> then,
+      })> get whenMatchesRules => _whenMatchesRules
+      .map((r) => (
+            condition: r.condition,
+            dependsOn: r.dependsOn,
+            then: r.then,
+          ))
+      .toList();
+
   /// Creates a new schema containing only the fields named in [keys].
   ///
   /// Preserves all pipeline state from the base schema (validators added via
@@ -352,6 +386,7 @@ class VObject<T> extends VType<T> {
 
   void _copyObjectStateTo(VObject<T> target) {
     target._whenRules.addAll(_whenRules);
+    target._whenMatchesRules.addAll(_whenMatchesRules);
     target._steps.addAll(_steps);
     target._preprocessors.addAll(_preprocessors);
 
@@ -401,6 +436,65 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
+  /// Applies conditional validation rules based on an arbitrary predicate
+  /// that reads the typed entity.
+  ///
+  /// Use this when [when] is not expressive enough — when the trigger
+  /// depends on a comparison other than `==` (`>`, `oneOf`, etc.) or on
+  /// the combined value of multiple fields. The [condition] receives the
+  /// entity `T` (after the container preprocess and type cast). When it
+  /// returns `true`, every validator in [then] is applied to the
+  /// corresponding field in addition to its baseline validator.
+  ///
+  /// [dependsOn] is required: it declares the field names the predicate
+  /// reads, so subsequent `refine(dependsOn:)` / `refineField(dependsOn:)`
+  /// rules can reference those fields without tripping the
+  /// `_knownKeys()` assertion. Every key in [dependsOn] and in [then]
+  /// must already be declared via [field] before calling this method.
+  ///
+  /// The predicate is always synchronous; validators inside [then] may be
+  /// sync or async. A [whenMatches] rule whose [then] contains an async
+  /// validator opts the schema into async mode (`hasAsync == true`).
+  ///
+  /// ```dart
+  /// V.object<TaxPayer>()
+  ///     .field('country', (t) => t.country, V.string())
+  ///     .field('age', (t) => t.age, V.int())
+  ///     .field('taxId', (t) => t.taxId, V.string())
+  ///     .whenMatches(
+  ///       (t) => t.country == 'US' && t.age >= 21,
+  ///       dependsOn: const {'country', 'age'},
+  ///       then: {'taxId': V.string().min(9)},
+  ///     );
+  /// ```
+  VObject<T> whenMatches(
+    bool Function(T entity) condition, {
+    required Set<String> dependsOn,
+    required Map<String, VType> then,
+  }) {
+    for (final key in dependsOn) {
+      assert(
+        _fields.any((f) => f.name == key),
+        "The whenMatches dependsOn key '$key' does not exist in the schema.",
+      );
+    }
+
+    for (final key in then.keys) {
+      assert(
+        _fields.any((f) => f.name == key),
+        "The whenMatches 'then' field '$key' does not exist in the schema.",
+      );
+    }
+
+    _whenMatchesRules.add(_ObjectWhenMatchesRule<T>(
+      condition: condition,
+      dependsOn: dependsOn,
+      then: then,
+    ));
+
+    return this;
+  }
+
   /// Adds a custom validation targeting a specific field [path]. The [check]
   /// receives the whole instance and the emitted error is scoped to [path].
   ///
@@ -433,15 +527,7 @@ class VObject<T> extends VType<T> {
       _fields.any((f) => f.name == path),
       "The provided path '$path' does not exist in the schema.",
     );
-    if (dependsOn != null) {
-      for (final dep in dependsOn) {
-        assert(
-          _fields.any((f) => f.name == dep) ||
-              _whenRules.any((r) => r.then.containsKey(dep)),
-          "The dependsOn key '$dep' does not exist in the schema.",
-        );
-      }
-    }
+    _assertDependsOnKeys(dependsOn);
 
     return add(
       _RefineValidator<T>(check: check, validatorCode: VCode.custom),
@@ -508,6 +594,12 @@ class VObject<T> extends VType<T> {
     }
 
     for (final rule in _whenRules) {
+      for (final validator in rule.then.values) {
+        if (validator.hasAsync) return true;
+      }
+    }
+
+    for (final rule in _whenMatchesRules) {
       for (final validator in rule.then.values) {
         if (validator.hasAsync) return true;
       }
@@ -581,6 +673,25 @@ class VObject<T> extends VType<T> {
       }
     }
 
+    for (final rule in _whenMatchesRules) {
+      if (!rule.condition(typed)) continue;
+
+      for (final thenEntry in rule.then.entries) {
+        final targetField = _fields.firstWhere((f) => f.name == thenEntry.key);
+        final fieldValue = targetField.extractor(typed);
+        final result = thenEntry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            break;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [thenEntry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
     return _runPipeline(
       typed,
       carriedErrors: errors,
@@ -631,6 +742,27 @@ class VObject<T> extends VType<T> {
       final conditionValue = ruleField.extractor(typed);
 
       if (conditionValue != rule.equals) continue;
+
+      for (final thenEntry in rule.then.entries) {
+        final targetField = _fields.firstWhere((f) => f.name == thenEntry.key);
+        final fieldValue = targetField.extractor(typed);
+        final result = thenEntry.value.hasAsync
+            ? await thenEntry.value.safeParseAsync(fieldValue)
+            : thenEntry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            break;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [thenEntry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    for (final rule in _whenMatchesRules) {
+      if (!rule.condition(typed)) continue;
 
       for (final thenEntry in rule.then.entries) {
         final targetField = _fields.firstWhere((f) => f.name == thenEntry.key);

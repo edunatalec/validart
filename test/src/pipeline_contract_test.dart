@@ -350,4 +350,92 @@ void main() {
     validInput: 'hello',
     defaultVal: 0,
   );
+
+  group('whenMatches contract', () {
+    test('VMap: preprocess runs before whenMatches; refine runs after', () {
+      final order = <String>[];
+      final schema = V.map({'name': V.string()}).preprocess((v) {
+        order.add('preprocess');
+        return v;
+      }).whenMatches(
+        (m) {
+          order.add('whenMatches');
+          return false;
+        },
+        dependsOn: const {'name'},
+        then: const {},
+      ).refine(
+        (m) {
+          order.add('refine');
+          return true;
+        },
+        dependsOn: const {'name'},
+      );
+
+      schema.validate({'name': 'Jo'});
+      expect(order, ['preprocess', 'whenMatches', 'refine']);
+    });
+
+    test('VObject: preprocess runs before whenMatches; refine runs after', () {
+      final order = <String>[];
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .preprocess((v) {
+        order.add('preprocess');
+        return v;
+      }).whenMatches(
+        (e) {
+          order.add('whenMatches');
+          return false;
+        },
+        dependsOn: const {'name'},
+        then: const {},
+      ).refine(
+        (e) {
+          order.add('refine');
+          return true;
+        },
+        dependsOn: const {'name'},
+      );
+
+      schema.validate(const _Entity('Jo'));
+      expect(order, ['preprocess', 'whenMatches', 'refine']);
+    });
+
+    test(
+      'VMap: whenMatches.then validator failures contribute to '
+      'failedFieldPaths and gate later refine(dependsOn:)',
+      () {
+        var refineRan = false;
+        final schema = V.map(
+            {'role': V.string(), 'audit': V.string().nullable()}).whenMatches(
+          (m) => m['role'] == 'admin',
+          dependsOn: const {'role'},
+          then: {'audit': V.string().min(8)},
+        ).refine(
+          (m) {
+            refineRan = true;
+            return true;
+          },
+          code: 'unused',
+          dependsOn: const {'audit'},
+        );
+
+        // role == 'admin' triggers whenMatches; "no" fails min(8) → error
+        // on path [audit] → failedFieldPaths includes 'audit' → refine
+        // skipped because dependsOn intersects.
+        schema.validate({'role': 'admin', 'audit': 'no'});
+        expect(refineRan, isFalse);
+
+        // Reset for the second case.
+        refineRan = false;
+
+        // role != 'admin' → whenMatches skipped → no audit error → refine
+        // runs because failedFieldPaths is empty.
+        schema.validate({'role': 'user', 'audit': null});
+        expect(refineRan, isTrue);
+      },
+    );
+  });
 }

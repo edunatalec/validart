@@ -174,6 +174,94 @@ void main() {
     });
   });
 
+  group('real-world: predicate-based whenMatches (cross-field, non-equals)',
+      () {
+    // when (literal discriminator) + whenMatches (multi-field predicate) +
+    // refine(dependsOn:) where the depended-on key is only declared inside
+    // a whenMatches.then block. Verifies the three mechanisms coexist and
+    // surface every error in a single VFailure.
+    final schema = V.map({
+      'role': V.string(),
+      'level': V.int(),
+      'country': V.string(),
+    }).when('role', equals: 'guest', then: {
+      'name': V.string().min(3),
+    }).whenMatches(
+      (m) => m['role'] == 'admin' && (m['level'] as int) > 5,
+      dependsOn: const {'role', 'level'},
+      then: {'audit_token': V.string().min(8)},
+    ).refine(
+      (m) => (m['audit_token'] as String?)?.startsWith('AUD-') ?? true,
+      code: 'audit_prefix',
+      message: 'audit_token must start with AUD-',
+      dependsOn: const {'audit_token'},
+    );
+
+    test('senior admin with valid audit_token passes', () {
+      expect(
+        schema.validate({
+          'role': 'admin',
+          'level': 10,
+          'country': 'BR',
+          'audit_token': 'AUD-12345',
+        }),
+        isTrue,
+      );
+    });
+
+    test('senior admin with short audit_token fails', () {
+      final errors = schema.errors({
+        'role': 'admin',
+        'level': 10,
+        'country': 'BR',
+        'audit_token': 'short',
+      });
+
+      expect(errors, isNotNull);
+      expect(
+        errors!.any((e) => e.path.first == 'audit_token'),
+        isTrue,
+      );
+    });
+
+    test('senior admin with bad-prefix audit_token surfaces refine error', () {
+      // audit_token is long enough (passes whenMatches.then) but does not
+      // start with "AUD-" → the refine fires.
+      final errors = schema.errors({
+        'role': 'admin',
+        'level': 10,
+        'country': 'BR',
+        'audit_token': 'XYZ-99999',
+      });
+
+      expect(errors, isNotNull);
+      expect(errors!.any((e) => e.code == 'audit_prefix'), isTrue);
+    });
+
+    test('junior admin (level <= 5) bypasses whenMatches', () {
+      expect(
+        schema.validate({
+          'role': 'admin',
+          'level': 3,
+          'country': 'BR',
+        }),
+        isTrue,
+      );
+    });
+
+    test('guest with short name fails the literal when()', () {
+      expect(
+        schema.validate({
+          'role': 'guest',
+          'level': 0,
+          'country': 'BR',
+          'name': 'Al',
+        }),
+        isFalse,
+      );
+    });
+  });
+
   group('real-world: coerce + preprocess + transform pipeline', () {
     test('string "42" → int 42 → doubled via transform', () {
       final schema = V.coerce.int().transform<int>((i) => i * 2);

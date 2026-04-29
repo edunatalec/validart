@@ -45,3 +45,4 @@ export 'src/v_code.dart';
 export 'src/v_locale.dart';
 export 'src/validation_mode.dart';
 export 'src/phone_format.dart';
+export 'src/extensions/apply_if.dart';

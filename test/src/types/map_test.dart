@@ -645,6 +645,38 @@ void main() {
         );
       });
 
+      test('should fire when equals: null and the field reads as null', () {
+        // Mirrors VObject's `equals: null fires when extractor returns null`.
+        // A missing key in a Dart map reads as null, so the rule fires
+        // for both explicit-null and missing-key inputs.
+        final schema = V.map({
+          'kind': V.string().nullable(),
+          'fallback': V.string().nullable(),
+        }).when('kind', equals: null, then: {
+          'fallback': V.string().min(3),
+        });
+
+        expect(
+          schema.validate({'kind': null, 'fallback': 'ok!'}),
+          isTrue,
+        );
+        expect(
+          schema.validate({'kind': null, 'fallback': null}),
+          isFalse,
+          reason: 'kind == null → fallback now required',
+        );
+        expect(
+          schema.validate({'kind': 'explicit', 'fallback': null}),
+          isTrue,
+          reason: 'kind != null → rule does not fire',
+        );
+        expect(
+          schema.validate({'fallback': null}),
+          isFalse,
+          reason: 'missing kind reads as null → rule fires',
+        );
+      });
+
       test('should support multiple when rules', () {
         final schema = VMap({
           'role': VString(),
@@ -876,6 +908,272 @@ void main() {
       });
     });
 
+    group('whenMatches', () {
+      test('predicate reads multiple fields and gates extra validators', () {
+        final schema = V.map({
+          'role': V.string(),
+          'level': V.int(),
+          'audit_token': V.string().nullable(),
+        }).whenMatches(
+          (m) => m['role'] == 'admin' && (m['level'] as int) > 5,
+          dependsOn: const {'role', 'level'},
+          then: {'audit_token': V.string().min(1)},
+        );
+
+        expect(
+          schema.validate({
+            'role': 'admin',
+            'level': 10,
+            'audit_token': 'tok',
+          }),
+          isTrue,
+        );
+        expect(
+          schema.validate({'role': 'admin', 'level': 10, 'audit_token': null}),
+          isFalse,
+          reason: 'predicate matches → audit_token must be non-empty string',
+        );
+        expect(
+          schema.validate({'role': 'admin', 'level': 3}),
+          isTrue,
+          reason:
+              'level not > 5 → predicate false → audit_token stays nullable',
+        );
+        expect(
+          schema.validate({'role': 'user', 'level': 99}),
+          isTrue,
+          reason: 'role not admin → predicate false',
+        );
+      });
+
+      test('predicate supports non-equality operators (oneOf, gt)', () {
+        final schema = V.map({
+          'country': V.string(),
+          'doc': V.string().nullable(),
+        }).whenMatches(
+          (m) => const {'BR', 'AR', 'CL'}.contains(m['country']),
+          dependsOn: const {'country'},
+          then: {'doc': V.string().min(8)},
+        );
+
+        expect(schema.validate({'country': 'BR', 'doc': '12345678'}), isTrue);
+        expect(schema.validate({'country': 'AR', 'doc': 'short'}), isFalse);
+        expect(schema.validate({'country': 'US', 'doc': null}), isTrue);
+      });
+
+      test('error path includes the then field name', () {
+        final schema = V.map({
+          'flag': V.bool(),
+          'extra': V.string().nullable(),
+        }).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {'extra': V.string().min(3)},
+        );
+
+        final errors = schema.errors({'flag': true, 'extra': 'no'});
+        expect(errors, isNotNull);
+        expect(errors!.first.path, ['extra']);
+      });
+
+      test('multiple whenMatches rules fire independently', () {
+        final schema = V.map({
+          'a': V.int(),
+          'b': V.int(),
+          'note_a': V.string().nullable(),
+          'note_b': V.string().nullable(),
+        }).whenMatches(
+          (m) => (m['a'] as int) > 10,
+          dependsOn: const {'a'},
+          then: {'note_a': V.string().min(1)},
+        ).whenMatches(
+          (m) => (m['b'] as int) < 0,
+          dependsOn: const {'b'},
+          then: {'note_b': V.string().min(1)},
+        );
+
+        expect(
+          schema.validate({'a': 20, 'b': -1, 'note_a': 'x', 'note_b': 'y'}),
+          isTrue,
+        );
+        expect(
+          schema.validate({'a': 20, 'b': 5, 'note_a': null}),
+          isFalse,
+          reason: 'first rule fires → note_a required',
+        );
+        expect(
+          schema.validate({'a': 5, 'b': -1, 'note_b': null}),
+          isFalse,
+          reason: 'second rule fires → note_b required',
+        );
+        expect(schema.validate({'a': 5, 'b': 5}), isTrue);
+      });
+
+      test('refine.dependsOn accepts keys injected via whenMatches.then', () {
+        final schema = V.map({
+          'mode': V.string(),
+        }).whenMatches(
+          (m) => m['mode'] == 'audit',
+          dependsOn: const {'mode'},
+          then: {'audit_token': V.string()},
+        ).refine(
+          (m) => (m['audit_token'] as String?)?.isNotEmpty ?? true,
+          code: 'empty_token',
+          dependsOn: const {'audit_token'},
+        );
+
+        expect(
+          schema.validate({'mode': 'audit', 'audit_token': 'tok'}),
+          isTrue,
+        );
+        expect(
+          schema.validate({'mode': 'normal'}),
+          isTrue,
+        );
+      });
+
+      test('combined with strict() rejects then-only keys not in base schema',
+          () {
+        // Mirrors `when combined with strict still rejects unknown keys` —
+        // strict scans against `_schema.containsKey`, not `_knownKeys`.
+        final schema = V.map({
+          'flag': V.bool(),
+        }).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {'note': V.string().min(1)},
+        ).strict();
+
+        expect(
+          schema.validate({'flag': true, 'note': 'hi'}),
+          isFalse,
+          reason: 'strict rejects "note" because it is not in the base schema',
+        );
+        expect(schema.validate({'flag': false}), isTrue);
+      });
+
+      test('predicate reading null (missing or explicit) fires correctly', () {
+        // Missing key reads as null in Dart maps; predicate must treat
+        // null as a first-class value. Useful for "if discriminator is
+        // not provided, require the fallback field" patterns.
+        final schema = V.map({
+          'kind': V.string().nullable(),
+          'fallback': V.string().nullable(),
+        }).whenMatches(
+          (m) => m['kind'] == null,
+          dependsOn: const {'kind'},
+          then: {'fallback': V.string().min(3)},
+        );
+
+        expect(
+          schema.validate({'kind': 'explicit', 'fallback': null}),
+          isTrue,
+          reason: 'predicate false (kind non-null) → fallback stays nullable',
+        );
+        expect(
+          schema.validate({'kind': null, 'fallback': 'ok!'}),
+          isTrue,
+          reason: 'explicit null kind → predicate true → fallback >= 3',
+        );
+        expect(
+          schema.validate({'kind': null, 'fallback': null}),
+          isFalse,
+          reason: 'explicit null kind → fallback now required',
+        );
+        expect(
+          schema.validate({'fallback': null}),
+          isFalse,
+          reason: 'missing kind reads as null → predicate true → fail',
+        );
+      });
+
+      test('combined with passthrough() keeps extras', () {
+        final schema = V.map({
+          'flag': V.bool(),
+          'note': V.string().nullable(),
+        }).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {'note': V.string().min(1)},
+        ).passthrough();
+
+        final result = schema.parse({
+          'flag': true,
+          'note': 'hi',
+          'extra': 42,
+        });
+        expect(result, {'flag': true, 'note': 'hi', 'extra': 42});
+      });
+
+      test('hasAsync becomes true when then contains an async validator', () {
+        final asyncSchema = V.map({
+          'flag': V.bool(),
+        }).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {'token': V.string().refineAsync((s) async => s.isNotEmpty)},
+        );
+
+        expect(asyncSchema.hasAsync, isTrue);
+      });
+
+      test('safeParseAsync runs sync whenMatches when container is async',
+          () async {
+        final schema = V
+            .map({
+              'role': V.string(),
+              'level': V.int(),
+            })
+            .refineAsync((m) async => true)
+            .whenMatches(
+              (m) => m['role'] == 'admin' && (m['level'] as int) > 5,
+              dependsOn: const {'role', 'level'},
+              then: {'token': V.string().min(3)},
+            );
+
+        expect(
+          await schema.validateAsync({
+            'role': 'admin',
+            'level': 10,
+            'token': 'abc',
+          }),
+          isTrue,
+        );
+        expect(
+          await schema.validateAsync({
+            'role': 'admin',
+            'level': 10,
+            'token': 'no',
+          }),
+          isFalse,
+        );
+      });
+
+      test('async validator inside then runs through safeParseAsync', () async {
+        final schema = V.map({
+          'flag': V.bool(),
+        }).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {
+            'token': V
+                .string()
+                .refineAsync((s) async => s == 'expected', code: 'bad_token'),
+          },
+        );
+
+        expect(schema.hasAsync, isTrue);
+        expect(
+          await schema.validateAsync({'flag': true, 'token': 'expected'}),
+          isTrue,
+        );
+        expect(
+          await schema.validateAsync({'flag': true, 'token': 'wrong'}),
+          isFalse,
+        );
+      });
+    });
+
     group('preprocess propagation (regression)', () {
       test('sync preprocess runs before validation', () {
         var ran = 0;
@@ -937,6 +1235,34 @@ void main() {
       });
     });
 
+    group('whenMatchesRules getter', () {
+      test('returns a snapshot of registered predicate rules', () {
+        final schema = V.map({
+          'role': V.string(),
+          'level': V.int(),
+        }).whenMatches(
+          (m) => m['role'] == 'admin',
+          dependsOn: const {'role'},
+          then: {'level': V.int().min(5)},
+        );
+
+        expect(schema.whenMatchesRules, hasLength(1));
+        expect(schema.whenMatchesRules.first.dependsOn, {'role'});
+        expect(
+          schema.whenMatchesRules.first.then.containsKey('level'),
+          isTrue,
+        );
+        expect(
+          schema.whenMatchesRules.first.condition({'role': 'admin'}),
+          isTrue,
+        );
+        expect(
+          schema.whenMatchesRules.first.condition({'role': 'user'}),
+          isFalse,
+        );
+      });
+    });
+
     group('state propagation (regression)', () {
       test('extend propagates defaultValue from base to extended schema', () {
         final base = V.map({'name': V.string()}).defaultValue(
@@ -950,6 +1276,43 @@ void main() {
           {'name': 'fallback', 'age': 0},
           reason: 'extended schema should inherit the base defaultValue',
         );
+      });
+
+      test('extend preserves whenMatches rules from base', () {
+        final base = V.map({'flag': V.bool()}).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {'note': V.string().min(1)},
+        );
+
+        final extended = base.extend({'note': V.string().nullable()});
+
+        expect(
+          extended.validate({'flag': true, 'note': 'hi'}),
+          isTrue,
+        );
+        expect(
+          extended.validate({'flag': true, 'note': ''}),
+          isFalse,
+          reason: 'whenMatches must still gate "note" after extend',
+        );
+        expect(extended.whenMatchesRules, hasLength(1));
+      });
+
+      test('merge concatenates whenMatches rules from both sides', () {
+        final a = V.map({'flag': V.bool()}).whenMatches(
+          (m) => m['flag'] == true,
+          dependsOn: const {'flag'},
+          then: {'note': V.string().min(1)},
+        );
+        final b = V.map({'count': V.int()}).whenMatches(
+          (m) => (m['count'] as int) > 5,
+          dependsOn: const {'count'},
+          then: {'note': V.string().min(2)},
+        );
+
+        final merged = a.merge(b);
+        expect(merged.whenMatchesRules, hasLength(2));
       });
     });
 
@@ -969,6 +1332,34 @@ void main() {
         expect(
           () => schema.refineField((m) => true, path: 'missing'),
           throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('whenMatches() with unknown dependsOn key throws', () {
+        final schema = V.map({'flag': V.bool()});
+
+        expect(
+          () => schema.whenMatches(
+            (m) => true,
+            dependsOn: const {'missing'},
+            then: const {},
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('whenMatches() accepts then keys not in base schema', () {
+        // Mirrors when(): then can introduce new keys (they enter
+        // _knownKeys via the rule).
+        final schema = V.map({'flag': V.bool()});
+
+        expect(
+          () => schema.whenMatches(
+            (m) => true,
+            dependsOn: const {'flag'},
+            then: {'fresh': V.string()},
+          ),
+          returnsNormally,
         );
       });
     });

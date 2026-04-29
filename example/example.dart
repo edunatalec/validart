@@ -23,6 +23,7 @@ import 'features/patterns.dart';
 import 'features/preprocess.dart';
 import 'features/refine.dart';
 import 'features/transform.dart';
+import 'features/apply_if.dart';
 import 'features/when.dart';
 import 'types/array.dart';
 import 'types/bool.dart';
@@ -58,6 +59,8 @@ Future<void> main() async {
   runRefineExamples();
   runEqualFieldsExamples();
   runWhenExamples();
+  runWhenMatchesExamples();
+  runApplyIfExamples();
   runCompositionExamples();
   runErrorsExamples();
   runPatternsExamples();
