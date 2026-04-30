@@ -55,6 +55,33 @@ void runObjectExamples() {
     SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
     SignInDto(email: 'c@d.com', password: 'An0ther!Pass'),
   ])); // true
+
+  section('VObject — fieldIf for conditional field declaration');
+
+  // Build different schemas from the same fluent chain by toggling
+  // which fields are declared. Useful for partial-update DTOs where
+  // only some fields are accepted in a given context.
+  VObject<SignInDto> credentialsSchema({required bool requirePassword}) => V
+      .object<SignInDto>()
+      .field('email', (d) => d.email, V.string().email())
+      .fieldIf(
+        requirePassword,
+        'password',
+        (d) => d.password,
+        V.string().password(),
+      );
+
+  print(credentialsSchema(requirePassword: true)
+      .validate(const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass')));
+  // true — both fields validated
+
+  print(credentialsSchema(requirePassword: true)
+      .validate(const SignInDto(email: 'a@b.com', password: 'weak')));
+  // false — password fails the password() rule
+
+  print(credentialsSchema(requirePassword: false)
+      .validate(const SignInDto(email: 'a@b.com', password: 'weak')));
+  // true — password field not declared, so its value is ignored
 }
 
 void main() => runObjectExamples();

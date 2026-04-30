@@ -239,6 +239,30 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
+  /// Conditionally adds a field. When [condition] is `true`, behaves
+  /// exactly like [field]; otherwise leaves the schema unchanged. Lets
+  /// the fluent chain stay unbroken when a field is only relevant under
+  /// some flag (a feature toggle, a request context, an admin-only
+  /// projection).
+  ///
+  /// ```dart
+  /// VObject<UpdateCredentialDto> schemaFor({required bool allowName}) =>
+  ///     V.object<UpdateCredentialDto>()
+  ///         .fieldIf(allowName, 'name', (d) => d.name,
+  ///             V.string().min(2).nullable())
+  ///         .field('email', (d) => d.email, V.string().email());
+  /// ```
+  VObject<T> fieldIf<F>(
+    bool condition,
+    String name,
+    F? Function(T instance) extractor,
+    VType<F> validator,
+  ) {
+    if (!condition) return this;
+
+    return field(name, extractor, validator);
+  }
+
   /// Creates a [VArray] schema that validates a `List<T>` using this
   /// schema as the element validator.
   ///

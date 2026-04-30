@@ -157,6 +157,94 @@ void main() {
       });
     });
 
+    group('fieldIf', () {
+      test('condition true adds the field', () {
+        final schema = VObject<Folder>()
+            .fieldIf(true, 'name', (f) => f.name, V.string().min(5));
+
+        expect(schema.validate(Folder(name: 'Documents')), isTrue);
+        expect(schema.validate(Folder(name: 'Doc')), isFalse);
+      });
+
+      test('condition false skips the field entirely', () {
+        final schema = VObject<Folder>()
+            .fieldIf(false, 'name', (f) => f.name, V.string().min(5));
+
+        // No field declared → schema only checks that the input is a Folder.
+        expect(schema.validate(Folder(name: 'Doc')), isTrue);
+        expect(schema.schema.containsKey('name'), isFalse);
+      });
+
+      test('preserves fluent chain in both branches', () {
+        VObject<Folder> build({required bool withName}) => V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid().nullable())
+            .fieldIf(withName, 'name', (f) => f.name, V.string().min(5));
+
+        expect(
+          build(withName: true).validate(Folder(name: 'Documents')),
+          isTrue,
+        );
+        expect(
+          build(withName: true).validate(Folder(name: 'Doc')),
+          isFalse,
+          reason: 'name field active → min(5) gates the value',
+        );
+        expect(
+          build(withName: false).validate(Folder(name: 'Doc')),
+          isTrue,
+          reason: 'name field skipped → no length check',
+        );
+      });
+
+      test('multiple fieldIf calls compose independently', () {
+        VObject<_Profile> build({
+          required bool withAge,
+          required bool withBio,
+        }) =>
+            V
+                .object<_Profile>()
+                .field('name', (p) => p.name, V.string())
+                .field('email', (p) => p.email, V.string().email())
+                .fieldIf(withAge, 'age', (p) => p.age, V.int().min(18))
+                .fieldIf(
+                  withBio,
+                  'bio',
+                  (p) => p.bio,
+                  V.string().min(5).nullable(),
+                );
+
+        // Both off → only name + email are validated.
+        expect(
+          build(withAge: false, withBio: false).validate(
+            _Profile(
+              name: 'A',
+              age: 5,
+              email: 'a@b.com',
+              bio: 'no',
+            ),
+          ),
+          isTrue,
+        );
+
+        // Age on → min(18) fires.
+        expect(
+          build(withAge: true, withBio: false).validate(
+            _Profile(name: 'A', age: 5, email: 'a@b.com'),
+          ),
+          isFalse,
+        );
+
+        // Bio on → min(5) fires.
+        expect(
+          build(withAge: false, withBio: true).validate(
+            _Profile(name: 'A', age: 5, email: 'a@b.com', bio: 'no'),
+          ),
+          isFalse,
+        );
+      });
+    });
+
     group('refine', () {
       test('should add custom validation', () {
         final schema = VObject<Folder>().refine(
