@@ -34,6 +34,15 @@ void runStringExamples() {
   print(V.string().url().validate('ftp://example.com')); // false
   print(V.string().url(schemes: const {'http', 'https', 'ftp'}).validate(
       'ftp://example.com')); // true
+  print(V.string().url(schemes: const {}).validate('google.com')); // true
+  print(V
+      .string()
+      .url(schemes: const {}).validate('https://www.google.com/foo')); // true
+  print(V.string().url(hostOnly: true).validate('https://example.com')); // true
+  print(V
+      .string()
+      .url(hostOnly: true)
+      .validate('https://example.com/path')); // false
 
   print(V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000'));
   print(V

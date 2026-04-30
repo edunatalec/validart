@@ -140,20 +140,36 @@ class VString extends VType<String> {
 
   /// Validates that the string is a valid URL.
   ///
-  /// Accepts `http` and `https` by default. Pass [schemes] to allow other
-  /// protocols (`ftp`, `ws`, `file`, etc.).
+  /// [schemes] controls the scheme requirement:
+  /// - `null` (default) — `{'http', 'https'}` required.
+  /// - non-empty set — one of those schemes required.
+  /// - empty set (`const {}`) — scheme **optional**. A bare host
+  ///   (`google.com`) is accepted; any well-formed scheme is accepted
+  ///   when present (`https://google.com`).
+  ///
+  /// [hostOnly] (`false` by default) — when `true`, rejects any path,
+  /// query, or fragment after the host. Useful for fields that should
+  /// only contain a domain (with optional `:port`).
   ///
   /// Runs in the validation phase.
   ///
   /// ```dart
-  /// V.string().url().validate('https://example.com');       // true
-  /// V.string().url().validate('ftp://example.com');          // false
-  /// V.string().url(schemes: {'http', 'https', 'ftp'})
-  ///   .validate('ftp://example.com');                        // true
+  /// V.string().url().validate('https://example.com');             // true
+  /// V.string().url().validate('example.com');                     // false
+  /// V.string().url(schemes: const {}).validate('google.com');     // true
+  /// V.string().url(schemes: const {}).validate('https://x.com');  // true
+  /// V.string().url(hostOnly: true).validate('https://x.com/a');   // false
+  /// V.string().url(schemes: {'ftp'}).validate('ftp://example.com'); // true
   /// ```
-  VString url({Set<String>? schemes, String? message}) {
+  VString url({
+    Set<String>? schemes,
+    bool hostOnly = false,
+    String? message,
+  }) {
     return add(
-      schemes == null ? const UrlValidator() : UrlValidator(schemes: schemes),
+      schemes == null
+          ? UrlValidator(hostOnly: hostOnly)
+          : UrlValidator(schemes: schemes, hostOnly: hostOnly),
       message: message,
     );
   }

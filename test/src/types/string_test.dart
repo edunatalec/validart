@@ -189,6 +189,70 @@ void main() {
         expect(wsOnly.validate('wss://example.com'), isTrue);
         expect(wsOnly.validate('http://example.com'), isFalse);
       });
+
+      group('schemes: const {} (scheme optional)', () {
+        final schema = VString().url(schemes: const {});
+
+        test('accepts bare host', () {
+          expect(schema.validate('google.com'), isTrue);
+        });
+
+        test('accepts subdomain host', () {
+          expect(schema.validate('www.google.com'), isTrue);
+          expect(schema.validate('api.v2.example.co.uk'), isTrue);
+        });
+
+        test('accepts host with optional port', () {
+          expect(schema.validate('example.com:8080'), isTrue);
+          expect(schema.validate('localhost:3000'), isTrue);
+        });
+
+        test('accepts localhost without TLD', () {
+          expect(schema.validate('localhost'), isTrue);
+        });
+
+        test('accepts host with path / query / fragment', () {
+          expect(schema.validate('google.com/foo'), isTrue);
+          expect(schema.validate('google.com?x=1'), isTrue);
+          expect(schema.validate('google.com/path#frag'), isTrue);
+        });
+
+        test('also accepts when scheme is present', () {
+          expect(schema.validate('https://google.com'), isTrue);
+          expect(schema.validate('ftp://example.com'), isTrue);
+          expect(schema.validate('file://localhost/etc'), isTrue);
+        });
+
+        test('rejects malformed input', () {
+          expect(schema.validate('just a string'), isFalse);
+          expect(schema.validate('no_tld'), isFalse);
+          expect(schema.validate('-leading-hyphen.com'), isFalse);
+          expect(schema.validate('trailing-.com'), isFalse);
+          expect(schema.validate(''), isFalse);
+        });
+      });
+
+      group('hostOnly: true', () {
+        test('default schemes + hostOnly rejects path/query', () {
+          final schema = VString().url(hostOnly: true);
+          expect(schema.validate('https://example.com'), isTrue);
+          expect(schema.validate('https://example.com:8080'), isTrue);
+          expect(schema.validate('https://example.com/path'), isFalse);
+          expect(schema.validate('https://example.com?x=1'), isFalse);
+          expect(schema.validate('https://example.com#frag'), isFalse);
+        });
+
+        test('schemes empty + hostOnly accepts only bare host', () {
+          final schema = VString().url(schemes: const {}, hostOnly: true);
+          expect(schema.validate('google.com'), isTrue);
+          expect(schema.validate('www.google.com'), isTrue);
+          expect(schema.validate('localhost'), isTrue);
+          expect(schema.validate('localhost:8080'), isTrue);
+          expect(schema.validate('https://google.com'), isTrue);
+          expect(schema.validate('google.com/path'), isFalse);
+          expect(schema.validate('google.com?x=1'), isFalse);
+        });
+      });
     });
 
     group('uuid', () {
