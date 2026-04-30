@@ -82,6 +82,25 @@ void runObjectExamples() {
   print(credentialsSchema(requirePassword: false)
       .validate(const SignInDto(email: 'a@b.com', password: 'weak')));
   // true — password field not declared, so its value is ignored
+
+  section('VObject — partial: every field accepts null');
+
+  // Each field's validator gets wrapped so null is accepted in addition
+  // to the original shape. Non-null values still run the original
+  // validator. Useful for PATCH / UPDATE DTOs.
+  final patchSchema = V
+      .object<SignInDto>()
+      .field('email', (d) => d.email, V.string().email())
+      .field('password', (d) => d.password, V.string().password())
+      .partial();
+
+  print(patchSchema.validate(
+    const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+  )); // true
+
+  print(patchSchema
+      .validate(const SignInDto(email: 'bad', password: 'Str0ng!Pass')));
+  // false — non-null email still validated by .email()
 }
 
 void main() => runObjectExamples();

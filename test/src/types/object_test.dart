@@ -670,6 +670,86 @@ void main() {
       });
     });
 
+    group('partial', () {
+      test('every field accepts null', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(1))
+            .partial();
+
+        expect(schema.validate(Folder(name: 'x')), isTrue);
+        expect(schema.validate(Folder(id: null, name: 'x')), isTrue);
+      });
+
+      test('non-null inputs still run their original validator', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(5))
+            .partial();
+
+        expect(schema.validate(Folder(name: 'no')), isFalse);
+        expect(
+          schema.validate(Folder(id: 'not-a-uuid', name: 'longer')),
+          isFalse,
+        );
+        expect(
+          schema.validate(Folder(
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'longer',
+          )),
+          isTrue,
+        );
+      });
+
+      test('does not mutate the source schema', () {
+        final base =
+            V.object<Folder>().field('name', (f) => f.name, V.string().min(5));
+
+        base.partial();
+
+        expect(base.validate(Folder(name: 'no')), isFalse);
+      });
+
+      test('preserves entity-level rules from the base', () {
+        final base = V
+            .object<_SignUp>()
+            .field('email', (s) => s.email, V.string().email())
+            .field('password', (s) => s.password, V.string())
+            .field('confirm', (s) => s.confirm, V.string())
+            .equalFields('password', 'confirm');
+
+        final partial = base.partial();
+
+        expect(
+          partial.validate(_SignUp('a@b.com', 'pwd', 'pwd')),
+          isTrue,
+        );
+        expect(
+          partial.validate(_SignUp('a@b.com', 'pwd', 'mismatch')),
+          isFalse,
+          reason: 'equalFields rule must survive partial()',
+        );
+      });
+
+      test('idempotent on already-nullable fields', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid().nullable())
+            .partial();
+
+        expect(schema.validate(Folder(name: 'x')), isTrue);
+        expect(
+          schema.validate(Folder(
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'x',
+          )),
+          isTrue,
+        );
+      });
+    });
+
     group('when', () {
       test('should apply conditional validators when condition matches', () {
         final schema = V

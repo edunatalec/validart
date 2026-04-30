@@ -384,6 +384,43 @@ class VObject<T> extends VType<T> {
     return result;
   }
 
+  /// Creates a new schema where every field is nullable.
+  ///
+  /// Each declared field's validator is wrapped so that `null` is
+  /// accepted in addition to the original shape; non-null inputs still
+  /// run the original validator. Does not mutate the source schema —
+  /// the original keeps rejecting nulls.
+  ///
+  /// Preserves all pipeline state from the base (validators added via
+  /// `add` / `equalFields` / `refineField` / `refine`, `when` /
+  /// `whenMatches` rules, `nullable`, `defaultValue`, and
+  /// preprocessors), matching the behavior of `pick` / `omit` / `merge`
+  /// — and mirroring `VMap.partial()`.
+  ///
+  /// ```dart
+  /// final schema = V.object<UpdateDto>()
+  ///     .field('name', (d) => d.name, V.string().min(2))
+  ///     .field('email', (d) => d.email, V.string().email())
+  ///     .partial();
+  /// ```
+  VObject<T> partial() {
+    final result = VObject<T>._();
+
+    for (final entry in _fields) {
+      result._fields.add(_FieldEntry<T>(
+        name: entry.name,
+        extractor: entry.extractor,
+        validator: entry.validator.mapType<VType>(
+          <U>(inner) => _NullableWrapper<U>(inner),
+        ),
+      ));
+    }
+
+    _copyObjectStateTo(result);
+
+    return result;
+  }
+
   /// Creates a new schema by merging with [other]'s fields.
   ///
   /// Combines pipeline state from both schemas: `when` rules, validator
