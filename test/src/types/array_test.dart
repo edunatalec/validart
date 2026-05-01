@@ -3,6 +3,12 @@ import 'package:validart/src/types/type.dart';
 import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
 
+class _User {
+  final String id;
+  final String name;
+  const _User(this.id, this.name);
+}
+
 void main() {
   setUp(() => V.setLocale(const VLocale()));
 
@@ -148,6 +154,116 @@ void main() {
 
       test('should pass for empty list', () {
         expect(schema.validate([]), isTrue);
+      });
+    });
+
+    group('array.distinct', () {
+      test('passes for empty list', () {
+        final schema = VArray<int>(VInt()).distinct((e) => e);
+        expect(schema.validate(<int>[]), isTrue);
+      });
+
+      test('with primitive by-extractor matches unique() behaviour', () {
+        final schema = VArray<int>(VInt()).distinct((e) => e);
+        expect(schema.validate([1, 2, 3]), isTrue);
+        expect(schema.validate([1, 2, 1]), isFalse);
+      });
+
+      test('detects duplicates in array of Map by id', () {
+        final schema = V
+            .map({
+              'id': V.int(),
+              'name': V.string(),
+            })
+            .array()
+            .distinct((m) => m['id'] as Object);
+
+        expect(
+          schema.validate([
+            {'id': 1, 'name': 'a'},
+            {'id': 2, 'name': 'b'},
+          ]),
+          isTrue,
+        );
+
+        expect(
+          schema.validate([
+            {'id': 1, 'name': 'a'},
+            {'id': 1, 'name': 'different'},
+          ]),
+          isFalse,
+          reason: 'duplicates by id even though name differs',
+        );
+      });
+
+      test('detects duplicates in array of class instances by property', () {
+        final schema = V
+            .object<_User>()
+            .field('id', (u) => u.id, V.string())
+            .field('name', (u) => u.name, V.string())
+            .array()
+            .distinct((u) => u.id);
+
+        expect(
+          schema.validate([
+            const _User('1', 'Alice'),
+            const _User('2', 'Bob'),
+          ]),
+          isTrue,
+        );
+
+        expect(
+          schema.validate([
+            const _User('1', 'Alice'),
+            const _User('1', 'Bob'),
+          ]),
+          isFalse,
+        );
+      });
+
+      test('emits error code array.unique', () {
+        final schema = VArray<int>(VInt()).distinct((e) => e);
+        final errors = schema.errors([1, 1]);
+        expect(errors, isNotNull);
+        expect(errors!.first.code, 'array.unique');
+      });
+
+      test('supports custom message override', () {
+        final schema =
+            VArray<int>(VInt()).distinct((e) => e, message: 'No dupes');
+        final errors = schema.errors([1, 1]);
+        expect(errors!.first.message, 'No dupes');
+      });
+
+      test('chains with min and other array validators', () {
+        final schema = V
+            .map({'id': V.int()})
+            .array()
+            .min(2)
+            .distinct((m) => m['id'] as Object);
+
+        expect(
+          schema.validate([
+            {'id': 1},
+            {'id': 2},
+          ]),
+          isTrue,
+        );
+        expect(
+            schema.validate([
+              {'id': 1},
+            ]),
+            isFalse,
+            reason: 'min(2) fails');
+        expect(
+          schema.validate([
+            {'id': 1},
+            {'id': 1},
+            {'id': 1},
+          ]),
+          isFalse,
+          reason: 'distinct fails',
+        );
       });
     });
 

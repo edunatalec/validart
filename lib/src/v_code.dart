@@ -70,6 +70,9 @@ sealed class VStringCode {
   /// String is not a valid URL.
   static const url = 'string.url';
 
+  /// String is not a valid bare domain.
+  static const domain = 'string.domain';
+
   /// String is not a valid UUID.
   static const uuid = 'string.uuid';
 

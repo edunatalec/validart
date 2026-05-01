@@ -255,6 +255,65 @@ void main() {
       });
     });
 
+    group('domain', () {
+      final schema = VString().domain();
+
+      test('passes for bare domain', () {
+        expect(schema.validate('google.com'), isTrue);
+      });
+
+      test('passes for subdomain', () {
+        expect(schema.validate('www.google.com'), isTrue);
+        expect(schema.validate('api.v2.example.co.uk'), isTrue);
+      });
+
+      test('passes for localhost with and without port', () {
+        expect(schema.validate('localhost'), isTrue);
+        expect(schema.validate('localhost:8080'), isTrue);
+      });
+
+      test('passes for domain with port', () {
+        expect(schema.validate('example.com:443'), isTrue);
+      });
+
+      test('rejects scheme-prefixed input', () {
+        expect(schema.validate('https://google.com'), isFalse);
+        expect(schema.validate('http://example.com'), isFalse);
+        expect(schema.validate('ftp://example.com'), isFalse);
+      });
+
+      test('rejects path / query / fragment', () {
+        expect(schema.validate('google.com/foo'), isFalse);
+        expect(schema.validate('google.com?x=1'), isFalse);
+        expect(schema.validate('google.com#frag'), isFalse);
+      });
+
+      test('rejects malformed hosts', () {
+        expect(schema.validate('-leading.com'), isFalse);
+        expect(schema.validate('trailing-.com'), isFalse);
+        expect(schema.validate('no_tld'), isFalse);
+        expect(schema.validate('just a string'), isFalse);
+        expect(schema.validate(''), isFalse);
+      });
+
+      test('default message is "Invalid domain"', () {
+        final errors = schema.errors('bad');
+        expect(errors, isNotNull);
+        expect(errors!.first.message, 'Invalid domain');
+      });
+
+      test('supports custom message', () {
+        final custom = VString().domain(message: 'Bad domain');
+        final errors = custom.errors('bad');
+        expect(errors!.first.message, 'Bad domain');
+      });
+
+      test('emits error code string.domain', () {
+        final errors = schema.errors('bad');
+        expect(errors!.first.code, 'string.domain');
+      });
+    });
+
     group('uuid', () {
       final schema = VString().uuid();
 

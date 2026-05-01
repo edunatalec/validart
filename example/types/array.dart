@@ -16,6 +16,26 @@ void runArrayExamples() {
   print(V.int().array().unique().validate([1, 2, 3])); // true
   print(V.int().array().unique().validate([1, 1, 2])); // false
 
+  // .distinct(by:) — uniqueness by an extracted key. Use for arrays of
+  // Map / class instances where == is not what you want.
+  final usersById = V
+      .map({
+        'id': V.int(),
+        'name': V.string(),
+      })
+      .array()
+      .distinct((m) => m['id'] as Object);
+
+  print(usersById.validate([
+    {'id': 1, 'name': 'a'},
+    {'id': 2, 'name': 'b'},
+  ])); // true
+
+  print(usersById.validate([
+    {'id': 1, 'name': 'a'},
+    {'id': 1, 'name': 'different name'},
+  ])); // false — same id, distinct rejects
+
   section('VArray — contains');
 
   // `.contains([...])` requires every element of the argument to be

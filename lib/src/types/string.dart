@@ -174,6 +174,30 @@ class VString extends VType<String> {
     );
   }
 
+  /// Validates that the string is a bare host: domain labels (with TLD
+  /// ≥ 2 alphabetic chars) or `localhost`, optionally with a `:port`.
+  /// Path, query, fragment, and scheme prefixes are all rejected — for
+  /// scheme-prefixed URLs use [url].
+  ///
+  /// Shortcut for `.url(schemes: const {}, hostOnly: true)` plus an
+  /// extra rejection of any input containing `://`. Emits its own error
+  /// code (`string.domain` → `'Invalid domain'`) so the message matches
+  /// the user's intent.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.string().domain().validate('google.com');           // true
+  /// V.string().domain().validate('www.example.com');       // true
+  /// V.string().domain().validate('localhost:8080');         // true
+  /// V.string().domain().validate('https://google.com');    // false (scheme)
+  /// V.string().domain().validate('google.com/foo');        // false (path)
+  /// V.string().domain().validate('not a domain');          // false
+  /// ```
+  VString domain({String? message}) {
+    return add(const DomainValidator(), message: message);
+  }
+
   /// Validates that the string is a valid UUID (versions 1–8).
   ///
   /// Pass [version] to restrict to a specific [UuidVersion] (e.g.

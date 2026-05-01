@@ -56,6 +56,7 @@ class VLocale {
       'numeric': 'Must be a valid number',
       'email': 'Invalid email address',
       'url': 'Invalid URL',
+      'domain': 'Invalid domain',
       'uuid': 'Invalid UUID',
       'ip': 'Invalid IP address',
       'format': 'Invalid format',

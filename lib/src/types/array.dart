@@ -126,6 +126,40 @@ class VArray<T> extends VType<List<T>> {
     return add(UniqueValidator<T>(), message: message);
   }
 
+  /// Validates that all elements are distinct **by the value returned
+  /// from [by]**. Use this when elements are `Map` or class instances
+  /// and uniqueness depends on a property (an `id`, an `email`, ...)
+  /// rather than reference equality.
+  ///
+  /// Emits the same error code as [unique] (`array.unique`); the
+  /// failure mode is identical — the array contains duplicates. The
+  /// returned value of [by] must implement `==` / `hashCode` correctly
+  /// for the comparison to be meaningful.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.map({'id': V.int(), 'name': V.string()})
+  ///     .array()
+  ///     .distinct((m) => m['id'])
+  ///     .validate([
+  ///       {'id': 1, 'name': 'a'},
+  ///       {'id': 2, 'name': 'b'},
+  ///     ]); // true
+  ///
+  /// V.object<User>()
+  ///     .field('id', (u) => u.id, V.string())
+  ///     .array()
+  ///     .distinct((u) => u.id)
+  ///     .validate([userA, userB]);
+  /// ```
+  VArray<T> distinct(
+    Object Function(T element) by, {
+    String? message,
+  }) {
+    return add(DistinctValidator<T>(by: by), message: message);
+  }
+
   /// Validates that the list contains all elements from [required].
   ///
   /// Runs in the validation phase.

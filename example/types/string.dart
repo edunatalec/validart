@@ -44,6 +44,12 @@ void runStringExamples() {
       .url(hostOnly: true)
       .validate('https://example.com/path')); // false
 
+  // .domain() — shortcut for "host only, no scheme, no path".
+  print(V.string().domain().validate('www.google.com')); // true
+  print(V.string().domain().validate('localhost:8080')); // true
+  print(V.string().domain().validate('https://google.com')); // false (scheme)
+  print(V.string().domain().validate('google.com/foo')); // false (path)
+
   print(V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000'));
   print(V
       .string()

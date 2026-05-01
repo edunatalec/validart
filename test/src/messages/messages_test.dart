@@ -381,6 +381,7 @@ void main() {
       expectTranslated(VStringCode.numeric);
       expectTranslated(VStringCode.email);
       expectTranslated(VStringCode.url);
+      expectTranslated(VStringCode.domain);
       expectTranslated(VStringCode.uuid);
       expectTranslated(VStringCode.ip);
       expectTranslated(VStringCode.format);
