@@ -107,7 +107,7 @@ V.string()
   .email();
 ```
 
-Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `uuid`, `ulid`, `nanoId`, `mongoId`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `cvv`, `phone`, `base64`, `hexColor`, `mac`, `semver`, `iban`, `json`, `integer`, `numeric`, `postalCode`, `taxId`, `licensePlate`.
+Available: `notEmpty`, `min`, `max`, `length`, `email`, `url`, `domain`, `uuid`, `ulid`, `nanoId`, `mongoId`, `ip`, `pattern`, `date`, `time`, `contains`, `startsWith`, `endsWith`, `equals`, `alpha`, `alphanumeric`, `slug`, `password`, `jwt`, `card`, `cvv`, `phone`, `base64`, `hexColor`, `mac`, `semver`, `iban`, `json`, `integer`, `numeric`, `postalCode`, `taxId`, `licensePlate`.
 
 `uuid()` accepts RFC 4122 v1–v5 and RFC 9562 v6–v8. Pass `version: UuidVersion.vN` (enum) to restrict — e.g. `V.string().uuid(version: UuidVersion.v7)` for timestamp-ordered only.
 
@@ -141,16 +141,39 @@ V.string().date(format: 'DD/MM/YYYY').validate('2024-01-15'); // false
 
 #### URL
 
-Defaults to `http` and `https`. Pass a custom `schemes` set to accept other protocols:
+Defaults to `http` and `https`. Pass a custom `schemes` set to accept other protocols, or `const {}` to make the scheme optional. Pass `hostOnly: true` to reject any path / query / fragment.
 
 ```dart
-V.string().url().validate('https://example.com');                       // true
-V.string().url().validate('ftp://example.com');                         // false
-V.string().url(schemes: {'http', 'https', 'ftp'}).validate('ftp://x');  // true
-V.string().url(schemes: {'ws', 'wss'}).validate('wss://x.io');          // WebSocket-only
+V.string().url().validate('https://example.com');                          // true
+V.string().url().validate('ftp://example.com');                            // false
+V.string().url(schemes: {'http', 'https', 'ftp'}).validate('ftp://x.com'); // true
+V.string().url(schemes: {'ws', 'wss'}).validate('wss://x.io');             // WebSocket-only
+
+// Scheme optional — accepts bare host AND host with any well-formed scheme.
+V.string().url(schemes: const {}).validate('google.com');                  // true
+V.string().url(schemes: const {}).validate('www.google.com');              // true
+V.string().url(schemes: const {}).validate('localhost:8080');              // true
+V.string().url(schemes: const {}).validate('https://google.com/foo');      // true
+
+// hostOnly — reject anything past the host:port.
+V.string().url(hostOnly: true).validate('https://example.com');            // true
+V.string().url(hostOnly: true).validate('https://example.com/path');       // false
+V.string().url(schemes: const {}, hostOnly: true).validate('google.com');  // true
+V.string().url(schemes: const {}, hostOnly: true).validate('google.com/x'); // false
 ```
 
-#### Password
+Host shape: standard domain labels separated by dots with a TLD of 2+ alphabetic characters, OR the literal `localhost`. An optional `:port` suffix is always allowed.
+
+#### Domain
+
+Shortcut for "host only, no scheme, no path" — useful for "domain field" inputs where the user is expected to type just `google.com` (or `localhost:8080`) and any URL-like prefix should be rejected. Emits its own error code (`string.domain` → `'Invalid domain'`):
+
+```dart
+V.string().domain().validate('www.google.com');     // true
+V.string().domain().validate('localhost:8080');     // true
+V.string().domain().validate('https://google.com'); // false (scheme rejected)
+V.string().domain().validate('google.com/foo');     // false (path rejected)
+```
 
 Default policy: minimum 8 characters, one uppercase, one lowercase, one digit, one special from `!@#$%^&*(),.?":{}|<>`. Pass `specialChars` to expand the accepted set:
 
@@ -524,6 +547,27 @@ account.validate({'type': 'company', 'cnpj': null});              // false — c
 
 Multiple `when` calls can be chained; each is independent.
 
+When a single literal `equals` is not enough — multi-field triggers, range comparisons (`>`, `>=`), `oneOf` membership — use `whenMatches(condition, dependsOn:, then:)`. The predicate receives the raw input map; `dependsOn` is required and declares the fields the predicate reads, so subsequent `refine(dependsOn:)` rules can reference them.
+
+```dart
+final order = V.map({
+  'subtotal': V.double(),
+  'country': V.string(),
+  'note': V.string().nullable(),
+}).whenMatches(
+  (m) => (m['subtotal'] as double) > 100.0 && m['country'] == 'BR',
+  dependsOn: const {'subtotal', 'country'},
+  then: {'note': V.string().min(3)},
+);
+
+order.validate({'subtotal': 50.0,  'country': 'BR', 'note': null});         // true — predicate false
+order.validate({'subtotal': 200.0, 'country': 'US', 'note': null});         // true — predicate false
+order.validate({'subtotal': 200.0, 'country': 'BR', 'note': 'leave here'}); // true
+order.validate({'subtotal': 200.0, 'country': 'BR', 'note': null});         // false — note now required
+```
+
+`whenMatches` runs at the same pipeline step as `when` — failures inside `then` contribute to `failedFieldPaths`, and `refine(dependsOn: {<key in then>})` is gated on those failures the same way.
+
 ### Array of Maps
 
 Call `.array()` on any `VMap` to validate a list of rows (table-shaped data, CSV imports, JSON arrays of objects). Errors include the row index as the first segment of the path, followed by the field key.
@@ -567,6 +611,19 @@ final schema = V.object<User>()
 
 schema.validate(User(name: 'Jo', email: 'jo@x.com', age: 30)); // true
 ```
+
+### Conditional Field Declaration
+
+`fieldIf(condition, name, extractor, validator)` is the same as `field(...)` when `condition` is `true`, and a no-op otherwise. Use it to keep the fluent chain unbroken when a field is only relevant under some flag (a feature toggle, a request context, an admin-only projection, a partial-update DTO):
+
+```dart
+VObject<UpdateCredentialDto> schemaFor({required bool allowName}) =>
+    V.object<UpdateCredentialDto>()
+        .fieldIf(allowName, 'name', (d) => d.name, V.string().min(2).nullable())
+        .field('email', (d) => d.email, V.string().email());
+```
+
+For VMap, the equivalent is the standard Dart map literal: `V.map({if (cond) 'name': V.string(), ...})`.
 
 ### DTO Pattern
 
@@ -686,9 +743,22 @@ schema.validate(TaxPayer(country: 'US', taxId: '123-45-6789')); // true
 schema.validate(TaxPayer(country: 'BR', taxId: 'anything'));    // true
 ```
 
+For predicate-based triggers (multi-field, non-equality, `oneOf`), use `whenMatches((entity) => bool, dependsOn:, then:)`. The predicate receives the typed instance; `dependsOn` and every key in `then` must already be declared via `field(...)`.
+
+```dart
+final schema = V.object<TaxPayer>()
+  .field('country', (t) => t.country, V.string())
+  .field('taxId', (t) => t.taxId, V.string())
+  .whenMatches(
+    (t) => t.country == 'US' && t.taxId.startsWith('SSN-'),
+    dependsOn: const {'country', 'taxId'},
+    then: {'taxId': V.string().min(13)},
+  );
+```
+
 ### Schema Composition
 
-`.pick([...])`, `.omit([...])` and `.merge(other)` derive new schemas from existing ones. State (validators, `when` rules, `nullable`, `defaultValue`) propagates across the composition:
+`.pick([...])`, `.omit([...])`, `.merge(other)` and `.partial()` derive new schemas from existing ones. State (validators, `when` / `whenMatches` rules, `nullable`, `defaultValue`) propagates across the composition:
 
 ```dart
 final full = V.object<User>()
@@ -698,6 +768,7 @@ final full = V.object<User>()
 
 final publicProfile = full.pick(['name', 'email']); // keeps only 'name', 'email'
 final withoutAge    = full.omit(['age']);           // drops 'age'
+final patchPayload  = full.partial();               // every field accepts null
 
 final contactOnly = V.object<User>()
   .field('email', (u) => u.email, V.string().email());
@@ -706,9 +777,11 @@ final identity = V.object<User>()
 final merged = identity.merge(contactOnly); // name + email
 ```
 
-> Note: unlike TypeScript, `pick`/`omit` do not generate a subset _type_. The input still has to be a full instance of `T` — only the validation surface is narrowed. For partial/dynamic payloads (CRUD UPDATE via JSON), reach for `VMap.partial()` instead.
+`partial()` mirrors `VMap.partial()` — each declared field's validator is wrapped so `null` is accepted in addition to the original shape; non-null inputs still run the original validator. Useful for partial-update DTOs where the type still has every field but only a subset is required at the API boundary.
+
+> Note: unlike TypeScript, `pick`/`omit` do not generate a subset _type_. The input still has to be a full instance of `T` — only the validation surface is narrowed.
 >
-> `partial()`, `strict()` and `passthrough()` from `VMap` are **not** available on `VObject`. Each one assumes a runtime-shapeable container (extra/missing keys, all-fields-optional), but a `VObject<T>` validates instances of a nominal Dart class — the field set is fixed at compile time and the type system already rejects unknown keys. For partial / patch payloads coming as JSON, validate them with `VMap.partial()` and convert to `T` after parsing.
+> `strict()` and `passthrough()` from `VMap` are **not** available on `VObject`. They assume a runtime-shapeable container (extra/missing keys), but a `VObject<T>` validates instances of a nominal Dart class — the field set is fixed at compile time and the type system already rejects unknown keys.
 
 ## Array
 
@@ -729,7 +802,21 @@ final errors = emails.errors(['a@b.com', 'bad']);
 // [VError(code: 'string.email', path: [1])]
 ```
 
-Available: `min`, `max`, `unique`, `contains`.
+Available: `min`, `max`, `unique`, `distinct`, `contains`.
+
+`unique()` compares elements with `==` — perfect for primitives, useless for arrays of `Map` / class instances where every element is `==`-distinct by reference. `distinct(by:)` takes an extractor and compares the returned key, emitting the same `array.unique` error code:
+
+```dart
+final users = V.map({
+  'id': V.int(),
+  'name': V.string(),
+}).array().distinct((m) => m['id'] as Object);
+
+users.validate([{'id': 1, 'name': 'a'}, {'id': 2, 'name': 'b'}]);  // true
+users.validate([{'id': 1, 'name': 'a'}, {'id': 1, 'name': 'b'}]);  // false
+```
+
+The extracted key must implement `==` / `hashCode` correctly (primitives, enums, strings all do). For class instances without a custom `==`, the key falls back to reference equality.
 
 `contains` asserts that a set of required values is present (emitted code is `array.contains_all`):
 
@@ -882,7 +969,7 @@ Containers add an extra block between the type check and the entity-level valida
 | 4 | **Raw entity validators** | `.refineFieldRaw(check, path:)` (also `.addRaw(...)`) | Runs **once the type check succeeded, before any per-field iteration**. The callback sees fields **as the user typed them** — no field-level preprocess / validators / transforms have applied yet. Always runs (no `dependsOn` gating, no field has been validated). Useful when a rule depends on raw casing or whitespace that a field's `.trim()` / `.toLowerCase()` would erase. |
 | 5 | **Strict / unknown-key check** | `.strict()` on `VMap` | If enabled, every key not declared in the schema emits an `unrecognized_key` error. |
 | 6 | **Per-field iteration** | Each declared field via `V.map({...})` / `.field(name, extractor, validator)` | Every field runs its **own full pipeline** (steps 1–8 from the primitives table) on the corresponding value. Field errors are aggregated into a single `VFailure`; the field's path is prepended to each error's `path`. |
-| 7 | **`when` rules** | `.when(field, equals:, then: {...})` | When the discriminator matches, the listed extra validators run on the corresponding fields, just like step 6. |
+| 7 | **`when` / `whenMatches` rules** | `.when(field, equals:, then: {...})` and `.whenMatches((data) => bool, dependsOn:, then: {...})` | When the discriminator matches (`equals` for `when`, predicate for `whenMatches`), the listed extra validators run on the corresponding fields, just like step 6. Both rule types run at this step, in registration order; failures inside `then` contribute to `failedFieldPaths` for step 9's gating. |
 | 8 | **Passthrough** | `.passthrough()` on `VMap` | Copies any input keys not in the schema onto the parsed output (no validation; the schema decided to keep them). |
 | 9 | Entity-level validators | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See *`refine` with `dependsOn`* below. |
 | 10 | Entity-level transforms | `.transform<O>(fn)` | Only run if every step above passed. Rare on containers, but works the same as on primitives. |
@@ -986,6 +1073,31 @@ The default is **validated** by the rest of the pipeline — if it doesn't satis
 ```dart
 V.string().defaultValue('').min(3).parse(null); // throws VException
 V.string().defaultValue('hello').min(3).parse(null); // 'hello'
+```
+
+### Conditional schema construction with `applyIf`
+
+`applyIf(condition, builder)` is an extension on every `VType` that conditionally transforms the schema **at construction time**. Unlike `when` / `whenMatches`, which run during validation against the input, `applyIf` decides which schema to build based on a flag known at the call site (a feature toggle, a request context, a config value).
+
+```dart
+// Make `email` nullable only when the caller did not require it.
+V.object<VerifyDeviceDto>()
+    .field('code', (d) => d.code, V.string().min(6))
+    .field(
+      'email',
+      (d) => d.email,
+      V.string().email().applyIf(!needsEmail, (s) => s.nullable()),
+    );
+```
+
+The generic `<V extends VType>` preserves the receiver's concrete type, so the fluent chain keeps working after the call (e.g. `V.string().applyIf(...).email()` still returns `VString`).
+
+For an else-branch, chain a second `applyIf` with the negated condition:
+
+```dart
+schema
+  .applyIf(role == 'admin', (s) => s.min(10))
+  .applyIf(role != 'admin', (s) => s.min(3));
 ```
 
 ### Custom pre-pipeline messages per schema
@@ -1346,6 +1458,7 @@ V.setLocale(const VLocale({
   'string.numeric': 'Must be a valid number',
   'string.email': 'Invalid email address',
   'string.url': 'Invalid URL',
+  'string.domain': 'Invalid domain',
   'string.uuid': 'Invalid UUID',
   'string.ip': 'Invalid IP address',
   'string.format': 'Invalid format',
@@ -1468,6 +1581,7 @@ V.setLocale(const VLocale({
     'numeric': 'Must be a valid number',
     'email': 'Invalid email address',
     'url': 'Invalid URL',
+    'domain': 'Invalid domain',
     'uuid': 'Invalid UUID',
     'ip': 'Invalid IP address',
     'format': 'Invalid format',
