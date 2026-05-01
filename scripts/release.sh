@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-TOTAL_STEPS=8
+TOTAL_STEPS=9
 STEP=0
 step() {
   STEP=$((STEP + 1))
@@ -11,6 +11,24 @@ step() {
 
 step "Installing dependencies"
 dart pub get
+
+VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+
+step "Verifying README installation snippet matches pubspec version"
+README_VERSION=$(grep -E '^\s*validart: \^' README.md | head -n1 | sed -E 's/.*\^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+if [ -z "$README_VERSION" ]; then
+  echo
+  echo "❌ Aborting release: could not find 'validart: ^X.Y.Z' in README.md."
+  echo "   The Installation section must pin the current pubspec.yaml version."
+  exit 1
+fi
+if [ "$README_VERSION" != "$VERSION" ]; then
+  echo
+  echo "❌ Aborting release: README pins ^${README_VERSION}, but pubspec.yaml is ${VERSION}."
+  echo "   Update the README '## Installation' block to '^${VERSION}' before releasing."
+  exit 1
+fi
+echo "README pinned at ^${README_VERSION} ✓"
 
 step "Running tests"
 dart test
@@ -28,8 +46,6 @@ if ! grep -q "Points: 160/160" <<<"$PANA_OUT"; then
   echo "❌ Aborting release: pana score is below 160/160. Fix the issues above."
   exit 1
 fi
-
-VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
 
 step "Creating tag v$VERSION"
 if git rev-parse "v$VERSION" >/dev/null 2>&1; then
