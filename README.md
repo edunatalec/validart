@@ -68,6 +68,13 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
 dart pub add validart
 ```
 
+Or in pubspec.yaml:
+
+```yaml
+dependencies:
+  validart: ^2.1.0
+```
+
 ```dart
 import 'package:validart/validart.dart';
 ```
@@ -498,11 +505,11 @@ err.message; // Must be at least 18
 
 Both attach a path-keyed entity-level rule, but they differ in **when** the callback runs and **what** it sees:
 
-| | `refineField` (recommended) | `refineFieldRaw` |
-|---|---|---|
-| Callback receives | `Map<String, dynamic>` after every field's preprocess + validators + transforms ran | `Map<String, dynamic>` after the container preprocess + type check, **before** any per-field iteration — each value still as it arrived |
-| Runs when | inside the entity-level pipeline, gated on the field at `path` passing per-field validation (implicit `dependsOn: {path}`) | always, once the input is a valid `Map` — no per-field results to gate on |
-| Use when | the rule depends on parsed/transformed values (the common case) | the rule depends on the raw input as the user typed it — original casing, whitespace, pre-coercion shape |
+|                   | `refineField` (recommended)                                                                                                | `refineFieldRaw`                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Callback receives | `Map<String, dynamic>` after every field's preprocess + validators + transforms ran                                        | `Map<String, dynamic>` after the container preprocess + type check, **before** any per-field iteration — each value still as it arrived |
+| Runs when         | inside the entity-level pipeline, gated on the field at `path` passing per-field validation (implicit `dependsOn: {path}`) | always, once the input is a valid `Map` — no per-field results to gate on                                                               |
+| Use when          | the rule depends on parsed/transformed values (the common case)                                                            | the rule depends on the raw input as the user typed it — original casing, whitespace, pre-coercion shape                                |
 
 ```dart
 // Same callback, two semantics:
@@ -944,16 +951,16 @@ The three high-level phases are **input shaping → validation → output shapin
 
 For `V.string()`, `V.int()`, `V.double()`, `V.bool()`, `V.date()`, `V.enm()`, `V.literal()` — and also for `V.map()` / `V.object()` / `V.array()` / `V.union()` / `V.transform()` at the top level (containers add extra steps in the middle, see the next section).
 
-| # | Step | Triggered by | Runs in | Notes |
-|---|---|---|---|---|
-| 1 | Sync preprocess | `.preprocess(fn)` | `safeParse` + `safeParseAsync` | Reshapes the raw input. Runs in registration order. |
-| 2 | Async preprocess | `.preprocessAsync(fn)` | `safeParseAsync` only | Sync preprocess chain runs first, then async, both in registration order. |
-| 3 | Null / default resolution | `.nullable()`, `.defaultValue(x)`, factory `message:` | both | If the input is `null`: substitute the default (validated like any input), return null for nullable, or emit the `required` error. |
-| 4 | Type check | (automatic) | both | The input must be assignable to the schema's `T`; otherwise emits `<typeName>.invalid_type`. |
-| 5 | Pre-transforms | string built-ins: `.trim()`, `.toLowerCase()`, `.toUpperCase()`, `.toCamelCase()`, `.toPascalCase()`, `.toSnakeCase()`, `.toScreamingSnakeCase()`, `.toSlug()` | both | These reshape the validated value before any validator sees it — that's why `.trim().email()` and `.email().trim()` behave identically. |
-| 6 | Sync validators | `.min`, `.max`, `.email`, `.url`, every domain validator, `.refine(...)`, `.add(validator)` | both | All sync validators run; their errors are collected (the pipeline does **not** short-circuit on the first error). |
-| 7 | Async validators | `.refineAsync(...)`, `.addAsync(validator)` | `safeParseAsync` only | Interleaved with sync validators **in registration order** — `min(3).refineAsync(...)` runs `min(3)` first; `refineAsync(...).min(3)` runs the async check first. |
-| 8 | Transforms | `.transform<O>(fn)`, `.transformAsync<O>(fn)` | both | Only run if **every** validator above passed. Each transform can change the output type. |
+| #   | Step                      | Triggered by                                                                                                                                                   | Runs in                        | Notes                                                                                                                                                             |
+| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Sync preprocess           | `.preprocess(fn)`                                                                                                                                              | `safeParse` + `safeParseAsync` | Reshapes the raw input. Runs in registration order.                                                                                                               |
+| 2   | Async preprocess          | `.preprocessAsync(fn)`                                                                                                                                         | `safeParseAsync` only          | Sync preprocess chain runs first, then async, both in registration order.                                                                                         |
+| 3   | Null / default resolution | `.nullable()`, `.defaultValue(x)`, factory `message:`                                                                                                          | both                           | If the input is `null`: substitute the default (validated like any input), return null for nullable, or emit the `required` error.                                |
+| 4   | Type check                | (automatic)                                                                                                                                                    | both                           | The input must be assignable to the schema's `T`; otherwise emits `<typeName>.invalid_type`.                                                                      |
+| 5   | Pre-transforms            | string built-ins: `.trim()`, `.toLowerCase()`, `.toUpperCase()`, `.toCamelCase()`, `.toPascalCase()`, `.toSnakeCase()`, `.toScreamingSnakeCase()`, `.toSlug()` | both                           | These reshape the validated value before any validator sees it — that's why `.trim().email()` and `.email().trim()` behave identically.                           |
+| 6   | Sync validators           | `.min`, `.max`, `.email`, `.url`, every domain validator, `.refine(...)`, `.add(validator)`                                                                    | both                           | All sync validators run; their errors are collected (the pipeline does **not** short-circuit on the first error).                                                 |
+| 7   | Async validators          | `.refineAsync(...)`, `.addAsync(validator)`                                                                                                                    | `safeParseAsync` only          | Interleaved with sync validators **in registration order** — `min(3).refineAsync(...)` runs `min(3)` first; `refineAsync(...).min(3)` runs the async check first. |
+| 8   | Transforms                | `.transform<O>(fn)`, `.transformAsync<O>(fn)`                                                                                                                  | both                           | Only run if **every** validator above passed. Each transform can change the output type.                                                                          |
 
 If any validator in step 6 / 7 emits an error, step 8 is skipped and the result is a `VFailure`.
 
@@ -961,18 +968,18 @@ If any validator in step 6 / 7 emits an error, step 8 is skipped and the result 
 
 Containers add an extra block between the type check and the entity-level validation pipeline. Steps in **bold** are container-specific; the rest are inherited from the primitive table above.
 
-| # | Step | Triggered by | Notes |
-|---|---|---|---|
-| 1 | Container preprocess | `.preprocess(fn)` / `.preprocessAsync(fn)` on the `V.map(...)` / `V.object<T>()` itself | Receives the raw container value (the whole `Map` / `T`), not individual fields. |
-| 2 | Null / default | `.nullable()`, `.defaultValue(...)` | Same as primitives. |
-| 3 | Type check | (automatic) | `Map<String, dynamic>` for `VMap`, `T` for `VObject<T>`. |
-| 4 | **Raw entity validators** | `.refineFieldRaw(check, path:)` (also `.addRaw(...)`) | Runs **once the type check succeeded, before any per-field iteration**. The callback sees fields **as the user typed them** — no field-level preprocess / validators / transforms have applied yet. Always runs (no `dependsOn` gating, no field has been validated). Useful when a rule depends on raw casing or whitespace that a field's `.trim()` / `.toLowerCase()` would erase. |
-| 5 | **Strict / unknown-key check** | `.strict()` on `VMap` | If enabled, every key not declared in the schema emits an `unrecognized_key` error. |
-| 6 | **Per-field iteration** | Each declared field via `V.map({...})` / `.field(name, extractor, validator)` | Every field runs its **own full pipeline** (steps 1–8 from the primitives table) on the corresponding value. Field errors are aggregated into a single `VFailure`; the field's path is prepended to each error's `path`. |
-| 7 | **`when` / `whenMatches` rules** | `.when(field, equals:, then: {...})` and `.whenMatches((data) => bool, dependsOn:, then: {...})` | When the discriminator matches (`equals` for `when`, predicate for `whenMatches`), the listed extra validators run on the corresponding fields, just like step 6. Both rule types run at this step, in registration order; failures inside `then` contribute to `failedFieldPaths` for step 9's gating. |
-| 8 | **Passthrough** | `.passthrough()` on `VMap` | Copies any input keys not in the schema onto the parsed output (no validation; the schema decided to keep them). |
-| 9 | Entity-level validators | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See *`refine` with `dependsOn`* below. |
-| 10 | Entity-level transforms | `.transform<O>(fn)` | Only run if every step above passed. Rare on containers, but works the same as on primitives. |
+| #   | Step                             | Triggered by                                                                                                 | Notes                                                                                                                                                                                                                                                                                                                                                                                 |
+| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Container preprocess             | `.preprocess(fn)` / `.preprocessAsync(fn)` on the `V.map(...)` / `V.object<T>()` itself                      | Receives the raw container value (the whole `Map` / `T`), not individual fields.                                                                                                                                                                                                                                                                                                      |
+| 2   | Null / default                   | `.nullable()`, `.defaultValue(...)`                                                                          | Same as primitives.                                                                                                                                                                                                                                                                                                                                                                   |
+| 3   | Type check                       | (automatic)                                                                                                  | `Map<String, dynamic>` for `VMap`, `T` for `VObject<T>`.                                                                                                                                                                                                                                                                                                                              |
+| 4   | **Raw entity validators**        | `.refineFieldRaw(check, path:)` (also `.addRaw(...)`)                                                        | Runs **once the type check succeeded, before any per-field iteration**. The callback sees fields **as the user typed them** — no field-level preprocess / validators / transforms have applied yet. Always runs (no `dependsOn` gating, no field has been validated). Useful when a rule depends on raw casing or whitespace that a field's `.trim()` / `.toLowerCase()` would erase. |
+| 5   | **Strict / unknown-key check**   | `.strict()` on `VMap`                                                                                        | If enabled, every key not declared in the schema emits an `unrecognized_key` error.                                                                                                                                                                                                                                                                                                   |
+| 6   | **Per-field iteration**          | Each declared field via `V.map({...})` / `.field(name, extractor, validator)`                                | Every field runs its **own full pipeline** (steps 1–8 from the primitives table) on the corresponding value. Field errors are aggregated into a single `VFailure`; the field's path is prepended to each error's `path`.                                                                                                                                                              |
+| 7   | **`when` / `whenMatches` rules** | `.when(field, equals:, then: {...})` and `.whenMatches((data) => bool, dependsOn:, then: {...})`             | When the discriminator matches (`equals` for `when`, predicate for `whenMatches`), the listed extra validators run on the corresponding fields, just like step 6. Both rule types run at this step, in registration order; failures inside `then` contribute to `failedFieldPaths` for step 9's gating.                                                                               |
+| 8   | **Passthrough**                  | `.passthrough()` on `VMap`                                                                                   | Copies any input keys not in the schema onto the parsed output (no validation; the schema decided to keep them).                                                                                                                                                                                                                                                                      |
+| 9   | Entity-level validators          | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See _`refine` with `dependsOn`_ below.                                                              |
+| 10  | Entity-level transforms          | `.transform<O>(fn)`                                                                                          | Only run if every step above passed. Rare on containers, but works the same as on primitives.                                                                                                                                                                                                                                                                                         |
 
 > `.strict()` (step 5) and `.passthrough()` (step 8) are conceptually opposite — only one applies to any given schema. If both flags somehow get set on the same `VMap`, the strict check still runs first and rejects unknown keys before passthrough has a chance to copy them.
 
@@ -994,14 +1001,14 @@ V.map({
 
 Arrays have a similar structure to containers, but with element iteration in place of named-field iteration:
 
-| # | Step | Notes |
-|---|---|---|
-| 1 | Preprocess | Same as primitives. |
-| 2 | Null / default | Same. |
-| 3 | Type check | Must be a `List`. |
-| 4 | Element iteration | Each index runs the element schema's full pipeline. The element's path is prefixed with the integer index (so a failed `name` on element `[1]` lands at `[1, 'name']`). The whole array short-circuits as a `VFailure` when any element fails — array-level validators in step 5 do **not** see partial input. |
-| 5 | Array-level validators | `.min(n)`, `.max(n)`, `.unique()`, `.contains([...])`, `.refine((list) => ...)`, `.add(...)`. |
-| 6 | Transforms | `.transform<O>(fn)` on the array. |
+| #   | Step                   | Notes                                                                                                                                                                                                                                                                                                          |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Preprocess             | Same as primitives.                                                                                                                                                                                                                                                                                            |
+| 2   | Null / default         | Same.                                                                                                                                                                                                                                                                                                          |
+| 3   | Type check             | Must be a `List`.                                                                                                                                                                                                                                                                                              |
+| 4   | Element iteration      | Each index runs the element schema's full pipeline. The element's path is prefixed with the integer index (so a failed `name` on element `[1]` lands at `[1, 'name']`). The whole array short-circuits as a `VFailure` when any element fails — array-level validators in step 5 do **not** see partial input. |
+| 5   | Array-level validators | `.min(n)`, `.max(n)`, `.unique()`, `.contains([...])`, `.refine((list) => ...)`, `.add(...)`.                                                                                                                                                                                                                  |
+| 6   | Transforms             | `.transform<O>(fn)` on the array.                                                                                                                                                                                                                                                                              |
 
 ### Async pipeline
 
@@ -1128,7 +1135,7 @@ V.string(message: 'Name is required')
     .min(3, message: (n) => 'At least $n chars');
 ```
 
-> **Out of scope:** `V.enm(...)` and `V.literal(...)` emit `enum.invalid` / `literal.invalid` codes (not `invalid_type`) when the value doesn't match — those are *value* errors, not *type* errors. Both factories accept `invalidTypeMessage:` for API uniformity, but the override is a no-op there; use a `VLocale` entry to customize those codes.
+> **Out of scope:** `V.enm(...)` and `V.literal(...)` emit `enum.invalid` / `literal.invalid` codes (not `invalid_type`) when the value doesn't match — those are _value_ errors, not _type_ errors. Both factories accept `invalidTypeMessage:` for API uniformity, but the override is a no-op there; use a `VLocale` entry to customize those codes.
 
 ## Async Validation
 
@@ -1182,12 +1189,12 @@ final user = await loader.parseAsync('550e8400-...'); // User
 
 Three field-keyed accessors on `VFailure`, each fitting a different UI shape:
 
-| Method | Returns | Use when |
-|---|---|---|
-| `toMapFirst()` | `Map<String, String>` — one error per field (the first registered) | the input renders a single inline message (most form UIs) |
-| `toMapAll()` | `Map<String, List<String>>` — every error per field, in order | a help panel that lists every rule a field broke (e.g. password policy) |
-| `rootMessages()` | `List<String>` — every error with empty `path` | form-wide rules that don't belong to one input (banner / summary) |
-| `toMap()` | alias for `toMapFirst()` | backwards compatibility |
+| Method           | Returns                                                            | Use when                                                                |
+| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `toMapFirst()`   | `Map<String, String>` — one error per field (the first registered) | the input renders a single inline message (most form UIs)               |
+| `toMapAll()`     | `Map<String, List<String>>` — every error per field, in order      | a help panel that lists every rule a field broke (e.g. password policy) |
+| `rootMessages()` | `List<String>` — every error with empty `path`                     | form-wide rules that don't belong to one input (banner / summary)       |
+| `toMap()`        | alias for `toMapFirst()`                                           | backwards compatibility                                                 |
 
 ```dart
 final result = schema.safeParse(data);
@@ -1199,24 +1206,24 @@ if (result case VFailure() && final f) {
 }
 ```
 
-The three methods partition the errors cleanly — each `VError` lands in exactly one of `toMapFirst()`/`toMapAll()` (when `path` is non-empty) or `rootMessages()` (when `path` is empty). To handle every error in a single pass, iterate `failure.errors` directly (see *Reading raw errors* below).
+The three methods partition the errors cleanly — each `VError` lands in exactly one of `toMapFirst()`/`toMapAll()` (when `path` is non-empty) or `rootMessages()` (when `path` is empty). To handle every error in a single pass, iterate `failure.errors` directly (see _Reading raw errors_ below).
 
 ### Reading raw errors
 
 Each `VError` has a `path` that tells you where the error attached. The path determines whether the error lands in `toMap()` (per-field) or in `rootMessages()` (form-wide):
 
-| Where the error came from | Emitted `path` | Lands in |
-|---|---|---|
-| Field validator (`V.map({'x': V.string().min(3)})`) | `['x']` | `toMap()` |
-| `refineField(check, path: 'x')` on container | `['x']` | `toMap()` |
-| `add(validator, path: ['x'])` on any schema | `['x']` | `toMap()` |
-| `refine(check)` on container | `[]` | `rootMessages()` |
-| `refineAsync(check)` on container | `[]` | `rootMessages()` |
-| `equalFields(a, b)` on container | `[]` | `rootMessages()` |
-| `add(validator)` without `path:` | `[]` | `rootMessages()` |
-| `addAsync(validator)` without `path:` | `[]` | `rootMessages()` |
-| Any validator on a primitive schema used as the root (`V.string().min(3).safeParse(...)`) | `[]` | `rootMessages()` |
-| Element error inside `VArray` (`V.array(V.map({'x': ...}))`) | `[0, 'x']` | `toMap()` (key `'0.x'`) |
+| Where the error came from                                                                 | Emitted `path` | Lands in                |
+| ----------------------------------------------------------------------------------------- | -------------- | ----------------------- |
+| Field validator (`V.map({'x': V.string().min(3)})`)                                       | `['x']`        | `toMap()`               |
+| `refineField(check, path: 'x')` on container                                              | `['x']`        | `toMap()`               |
+| `add(validator, path: ['x'])` on any schema                                               | `['x']`        | `toMap()`               |
+| `refine(check)` on container                                                              | `[]`           | `rootMessages()`        |
+| `refineAsync(check)` on container                                                         | `[]`           | `rootMessages()`        |
+| `equalFields(a, b)` on container                                                          | `[]`           | `rootMessages()`        |
+| `add(validator)` without `path:`                                                          | `[]`           | `rootMessages()`        |
+| `addAsync(validator)` without `path:`                                                     | `[]`           | `rootMessages()`        |
+| Any validator on a primitive schema used as the root (`V.string().min(3).safeParse(...)`) | `[]`           | `rootMessages()`        |
+| Element error inside `VArray` (`V.array(V.map({'x': ...}))`)                              | `[0, 'x']`     | `toMap()` (key `'0.x'`) |
 
 In short: `path` is empty whenever the error is **not** scoped to a single declared field — that includes both intentional form-wide rules (`refine` / `equalFields` on a container) **and** validators applied directly to a primitive schema. Both are surfaced through `rootMessages()`.
 
@@ -1253,7 +1260,7 @@ for (final e in errors!) {
 
 ### Root-level errors via `rootMessages()`
 
-`toMap()` is **field-keyed**, so it deliberately excludes errors with an empty `path`. The full list of producers is in the table under *Reading raw errors* — most commonly that means `refine` / `refineAsync` / `equalFields` applied to a container, but it also covers `add` / `addAsync` without a `path:` argument and any validator on a primitive schema used as the root. Those errors typically describe form-wide rules without a single owning field:
+`toMap()` is **field-keyed**, so it deliberately excludes errors with an empty `path`. The full list of producers is in the table under _Reading raw errors_ — most commonly that means `refine` / `refineAsync` / `equalFields` applied to a container, but it also covers `add` / `addAsync` without a `path:` argument and any validator on a primitive schema used as the root. Those errors typically describe form-wide rules without a single owning field:
 
 - "if `country == 'BR'`, at least one of `cpf` or `cnpj` is required"
 - "cart cannot mix products from different regions"
@@ -1275,7 +1282,7 @@ Rule of thumb:
 - Error belongs to an identifiable field → use `refineField(check, path: 'x')` (or pass `path:` to `add` / `refine`) so it lands in `toMap()` and the input renders it inline.
 - Error belongs to the form as a whole → use `refine(...)` / `equalFields(...)` and render `rootMessages()` in a separate banner.
 
-The two methods partition the errors cleanly: every error appears in exactly one of `toMap()` or `rootMessages()`. To handle both at once with a single iteration, walk `failure.errors` directly (see *Reading raw errors* above).
+The two methods partition the errors cleanly: every error appears in exactly one of `toMap()` or `rootMessages()`. To handle both at once with a single iteration, walk `failure.errors` directly (see _Reading raw errors_ above).
 
 ### Custom error codes in refine
 
@@ -1321,10 +1328,10 @@ schema.errors({
 
 Three modes summarised:
 
-| `dependsOn` value | Refine runs when |
-|---|---|
-| omitted (default) | no field failed (conservative — protects naive casts in the callback) |
-| `const {'a', 'b'}` | every listed dep passed; aggregates with unrelated field errors |
+| `dependsOn` value  | Refine runs when                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| omitted (default)  | no field failed (conservative — protects naive casts in the callback)                          |
+| `const {'a', 'b'}` | every listed dep passed; aggregates with unrelated field errors                                |
 | `const {}` (empty) | always — opt-out of the conservative skip; callback **must** be defensive about missing fields |
 
 Use `dependsOn: const {}` for audit / logging / always-on rules where the callback safely handles partially-parsed input (e.g. uses `m['x'] as String?` instead of `m['x'] as String`). Without that explicit opt-in, a refine without `dependsOn` is silently skipped whenever any field fails.
@@ -1378,7 +1385,7 @@ V.bool().errors(null)!.first.message;   // 'Campo obrigatório' (generic fallbac
 
 Lookup order for any prefixed code (e.g. `string.required`): custom prefixed → custom generic (`required`) → default prefixed → default generic → the code itself.
 
-For per-schema overrides at the factory level (`V.string(message: ..., invalidTypeMessage: ...)`) and per-validator overrides on individual chain calls (`.email(message: ...)`, `.min(n, message: ...)`), see *[Custom pre-pipeline messages per schema](#custom-pre-pipeline-messages-per-schema)*. Both bypass the locale for the specific error they target.
+For per-schema overrides at the factory level (`V.string(message: ..., invalidTypeMessage: ...)`) and per-validator overrides on individual chain calls (`.email(message: ...)`, `.min(n, message: ...)`), see _[Custom pre-pipeline messages per schema](#custom-pre-pipeline-messages-per-schema)_. Both bypass the locale for the specific error they target.
 
 ### Manual translation
 
