@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.2.0] - 2026-05-08
+
+### Added
+
+- **`VMap.partial({except})` and `VObject<T>.partial({except})`** — opt-in exception list on the existing `partial()` method. With no argument the behavior is unchanged (every field becomes nullable). Passing `except: ['id']` keeps the listed keys with their original validator while every other field gets wrapped to accept `null` — the canonical pattern for an update DTO that retains a required identifier (`id`, `slug`, etc.). Keys must be declared on the schema; otherwise an `AssertionError` fires in debug, mirroring the assert behavior of `refine(dependsOn:)`. Pipeline state (entity-level rules, `when` / `whenMatches`, preprocessors, `nullable`, `defaultValue`) is preserved exactly like the no-argument variant.
+
+### Fixed
+
+- **`partial()` now mirrors `.nullable()` semantics for fields with `defaultValue` or inner `nullable`.** The internal `_NullableWrapper` previously short-circuited on `null` input and returned `VSuccess(null)` without consulting the inner schema's null handling, so any `defaultValue` declared on a wrapped field was silently dropped — `V.map({'k': V.string().defaultValue('x')}).partial().parse({'k': null})` produced `{'k': null}` instead of the `{'k': 'x'}` you would get from manually applying `.nullable()`. The wrapper now delegates to the inner schema whenever it has its own null handling (`_hasDefault` or `_isNullable`), so default substitution and the inner nullable short-circuit run as documented; only when the inner is strict does the wrapper itself absorb the null. `hasAsync` now also delegates to the inner so async pipelines on a partial-wrapped field are detected by sync consumers (`safeParse` throws `VAsyncRequiredException`). Pinned by new tests under `partial` in `test/src/types/{map,object}_test.dart`.
+
 ## [2.1.0] - 2026-05-01
 
 ### Changed
