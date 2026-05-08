@@ -89,5 +89,25 @@ void main() {
       expect(a.validate('hello'), isTrue);
       expect(a.validate(null), isTrue);
     });
+
+    test('VMap.partial(except:) returns VMap (fluent chain)', () {
+      final VMap a = V
+          .map({'id': V.string().uuid(), 'name': V.string()}).partial(
+              except: const ['id']);
+
+      expect(
+        a.validate({'id': '550e8400-e29b-41d4-a716-446655440000'}),
+        isTrue,
+      );
+    });
+
+    test('VObject.partial(except:) returns VObject<T> (fluent chain)', () {
+      final VObject<String> a = V
+          .object<String>()
+          .field('length', (s) => s.length, V.int().positive())
+          .partial(except: const ['length']);
+
+      expect(a.validate('hello'), isTrue);
+    });
   });
 }

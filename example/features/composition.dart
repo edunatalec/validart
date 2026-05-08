@@ -47,6 +47,21 @@ void runCompositionExamples() {
   print(patch.validate({'name': null})); // true
   print(patch.validate({'email': 'a@b.com'})); // true (other fields absent)
 
+  section('VMap.partial(except:) — keep selected keys required');
+
+  // Update DTO that retains a required identifier: every field is
+  // nullable except `id`, which keeps its original validator.
+  final identified = V.map({
+    'id': V.string().uuid(),
+    'name': V.string().min(1),
+    'email': V.string().email(),
+  });
+
+  final updateDto = identified.partial(except: const ['id']);
+  print(updateDto
+      .validate({'id': '550e8400-e29b-41d4-a716-446655440000'})); // true
+  print(updateDto.validate({'name': 'Alice'})); // false (id still required)
+
   section('VObject — pick / omit / merge stay type-safe');
 
   // Schema is built once on the DTO; pick narrows the validation

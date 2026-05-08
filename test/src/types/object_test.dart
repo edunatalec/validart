@@ -748,6 +748,93 @@ void main() {
           isTrue,
         );
       });
+
+      test('partial(except:) keeps listed fields with original validator', () {
+        final schema = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(1))
+            .partial(except: const ['id']);
+
+        expect(
+          schema.validate(Folder(name: 'Alice')),
+          isFalse,
+          reason: 'id is null but stays required',
+        );
+        expect(
+          schema.validate(Folder(id: 'not-a-uuid', name: 'Alice')),
+          isFalse,
+          reason: 'id keeps the original uuid validator',
+        );
+        expect(
+          schema.validate(Folder(
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'Alice',
+          )),
+          isTrue,
+        );
+      });
+
+      test('partial(except: const []) is equivalent to partial()', () {
+        final base = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(1));
+
+        final partialAll = base.partial();
+        final partialEmpty = base.partial(except: const []);
+
+        final probe = Folder(name: 'x');
+
+        expect(partialAll.validate(probe), isTrue);
+        expect(partialEmpty.validate(probe), isTrue);
+      });
+
+      test('partial(except:) does not mutate the source schema', () {
+        final base = V
+            .object<Folder>()
+            .field('id', (f) => f.id, V.string().uuid())
+            .field('name', (f) => f.name, V.string().min(1));
+
+        base.partial(except: const ['id']);
+
+        expect(
+          base.validate(Folder(name: 'Alice')),
+          isFalse,
+          reason: 'base still rejects null id',
+        );
+      });
+
+      test('partial(except:) preserves entity-level rules from the base', () {
+        final base = V
+            .object<_SignUp>()
+            .field('email', (s) => s.email, V.string().email())
+            .field('password', (s) => s.password, V.string())
+            .field('confirm', (s) => s.confirm, V.string())
+            .equalFields('password', 'confirm');
+
+        final partial = base.partial(except: const ['email']);
+
+        expect(
+          partial.validate(_SignUp('a@b.com', 'pwd', 'pwd')),
+          isTrue,
+        );
+        expect(
+          partial.validate(_SignUp('a@b.com', 'pwd', 'mismatch')),
+          isFalse,
+          reason: 'equalFields rule must survive partial(except:)',
+        );
+      });
+
+      test('partial(except:) asserts on undeclared fields (debug)', () {
+        final schema =
+            V.object<Folder>().field('name', (f) => f.name, V.string().min(1));
+
+        expect(
+          () => schema.partial(except: const ['unknown']),
+          throwsA(isA<AssertionError>()),
+        );
+      });
     });
 
     group('when', () {

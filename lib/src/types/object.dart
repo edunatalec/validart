@@ -386,6 +386,9 @@ class VObject<T> extends VType<T> {
 
   /// Creates a new schema where every field is nullable.
   ///
+  /// Pass [except] to keep specific fields with their original validator
+  /// (useful for partial-update DTOs that retain a required identifier).
+  ///
   /// Each declared field's validator is wrapped so that `null` is
   /// accepted in addition to the original shape; non-null inputs still
   /// run the original validator. Does not mutate the source schema —
@@ -402,11 +405,30 @@ class VObject<T> extends VType<T> {
   ///     .field('name', (d) => d.name, V.string().min(2))
   ///     .field('email', (d) => d.email, V.string().email())
   ///     .partial();
+  ///
+  /// final update = V.object<User>()
+  ///     .field('id', (u) => u.id, V.string().uuid())
+  ///     .field('name', (u) => u.name, V.string().min(1))
+  ///     .partial(except: ['id']);
   /// ```
-  VObject<T> partial() {
-    final result = VObject<T>._();
+  VObject<T> partial({List<String>? except}) {
+    assert(
+      except == null || except.every((k) => _fields.any((f) => f.name == k)),
+      'partial(except: ...) received undeclared fields: '
+      '${except.where((k) => !_fields.any((f) => f.name == k)).toList()}',
+    );
+
+    final Set<String> exceptSet =
+        (except == null || except.isEmpty) ? const <String>{} : except.toSet();
+
+    final VObject<T> result = VObject<T>._();
 
     for (final entry in _fields) {
+      if (exceptSet.contains(entry.name)) {
+        result._fields.add(entry);
+        continue;
+      }
+
       result._fields.add(_FieldEntry<T>(
         name: entry.name,
         extractor: entry.extractor,

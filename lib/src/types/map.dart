@@ -303,6 +303,9 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Creates a new schema where all fields are nullable.
   ///
+  /// Pass [except] to keep specific keys with their original validator
+  /// (useful for partial-update DTOs that retain a required identifier).
+  ///
   /// Does not mutate the original schema — inner validators are wrapped so
   /// that the base schema continues to reject null. Preserves all pipeline
   /// state from the base (validators added via `add`/`equalFields`/
@@ -313,17 +316,38 @@ class VMap extends VType<Map<String, dynamic>> {
   /// ```dart
   /// final schema = V.map({'name': V.string()}).partial();
   /// schema.parse({'name': null}); // {'name': null}
+  ///
+  /// final update = V.map({
+  ///   'id': V.string().uuid(),
+  ///   'name': V.string().min(1),
+  /// }).partial(except: ['id']);
+  /// update.validate({'id': '...'}); // true (name is now nullable)
+  /// update.validate({'name': 'Jo'}); // false (id is still required)
   /// ```
-  VMap partial() {
-    final partialSchema = <String, VType>{};
+  VMap partial({List<String>? except}) {
+    assert(
+      except == null || except.every(_schema.containsKey),
+      'partial(except: ...) received undeclared keys: '
+      '${except.where((k) => !_schema.containsKey(k)).toList()}',
+    );
+
+    final Set<String> exceptSet =
+        (except == null || except.isEmpty) ? const <String>{} : except.toSet();
+
+    final Map<String, VType> partialSchema = <String, VType>{};
 
     for (final entry in _schema.entries) {
+      if (exceptSet.contains(entry.key)) {
+        partialSchema[entry.key] = entry.value;
+        continue;
+      }
+
       partialSchema[entry.key] = entry.value.mapType<VType>(
         <U>(inner) => _NullableWrapper<U>(inner),
       );
     }
 
-    final result = VMap(partialSchema);
+    final VMap result = VMap(partialSchema);
     _copyMapStateTo(result);
 
     return result;

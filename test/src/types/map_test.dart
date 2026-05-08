@@ -357,6 +357,107 @@ void main() {
         expect(base.validate({'name': null, 'date.age': 10}), isFalse);
         expect(base.validate({'name': 'Alice', 'date.age': null}), isFalse);
       });
+
+      test('partial(except:) keeps listed keys with original validator', () {
+        final schema = VMap({
+          'id': VString().uuid(),
+          'name': VString().min(1),
+          'email': VString().email(),
+        });
+
+        final partial = schema.partial(
+          except: const ['id'],
+        );
+
+        expect(
+          partial.validate({'id': '123e4567-e89b-12d3-a456-426614174000'}),
+          isTrue,
+        );
+        expect(partial.validate(<String, dynamic>{'name': 'Alice'}), isFalse);
+        expect(
+          partial.validate({
+            'id': '123e4567-e89b-12d3-a456-426614174000',
+            'name': null,
+            'email': null,
+          }),
+          isTrue,
+        );
+      });
+
+      test('partial(except:) preserves the original validator on kept keys',
+          () {
+        final schema = VMap({
+          'id': VString().uuid(),
+          'name': VString().min(1),
+        });
+
+        final partial = schema.partial(except: const ['id']);
+
+        expect(partial.validate({'id': 'not-a-uuid'}), isFalse);
+      });
+
+      test('partial(except: const []) is equivalent to partial()', () {
+        final schema = VMap({
+          'name': VString().min(1),
+          'age': VInt().min(0),
+        });
+
+        final partialAll = schema.partial();
+        final partialEmpty = schema.partial(except: const []);
+
+        final probe = <String, dynamic>{'name': null, 'age': null};
+
+        expect(partialAll.validate(probe), isTrue);
+        expect(partialEmpty.validate(probe), isTrue);
+      });
+
+      test('partial(except:) does not mutate the source schema', () {
+        final base = VMap({
+          'id': VString().uuid(),
+          'name': VString().min(1),
+        });
+
+        base.partial(except: const ['id']);
+
+        expect(base.validate({'id': null, 'name': 'Alice'}), isFalse);
+      });
+
+      test('partial(except:) preserves entity-level rules from the base', () {
+        final base = VMap({
+          'email': VString().email(),
+          'password': VString(),
+          'confirm': VString(),
+        }).equalFields('password', 'confirm');
+
+        final partial = base.partial(except: const ['email']);
+
+        expect(
+          partial.validate({
+            'email': 'a@b.com',
+            'password': 'pwd',
+            'confirm': 'pwd',
+          }),
+          isTrue,
+        );
+        expect(
+          partial.validate({
+            'email': 'a@b.com',
+            'password': 'pwd',
+            'confirm': 'mismatch',
+          }),
+          isFalse,
+          reason: 'equalFields rule must survive partial(except:)',
+        );
+      });
+
+      test('partial(except:) asserts on undeclared keys (debug)', () {
+        final schema = VMap({'name': VString()});
+
+        expect(
+          () => schema.partial(except: const ['unknown']),
+          throwsA(isA<AssertionError>()),
+        );
+      });
     });
 
     group('strict', () {
