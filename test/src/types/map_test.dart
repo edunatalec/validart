@@ -458,6 +458,39 @@ void main() {
           throwsA(isA<AssertionError>()),
         );
       });
+
+      test('partial preserves defaultValue on null input', () {
+        final schema = VMap({
+          'k': VString().defaultValue('x'),
+        }).partial();
+
+        expect(schema.parse({'k': null}), {'k': 'x'});
+        expect(schema.parse(<String, dynamic>{}), {'k': 'x'});
+      });
+
+      test('partial preserves defaultValue when inner is also nullable', () {
+        final schema = VMap({
+          'k': VString().defaultValue('x').nullable(),
+        }).partial();
+
+        expect(schema.parse({'k': null}), {'k': 'x'});
+      });
+
+      test('partial mirrors .nullable() — inner-nullable returns null', () {
+        final schema = VMap({
+          'k': VString().nullable(),
+        }).partial();
+
+        expect(schema.parse({'k': null}), {'k': null});
+      });
+
+      test('partial on a plain field still absorbs null', () {
+        final schema = VMap({
+          'k': VString(),
+        }).partial();
+
+        expect(schema.parse({'k': null}), {'k': null});
+      });
     });
 
     group('strict', () {

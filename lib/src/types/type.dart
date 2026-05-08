@@ -889,10 +889,33 @@ class _NullableWrapper<T> extends VType<T> {
   String get typeName => _inner.typeName;
 
   @override
-  VResult<T?> safeParse(Object? value) {
-    if (value == null) return VSuccess<T?>(null);
+  bool get hasAsync => _inner.hasAsync;
 
-    return _inner.safeParse(value);
+  /// Mirrors `.nullable()` semantics: a non-null value runs the inner
+  /// pipeline, and a null input is delegated to the inner whenever it
+  /// already has its own null handling (`defaultValue` or `nullable`),
+  /// so the default substitution / nullable short-circuit isn't
+  /// silently bypassed. Otherwise the wrapper itself absorbs the null.
+  @override
+  VResult<T?> safeParse(Object? value) {
+    if (value != null) return _inner.safeParse(value);
+
+    if (_inner._hasDefault || _inner._isNullable) {
+      return _inner.safeParse(value);
+    }
+
+    return VSuccess<T?>(null);
+  }
+
+  @override
+  Future<VResult<T?>> safeParseAsync(Object? value) async {
+    if (value != null) return _inner.safeParseAsync(value);
+
+    if (_inner._hasDefault || _inner._isNullable) {
+      return _inner.safeParseAsync(value);
+    }
+
+    return VSuccess<T?>(null);
   }
 }
 

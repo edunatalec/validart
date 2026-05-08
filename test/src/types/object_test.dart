@@ -835,6 +835,41 @@ void main() {
           throwsA(isA<AssertionError>()),
         );
       });
+
+      test('partial keeps inner pipeline running through defaultValue', () {
+        // Inner has a default that, after substitution, must still pass the
+        // chained validator. Before the fix, the wrapper short-circuited on
+        // null, so the default was never substituted and the bad value
+        // slipped through. After the fix, default substitutes null and the
+        // uuid() validator runs and fails.
+        final schema = V
+            .object<Folder>()
+            .field(
+              'id',
+              (f) => f.id,
+              V.string().defaultValue('not-a-uuid').uuid(),
+            )
+            .partial();
+
+        expect(schema.validate(Folder(name: 'x')), isFalse);
+      });
+
+      test('partial preserves defaultValue when inner is also nullable', () {
+        // Same as the previous test but with `.nullable()` chained on the
+        // inner — confirms that the wrapper still delegates to inner so the
+        // default beats the inner-nullable short-circuit (mirrors
+        // `.defaultValue().nullable()` behaviour outside of partial).
+        final schema = V
+            .object<Folder>()
+            .field(
+              'id',
+              (f) => f.id,
+              V.string().defaultValue('not-a-uuid').uuid().nullable(),
+            )
+            .partial();
+
+        expect(schema.validate(Folder(name: 'x')), isFalse);
+      });
     });
 
     group('when', () {
