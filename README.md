@@ -459,6 +459,7 @@ base.omit(['email']);                         // everything except email
 base.extend({'password': V.string().min(8)}); // add fields
 base.merge(otherSchema);                     // combine two schemas
 base.partial();                              // all fields nullable
+base.partial(except: ['id']);                // all nullable except id
 base.strict();                               // reject unknown keys
 base.passthrough();                          // allow unknown keys
 ```
@@ -776,6 +777,7 @@ final full = V.object<User>()
 final publicProfile = full.pick(['name', 'email']); // keeps only 'name', 'email'
 final withoutAge    = full.omit(['age']);           // drops 'age'
 final patchPayload  = full.partial();               // every field accepts null
+final updateDto     = full.partial(except: ['name']); // all nullable except 'name'
 
 final contactOnly = V.object<User>()
   .field('email', (u) => u.email, V.string().email());
@@ -785,6 +787,8 @@ final merged = identity.merge(contactOnly); // name + email
 ```
 
 `partial()` mirrors `VMap.partial()` — each declared field's validator is wrapped so `null` is accepted in addition to the original shape; non-null inputs still run the original validator. Useful for partial-update DTOs where the type still has every field but only a subset is required at the API boundary.
+
+`partial(except: [...])` keeps the listed keys with their original validator while making everything else nullable — the canonical pattern for an update DTO that retains a required identifier (`id`, `slug`, etc.). Keys passed to `except` must be declared on the schema; otherwise an `AssertionError` fires in debug.
 
 > Note: unlike TypeScript, `pick`/`omit` do not generate a subset _type_. The input still has to be a full instance of `T` — only the validation surface is narrowed.
 >
