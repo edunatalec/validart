@@ -15,6 +15,7 @@ import 'package:validart/src/v_locale.dart';
 /// ```
 sealed class V {
   static VLocale _locale = const VLocale();
+  static core.bool _treatEmptyAsNull = false;
 
   /// Provides coercion schemas that convert input values before validation.
   static final VCoerce coerce = VCoerce();
@@ -28,6 +29,34 @@ sealed class V {
 
   /// Returns the current locale.
   static VLocale get locale => _locale;
+
+  /// Globally toggles `"" → null` normalization on every [VString] schema
+  /// created afterwards.
+  ///
+  /// When enabled, an empty `String` ("") flowing into a [VString] is
+  /// converted to `null` before the pipeline runs — meaning `nullable()`
+  /// accepts it, `defaultValue(x)` substitutes `x`, and a bare schema
+  /// reports `string.required`. Whitespace-only input (e.g. `"   "`) is
+  /// **not** affected; compose with `.trim()` if you also want
+  /// whitespace-only to count as missing.
+  ///
+  /// Default is `false` (no normalization — same as historical behaviour).
+  /// Set this once at app startup if your form pipeline treats empty
+  /// inputs as missing values. Individual schemas can opt out via
+  /// `V.string().treatEmptyAsNull(enabled: false)` when the global is on,
+  /// or opt in via `V.string().treatEmptyAsNull()` when the global is off.
+  ///
+  /// ```dart
+  /// void main() {
+  ///   V.treatEmptyAsNull(true);
+  ///   runApp(MyApp());
+  /// }
+  /// ```
+  static void treatEmptyAsNull(core.bool enabled) =>
+      _treatEmptyAsNull = enabled;
+
+  /// Whether [treatEmptyAsNull] is currently enabled globally.
+  static core.bool get isEmptyAsNullEnabled => _treatEmptyAsNull;
 
   /// Translates an error [code] with optional [params].
   static String t(String code, [Map<String, dynamic> params = const {}]) =>

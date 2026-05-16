@@ -7,12 +7,61 @@ part of 'type.dart';
 /// schema.parse('user@mail.com'); // 'user@mail.com'
 /// ```
 class VString extends VType<String> {
+  bool? _treatEmptyAsNullOverride;
+
   @override
   String get typeName => 'string';
 
   /// Creates a [VString]. Pass [message] to override the default
   /// translation used when the input is `null`.
   VString({super.message, super.invalidTypeMessage});
+
+  bool get _effectiveTreatEmptyAsNull =>
+      _treatEmptyAsNullOverride ?? V.isEmptyAsNullEnabled;
+
+  Object? _emptyToNull(Object? value) {
+    if (!_effectiveTreatEmptyAsNull) return value;
+    if (value is String && value.isEmpty) return null;
+    return value;
+  }
+
+  /// Normalizes empty string input (`""` exactly) to `null` before the
+  /// pipeline runs. Once `null`, the value flows through the schema's
+  /// own null handling — `nullable()` accepts it, `defaultValue(x)`
+  /// substitutes `x`, and a bare schema reports `string.required`.
+  ///
+  /// Whitespace-only input (`"   "`) is **not** affected — only `""`
+  /// exactly. Compose with `.trim()` if you also want whitespace to
+  /// count as empty (the trim runs in-pipeline, after the
+  /// empty-to-null check, so `.trim().treatEmptyAsNull()` would not
+  /// help; for that pattern, use `.preprocess((v) => (v as
+  /// String?)?.trim()).treatEmptyAsNull()`).
+  ///
+  /// Set [enabled] to `false` to opt out of the global flag set via
+  /// [V.treatEmptyAsNull] on this specific schema. When [enabled] is
+  /// omitted, the default is `true`.
+  ///
+  /// ```dart
+  /// V.string().treatEmptyAsNull().nullable().parse('');     // null
+  /// V.string().treatEmptyAsNull().defaultValue('x').parse(''); // 'x'
+  /// V.string().treatEmptyAsNull().parse('');                // throws (required)
+  ///
+  /// // Opt-out of a globally-enabled flag on this field:
+  /// V.treatEmptyAsNull(true);
+  /// V.string().treatEmptyAsNull(enabled: false).min(1).validate(''); // false
+  /// ```
+  VString treatEmptyAsNull({bool enabled = true}) {
+    _treatEmptyAsNullOverride = enabled;
+    return this;
+  }
+
+  @override
+  Object? runPreprocessors(Object? value) =>
+      super.runPreprocessors(_emptyToNull(value));
+
+  @override
+  Future<Object?> runPreprocessorsAsync(Object? value) =>
+      super.runPreprocessorsAsync(_emptyToNull(value));
 
   @override
   VString add(

@@ -13,7 +13,10 @@ import 'package:validart/src/validators/string/tax_id_pattern.dart';
 import 'package:validart/src/validators/string/uuid_validator.dart';
 
 void main() {
-  setUp(() => V.setLocale(const VLocale()));
+  setUp(() {
+    V.setLocale(const VLocale());
+    V.treatEmptyAsNull(false);
+  });
 
   group('VString', () {
     group('min', () {
@@ -2629,6 +2632,106 @@ void main() {
         final schema = VString().date(format: 'YYYY-MM-DD');
         expect(schema.validate('2024-02-29'), isTrue);
         expect(schema.validate('2023-02-29'), isFalse);
+      });
+    });
+
+    group('treatEmptyAsNull', () {
+      test('without the flag, empty string is a valid string (legacy)', () {
+        expect(V.string().validate(''), isTrue);
+      });
+
+      test('local true + nullable: "" parses to null', () {
+        final schema = V.string().treatEmptyAsNull().nullable();
+        expect(schema.parse(''), isNull);
+        expect(schema.validate(''), isTrue);
+      });
+
+      test('local true without nullable: "" fails as string.required', () {
+        final schema = V.string().treatEmptyAsNull();
+        final errs = schema.errors('');
+        expect(errs, isNotNull);
+        expect(errs!.single.code, 'string.required');
+      });
+
+      test('local true + defaultValue: "" substitutes the default', () {
+        final schema = V.string().treatEmptyAsNull().defaultValue('fallback');
+        expect(schema.parse(''), 'fallback');
+      });
+
+      test('whitespace-only is preserved (not normalized)', () {
+        final schema = V.string().treatEmptyAsNull().nullable();
+        expect(schema.parse('   '), '   ');
+      });
+
+      test('global true affects new VString instances by default', () {
+        V.treatEmptyAsNull(true);
+        final schema = V.string().nullable();
+        expect(schema.parse(''), isNull);
+      });
+
+      test('global true + local false opts out for that schema', () {
+        V.treatEmptyAsNull(true);
+        final schema = V.string().treatEmptyAsNull(enabled: false).min(1);
+        final errs = schema.errors('');
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'string.too_small');
+      });
+
+      test('local false with global off is a no-op', () {
+        final schema = V.string().treatEmptyAsNull(enabled: false);
+        expect(schema.validate(''), isTrue);
+      });
+
+      test('local true overrides global false', () {
+        V.treatEmptyAsNull(false);
+        final schema = V.string().treatEmptyAsNull().nullable();
+        expect(schema.parse(''), isNull);
+      });
+
+      test('normalize runs BEFORE user-registered .preprocess()', () {
+        Object? seen = 'unset';
+        final schema = V.string().treatEmptyAsNull().nullable().preprocess(
+          (v) {
+            seen = v;
+            return v;
+          },
+        );
+
+        schema.parse('');
+        expect(
+          seen,
+          isNull,
+          reason: 'preprocess sees null (post-normalize), not ""',
+        );
+      });
+
+      test('async pipeline: "" parses to null without invoking refineAsync',
+          () async {
+        var refineRan = 0;
+        final schema =
+            V.string().treatEmptyAsNull().nullable().refineAsync((s) async {
+          refineRan++;
+          return true;
+        });
+
+        expect(await schema.parseAsync(''), isNull);
+        expect(refineRan, 0);
+      });
+
+      test(
+        'non-empty input is untouched whether flag is on or off',
+        () {
+          V.treatEmptyAsNull(true);
+          expect(V.string().min(1).parse('hi'), 'hi');
+        },
+      );
+
+      test('isEmptyAsNullEnabled reflects the latest setter call', () {
+        expect(V.isEmptyAsNullEnabled, isFalse);
+        V.treatEmptyAsNull(true);
+        expect(V.isEmptyAsNullEnabled, isTrue);
+        V.treatEmptyAsNull(false);
+        expect(V.isEmptyAsNullEnabled, isFalse);
       });
     });
   });

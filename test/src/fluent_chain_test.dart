@@ -74,6 +74,13 @@ void main() {
       expect(b.validate({'x': 'y'}), isTrue);
     });
 
+    test('VString.treatEmptyAsNull() returns VString (fluent chain)', () {
+      final VString a = V.string().treatEmptyAsNull().nullable().email();
+
+      expect(a.validate(''), isTrue);
+      expect(a.validate('user@mail.com'), isTrue);
+    });
+
     test('VObject preserves type through base VType methods', () {
       final VObject<String> a = V.object<String>().nullable();
 
