@@ -438,4 +438,137 @@ void main() {
       },
     );
   });
+
+  group('VObject.safeParseRaw contract', () {
+    setUp(() => V.setLocale(const VLocale()));
+
+    test('container preprocess runs once before any per-field validation', () {
+      var ran = 0;
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .preprocess((v) {
+        ran++;
+        return v;
+      });
+
+      schema.validateRaw({'name': 'Jo'});
+      expect(ran, 1);
+    });
+
+    test('refineField(stage: pre) is skipped (T-typed, no T in raw mode)', () {
+      var ran = 0;
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .refineField((e) {
+        ran++;
+        return false;
+      }, path: 'name', stage: RefineStage.pre);
+
+      schema.validateRaw({'name': 'Jo'});
+      expect(ran, 0);
+    });
+
+    test('refineFieldRaw (Map-typed) RUNS in raw mode', () {
+      var ran = 0;
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .refineFieldRaw((m) {
+        ran++;
+        return true;
+      }, path: 'name');
+
+      schema.validateRaw({'name': 'Jo'});
+      expect(ran, 1);
+    });
+
+    test('entity-level refine is skipped (callback never invoked)', () {
+      var ran = 0;
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .refine((e) {
+        ran++;
+        return false;
+      });
+
+      schema.validateRaw({'name': 'Jo'});
+      expect(ran, 0);
+    });
+
+    test('entity-level transform wrapper does not expose raw-mode API', () {
+      // Once a schema is wrapped by transform(), it becomes a VTransformed
+      // — only VObject<T> itself exposes safeParseRaw / parseRaw / etc.
+      // The raw-mode API is therefore opt-in at the leaf, not chainable
+      // through transform wrappers. Recorded here as a documented limit.
+      final wrapped = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .transform<String>((e) => 'transformed');
+
+      // ignore: avoid_dynamic_calls
+      expect(() => (wrapped as dynamic).parseRaw({'name': 'Jo'}),
+          throwsA(isA<NoSuchMethodError>()));
+    });
+
+    test('whenMatchesRaw.condition receives the raw map input as-is', () {
+      Map<String, dynamic>? seen;
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .whenMatchesRaw(
+        (m) {
+          seen = m;
+          return false;
+        },
+        dependsOn: const {'name'},
+        then: const {},
+      );
+
+      schema.validateRaw({'name': 'Jo', 'unknown': 1});
+      expect(seen, {'name': 'Jo', 'unknown': 1});
+    });
+
+    test(
+        'safeParseRaw on a schema with whenMatches (entity-only) throws '
+        'VException', () {
+      final schema = V
+          .object<_Entity>()
+          .field('name', (e) => e.name, V.string())
+          .whenMatches(
+        (e) => true,
+        dependsOn: const {'name'},
+        then: const {},
+      );
+
+      expect(
+        () => schema.safeParseRaw({'name': 'Jo'}),
+        throwsA(isA<VException>()),
+      );
+    });
+
+    test('async: preprocessor + per-field refineAsync both honored', () async {
+      var preRan = 0;
+      var refineRan = 0;
+      final schema = V
+          .object<_Entity>()
+          .field(
+              'name',
+              (e) => e.name,
+              V.string().refineAsync((s) async {
+                refineRan++;
+                return true;
+              }))
+          .preprocessAsync((v) async {
+        preRan++;
+        return v;
+      });
+
+      expect(await schema.validateRawAsync({'name': 'Jo'}), isTrue);
+      expect(preRan, 1);
+      expect(refineRan, 1);
+    });
+  });
 }

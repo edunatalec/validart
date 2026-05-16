@@ -1675,6 +1675,121 @@ void main() {
       expect(schema.validate(['a', 'a']), isFalse);
     });
   });
+
+  group('real-world: VObject dual-mode (safeParse(T) + safeParseRaw(Map))', () {
+    final schema = V
+        .object<_TaskDto>()
+        .field('title', (_TaskDto d) => d.title, V.string().min(2))
+        .field('priority', (_TaskDto d) => d.priority, V.int().positive())
+        .field('assignee', (_TaskDto d) => d.assignee, V.string().nullable())
+        .when(
+      'priority',
+      equals: 1,
+      then: <String, VType>{
+        'assignee': V.string().min(1),
+      },
+    ).whenMatchesRaw(
+      (Map<String, dynamic> m) =>
+          (m['priority'] as int) > 5 && m['assignee'] == null,
+      dependsOn: const <String>{'priority', 'assignee'},
+      then: <String, VType>{
+        'title': V.string().min(5),
+      },
+    ).refine(
+      (_TaskDto t) => t.priority < 100,
+      code: 'priority_capped',
+      dependsOn: const <String>{'priority'},
+    );
+
+    test('entity mode validates a fully-built DTO', () {
+      expect(
+        schema.validate(_TaskDto(title: 'fix', priority: 3, assignee: null)),
+        isTrue,
+      );
+    });
+
+    test(
+        'raw mode validates a partial map directly — no DTO construction '
+        'required', () {
+      expect(
+        schema.validateRaw(<String, dynamic>{
+          'title': 'fix',
+          'priority': 3,
+          'assignee': null,
+        }),
+        isTrue,
+      );
+    });
+
+    test('raw mode surfaces missing required fields without crashing', () {
+      // _TaskDto.title is `required` non-null in the constructor. If the
+      // caller tried to construct it from {'priority': 3}, the
+      // constructor would throw before any validator could report
+      // `title.required`. safeParseRaw bypasses that wall.
+      final errors = schema.errorsRaw(<String, dynamic>{'priority': 3});
+
+      expect(errors, isNotNull);
+      expect(
+        errors!.where((VError e) => e.path.first == 'title'),
+        isNotEmpty,
+      );
+    });
+
+    test('when rule fires identically in both modes', () {
+      final dto = _TaskDto(title: 'fix', priority: 1, assignee: null);
+      final raw = <String, dynamic>{
+        'title': 'fix',
+        'priority': 1,
+        'assignee': null,
+      };
+
+      expect(schema.validate(dto), isFalse,
+          reason: 'priority == 1 → assignee required');
+      expect(schema.validateRaw(raw), isFalse,
+          reason: 'same behavior in raw mode');
+    });
+
+    test('whenMatchesRaw.condition receives map view in both modes', () {
+      final dtoErrors =
+          schema.errors(_TaskDto(title: 'hi', priority: 6, assignee: null));
+      final mapErrors = schema.errorsRaw(<String, dynamic>{
+        'title': 'hi',
+        'priority': 6,
+        'assignee': null,
+      });
+
+      expect(dtoErrors!.first.path, mapErrors!.first.path,
+          reason: 'whenMatchesRaw fires the same in both modes');
+    });
+
+    test('entity-level refine runs in entity mode, skipped in raw mode', () {
+      // priority 150 violates the entity-level refine.
+      final dto = _TaskDto(title: 'high', priority: 150, assignee: 'alice');
+      expect(schema.validate(dto), isFalse);
+
+      // Same payload as Map: refine is skipped, no entity-level error.
+      expect(
+        schema.validateRaw(<String, dynamic>{
+          'title': 'high',
+          'priority': 150,
+          'assignee': 'alice',
+        }),
+        isTrue,
+      );
+    });
+  });
+}
+
+class _TaskDto {
+  final String title;
+  final int priority;
+  final String? assignee;
+
+  _TaskDto({
+    required this.title,
+    required this.priority,
+    required this.assignee,
+  });
 }
 
 /// Small helper to make `buildSchema`'s declared return type compile even

@@ -122,6 +122,10 @@ class VLocale {
       'weekday': 'Must be a weekday',
       'weekend': 'Must be a weekend',
       'age': 'Age is out of the allowed range',
+      'is_today': 'Must be today',
+      'same_day': 'Must be the same day as {date}',
+      'after_today': 'Must be after today',
+      'before_today': 'Must be before today',
     },
 
     'array': <String, String>{
@@ -137,6 +141,7 @@ class VLocale {
     },
 
     'object': <String, String>{
+      'unrecognized_key': 'Unrecognized key "{key}"',
       'fields_not_equal': '{field} must be equal to {other}',
     },
 

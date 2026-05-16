@@ -12,10 +12,14 @@ import 'package:validart/src/validators/bool/is_false_validator.dart';
 import 'package:validart/src/validators/map/equal_fields_validator.dart';
 import 'package:validart/src/validators/object/equal_fields_validator.dart';
 import 'package:validart/src/validators/bool/is_true_validator.dart';
+import 'package:validart/src/validators/date/after_today_validator.dart';
 import 'package:validart/src/validators/date/after_validator.dart';
 import 'package:validart/src/validators/date/age_validator.dart';
+import 'package:validart/src/validators/date/before_today_validator.dart';
 import 'package:validart/src/validators/date/before_validator.dart';
 import 'package:validart/src/validators/date/between_dates_validator.dart';
+import 'package:validart/src/validators/date/is_today_validator.dart';
+import 'package:validart/src/validators/date/same_day_as_validator.dart';
 import 'package:validart/src/validators/date/weekday_validator.dart';
 import 'package:validart/src/validators/date/weekend_validator.dart';
 import 'package:validart/src/validators/number/between_validator.dart';
@@ -86,6 +90,32 @@ part 'enum.dart';
 part 'literal.dart';
 part 'union.dart';
 part 'transformed.dart';
+
+/// Controls when a [VMap.refineField], [VObject.refineField] or
+/// [VObject.refineFieldRaw] callback runs in the container pipeline.
+///
+/// - [RefineStage.post] (default): runs **after** every declared field has
+///   been validated and transformed. Callback sees parsed values. Gated by
+///   `dependsOn` — skipped when any declared dependency (including the
+///   refine's own `path`) failed per-field validation.
+/// - [RefineStage.pre]: runs **before** any per-field iteration. Callback
+///   sees the input as it arrived (no preprocess / transforms applied).
+///   Always runs once the type check passed; `dependsOn` is not accepted
+///   (no field has been validated yet, so there is nothing to gate on).
+///
+/// Use [RefineStage.pre] for rules that depend on the raw input — original
+/// casing, whitespace, pre-coercion shape. The classic case is a field
+/// declared as `V.string().toLowerCase().email()` paired with a check that
+/// must see the user's original casing.
+enum RefineStage {
+  /// Runs after per-field validation/transforms. Callback sees parsed
+  /// values; `dependsOn` gates execution.
+  post,
+
+  /// Runs before any per-field iteration. Callback sees raw input;
+  /// `dependsOn` is not accepted.
+  pre,
+}
 
 /// Abstract base for all validation types.
 ///

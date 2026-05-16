@@ -265,6 +265,18 @@ sealed class VDateCode {
 
   /// Age derived from date is outside the required range.
   static const age = 'date.age';
+
+  /// Date is not today (y/m/d comparison in local time).
+  static const isToday = 'date.is_today';
+
+  /// Date is not the same y/m/d as the reference date.
+  static const sameDay = 'date.same_day';
+
+  /// Date's y/m/d is not strictly after today.
+  static const afterToday = 'date.after_today';
+
+  /// Date's y/m/d is not strictly before today.
+  static const beforeToday = 'date.before_today';
 }
 
 /// Error codes emitted by [VArray] and its validators.
@@ -313,6 +325,11 @@ sealed class VObjectCode {
   /// Value provided to an object schema has the wrong type. Falls back
   /// to [VCode.invalidType].
   static const invalidType = 'object.invalid_type';
+
+  /// Raw map input contains a key not declared on the schema. Emitted
+  /// only by `safeParseRaw` / `parseRaw` and friends when the schema is
+  /// marked `.strict()`.
+  static const unrecognizedKey = 'object.unrecognized_key';
 
   /// Two object fields declared via `equalFields` are not equal.
   static const fieldsNotEqual = 'object.fields_not_equal';

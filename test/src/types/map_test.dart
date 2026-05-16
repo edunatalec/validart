@@ -862,12 +862,13 @@ void main() {
         }),
         'role': V.enm(_Role.values),
         'id': V.union([V.string().uuid(), V.int().min(1)]),
-      }).refineFieldRaw(
+      }).refineField(
         // Raw rule — runs at step 4 of the container pipeline, before any
         // field's own preprocess / validators / transforms apply.
         (data) => data['name'] != 'forbidden',
         path: 'name',
         message: 'Name "forbidden" is reserved',
+        stage: RefineStage.pre,
       );
 
       final good = {
@@ -1218,6 +1219,69 @@ void main() {
           schema.validate({'fallback': null}),
           isFalse,
           reason: 'missing kind reads as null → predicate true → fail',
+        );
+      });
+
+      test('rule is skipped when a declared dependsOn field failed per-field',
+          () {
+        var conditionRan = 0;
+        final schema = V.map({
+          'role': V.string(),
+          'level': V.int().positive(),
+          'token': V.string().nullable(),
+        }).whenMatches(
+          (m) {
+            conditionRan++;
+            return true;
+          },
+          dependsOn: const {'level'},
+          then: {'token': V.string().min(3)},
+        );
+
+        // level fails positive() → whenMatches is skipped, token rule never
+        // applied.
+        final errors = schema.errors({
+          'role': 'admin',
+          'level': -1,
+          'token': null,
+        });
+
+        expect(conditionRan, 0);
+        expect(
+          errors!.where((e) => e.path.first == 'token'),
+          isEmpty,
+          reason: 'whenMatches skipped → its then is not applied',
+        );
+      });
+
+      test('rule still runs when failing field is NOT in dependsOn', () {
+        var conditionRan = 0;
+        final schema = V.map({
+          'role': V.string().min(3),
+          'level': V.int(),
+          'token': V.string().nullable(),
+        }).whenMatches(
+          (m) {
+            conditionRan++;
+            return true;
+          },
+          dependsOn: const {'level'},
+          then: {'token': V.string().min(3)},
+        );
+
+        schema.errors({'role': 'no', 'level': 5, 'token': 'x'});
+
+        expect(conditionRan, 1);
+      });
+
+      test('empty dependsOn throws AssertionError at construction', () {
+        expect(
+          () => V.map({'role': V.string()}).whenMatches(
+            (m) => true,
+            dependsOn: const <String>{},
+            then: const <String, VType>{},
+          ),
+          throwsA(isA<AssertionError>()),
         );
       });
 

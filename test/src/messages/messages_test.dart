@@ -446,6 +446,10 @@ void main() {
       expectTranslated(VDateCode.weekday);
       expectTranslated(VDateCode.weekend);
       expectTranslated(VDateCode.age);
+      expectTranslated(VDateCode.isToday);
+      expectTranslated(VDateCode.sameDay);
+      expectTranslated(VDateCode.afterToday);
+      expectTranslated(VDateCode.beforeToday);
     });
 
     test('VArrayCode', () {
@@ -462,6 +466,7 @@ void main() {
 
     test('VObjectCode', () {
       expectTranslated(VObjectCode.fieldsNotEqual);
+      expectTranslated(VObjectCode.unrecognizedKey);
     });
 
     test('VEnumCode / VLiteralCode / VUnionCode', () {

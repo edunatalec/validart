@@ -411,12 +411,20 @@ class VMap extends VType<Map<String, dynamic>> {
   /// in [then] is applied to the corresponding field in addition to its
   /// baseline validator.
   ///
-  /// [dependsOn] is required: it declares the schema keys the predicate
-  /// reads, so subsequent `refine(dependsOn:)` / `refineField(dependsOn:)`
-  /// rules can reference those fields without tripping the
-  /// `_knownKeys()` assertion. Every key in [dependsOn] must already be
-  /// declared in the base schema OR in a previously registered
-  /// `when.then` / `whenMatches.then`.
+  /// [dependsOn] is required and must be **non-empty**: every key in
+  /// [dependsOn] must already be declared in the base schema OR in a
+  /// previously registered `when.then` / `whenMatches.then`. The rule
+  /// uses [dependsOn] for two purposes:
+  ///
+  /// 1. **Skip gating** (defensive). If any declared dependency failed
+  ///    its own per-field validation, the entire rule is skipped — the
+  ///    predicate is not called and [then] is not applied. Mirrors
+  ///    `refine(dependsOn:)`: a [condition] that casts `m['x'] as int`
+  ///    would crash on a partially-parsed payload, so skipping is the
+  ///    safe default.
+  /// 2. **Visibility for downstream `refine(dependsOn:)`**. Keys
+  ///    declared here enter `_knownKeys()`, letting later refines
+  ///    reference them without tripping the assertion.
   ///
   /// The predicate is always synchronous; validators inside [then] may be
   /// sync or async. A [whenMatches] rule whose [then] contains an async
@@ -438,6 +446,13 @@ class VMap extends VType<Map<String, dynamic>> {
     required Set<String> dependsOn,
     required Map<String, VType> then,
   }) {
+    assert(
+      dependsOn.isNotEmpty,
+      'whenMatches dependsOn must declare at least one schema key — '
+      'the rule is skipped when a declared dependency failed per-field '
+      'validation. Use refine() or add() for rules that should always run.',
+    );
+
     final known = _knownKeys();
 
     for (final key in dependsOn) {
@@ -493,111 +508,106 @@ class VMap extends VType<Map<String, dynamic>> {
 
   /// Adds a custom validation that targets a specific field path.
   ///
-  /// Runs in the validation phase. By default declares
-  /// `dependsOn: {path}` — when the field at [path] fails its own
-  /// validation, this check is skipped; otherwise the result is
-  /// aggregated alongside any unrelated field errors in a single
-  /// `VFailure`. Pass [dependsOn] to override the default — useful when
-  /// the check on [path] also depends on OTHER fields that must have
-  /// passed first (e.g. `email` validation depending on `domain`):
+  /// The [stage] controls when the check runs in the container pipeline:
+  ///
+  /// - [RefineStage.post] (default): runs **after** every field has been
+  ///   parsed and transformed. Callback sees the post-pipeline values.
+  ///   Skipped when any declared dependency failed — this protects the
+  ///   callback from casting a value that never satisfied its own
+  ///   validator (`data['x'] as int` on a non-int input).
+  /// - [RefineStage.pre]: runs **before** any per-field iteration.
+  ///   Callback sees the raw input as the user typed it (no preprocess /
+  ///   transforms applied). Always runs once the type check passed;
+  ///   [dependsOn] is not accepted (no field has been validated yet).
+  ///
+  /// In [RefineStage.post]: **`path` is always part of the dependency set**,
+  /// even when [dependsOn] is omitted. When [dependsOn] is provided it is
+  /// **unioned with `{path}`**, not replaced — you only declare the *extra*
+  /// fields the callback reads. Passing an empty set triggers an
+  /// `AssertionError`: a refineField on a path that only depends on itself
+  /// is already the default; for "always run regardless", use a plain
+  /// `refine(dependsOn: const {})`.
   ///
   /// ```dart
-  /// V.map({
-  ///   'age': V.int(),
-  /// }).refineField(
+  /// // Default (post) — implicit dependsOn = {age}.
+  /// V.map({'age': V.int()}).refineField(
   ///   (data) => (data['age'] as int) >= 18,
   ///   path: 'age',
   ///   message: 'Must be at least 18',
   /// );
   ///
-  /// // Cross-field dependency:
+  /// // Cross-field (post) — declares the extra dep; path is implicit.
   /// V.map({
   ///   'email': V.string().email(),
   ///   'domain': V.string().min(1),
   /// }).refineField(
   ///   (data) => (data['email'] as String).endsWith(data['domain'] as String),
   ///   path: 'email',
-  ///   dependsOn: const {'email', 'domain'},
+  ///   dependsOn: const {'domain'}, // effective: {email, domain}
   ///   message: 'email must match the configured domain',
   /// );
-  /// ```
   ///
-  /// Passing `dependsOn: const {}` (empty set) opts out of the skip
-  /// entirely — the check runs even when other fields failed. Useful
-  /// for audit / logging rules that should fire on every submission;
-  /// the callback must be defensive about partially-parsed input.
+  /// // Pre-pipeline — see raw input before .toLowerCase() applies.
+  /// V.map({
+  ///   'email': V.string().toLowerCase().email(),
+  ///   'expected': V.string(),
+  /// }).refineField(
+  ///   (data) => data['email'] == data['expected'],
+  ///   path: 'email',
+  ///   stage: RefineStage.pre,
+  ///   message: 'email must match expected (raw, case-sensitive)',
+  /// );
+  /// ```
   VMap refineField(
     bool Function(Map<String, dynamic> data) check, {
     required String path,
     String? message,
     Set<String>? dependsOn,
+    RefineStage stage = RefineStage.post,
   }) {
     assert(
       _schema.containsKey(path),
       "The provided path '$path' does not exist in the schema.",
+    );
+    assert(
+      stage == RefineStage.post || dependsOn == null,
+      'refineField with stage: RefineStage.pre cannot declare dependsOn — '
+      'pre-pipeline runs unconditionally (no field has been validated yet).',
+    );
+    assert(
+      dependsOn == null || dependsOn.isNotEmpty,
+      'refineField dependsOn must declare at least one extra schema key when '
+      'provided — the path is implicitly included. To run a check that '
+      'should fire regardless of field failures, use stage: RefineStage.pre '
+      '(raw input) or refine(dependsOn: const {}) (entity-level, post).',
     );
     _assertDependsOnKeys(dependsOn);
 
-    return add(
-      _RefineValidator<Map<String, dynamic>>(
-        check: check,
-        validatorCode: VCode.custom,
-      ),
-      message: message,
-      path: [path],
-      dependsOn: dependsOn ?? {path},
-    );
-  }
+    switch (stage) {
+      case RefineStage.pre:
+        addRaw(
+          _RefineValidator<Map<String, dynamic>>(
+            check: check,
+            validatorCode: VCode.custom,
+          ),
+          message: message,
+          path: [path],
+        );
+        return this;
+      case RefineStage.post:
+        final Set<String> effectiveDeps =
+            dependsOn == null ? {path} : {...dependsOn, path};
 
-  /// Adds an entity-level rule scoped to a specific field path that
-  /// runs **before** any per-field iteration. The [check] callback
-  /// receives the raw `Map<String, dynamic>` — each value is the
-  /// untouched input to the corresponding field (after the container
-  /// preprocess and type check, but before the field's own preprocess /
-  /// validators / transforms run).
-  ///
-  /// Compare with [refineField], whose callback runs **after** all
-  /// fields have been parsed and transformed. Use [refineFieldRaw] when
-  /// the rule depends on the input as the user typed it (e.g. comparing
-  /// raw casing or whitespace before a `.toLowerCase()` / `.trim()`
-  /// transform applies). For everything else, prefer [refineField].
-  ///
-  /// The error is emitted with `path: [path]` so consumers like
-  /// `valiform`'s `VForm` can surface it inline under that field.
-  /// Unlike [refineField], [refineFieldRaw] has no implicit `dependsOn`
-  /// — it always runs once the input is a `Map<String, dynamic>`,
-  /// regardless of subsequent per-field results.
-  ///
-  /// ```dart
-  /// V.map({
-  ///   'email': V.string().toLowerCase().email(),
-  ///   'expected': V.string(),
-  /// }).refineFieldRaw(
-  ///   (data) => data['email'] == data['expected'],
-  ///   path: 'email',
-  ///   message: 'email must match expected (raw, case-sensitive)',
-  /// );
-  /// ```
-  VMap refineFieldRaw(
-    bool Function(Map<String, dynamic> data) check, {
-    required String path,
-    String? message,
-  }) {
-    assert(
-      _schema.containsKey(path),
-      "The provided path '$path' does not exist in the schema.",
-    );
-
-    addRaw(
-      _RefineValidator<Map<String, dynamic>>(
-        check: check,
-        validatorCode: VCode.custom,
-      ),
-      message: message,
-      path: [path],
-    );
-
-    return this;
+        return add(
+          _RefineValidator<Map<String, dynamic>>(
+            check: check,
+            validatorCode: VCode.custom,
+          ),
+          message: message,
+          path: [path],
+          dependsOn: effectiveDeps,
+        );
+    }
   }
 
   @override
@@ -703,7 +713,17 @@ class VMap extends VType<Map<String, dynamic>> {
       }
     }
 
+    final Set<String> whenMatchesFailedFieldPaths =
+        _whenMatchesRules.isEmpty ? const {} : _firstSegments(errors);
+
     for (final rule in _whenMatchesRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        whenMatchesFailedFieldPaths,
+      )) {
+        continue;
+      }
+
       if (rule.condition(input)) {
         for (final entry in rule.then.entries) {
           final fieldValue = input[entry.key];
@@ -815,7 +835,17 @@ class VMap extends VType<Map<String, dynamic>> {
       }
     }
 
+    final Set<String> whenMatchesFailedFieldPaths =
+        _whenMatchesRules.isEmpty ? const {} : _firstSegments(errors);
+
     for (final rule in _whenMatchesRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        whenMatchesFailedFieldPaths,
+      )) {
+        continue;
+      }
+
       if (rule.condition(input)) {
         for (final entry in rule.then.entries) {
           final fieldValue = input[entry.key];

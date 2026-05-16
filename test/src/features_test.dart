@@ -750,19 +750,20 @@ void main() {
     );
   });
 
-  group('refineFieldRaw vs refineField', () {
+  group('refineField stages (post vs pre)', () {
     test(
-      'VMap.refineFieldRaw sees raw values; refineField sees parsed (transforms applied)',
+      'VMap.refineField(stage: pre) sees raw values; default post sees parsed (transforms applied)',
       () {
-        // The same callback wired through both APIs gives different
-        // results when a field has a transform: refineFieldRaw fires
-        // on the raw input, refineField on the post-pipeline value.
+        // The same callback wired through both stages gives different
+        // results when a field has a transform: pre fires on the raw
+        // input, post on the post-pipeline value.
         final schema = V
             .map({'email': V.string().toLowerCase()})
-            .refineFieldRaw(
+            .refineField(
               (data) => data['email'] == 'A@B.COM',
               path: 'email',
               message: 'raw must be A@B.COM',
+              stage: RefineStage.pre,
             )
             .refineField(
               (data) => data['email'] == 'A@B.COM',
@@ -780,20 +781,21 @@ void main() {
     );
 
     test(
-      'VMap.refineFieldRaw runs even when an unrelated field fails its '
-      'per-field validator (no dependsOn gating)',
+      'VMap.refineField(stage: pre) runs even when an unrelated field fails '
+      'its per-field validator (no dependsOn gating)',
       () {
-        // refineField (with implicit dependsOn = {path}) skips when the
-        // declared field fails. refineFieldRaw has no per-field pipeline
+        // refineField post (with implicit dependsOn = {path}) skips when
+        // the declared field fails. stage: pre has no per-field pipeline
         // to gate on — it runs unconditionally once the input is a
         // Map<String, dynamic>.
         final schema = V.map({
           'a': V.string().min(5),
           'b': V.string(),
-        }).refineFieldRaw(
+        }).refineField(
           (data) => data['b'] == 'ok',
           path: 'b',
           message: 'b must be ok (raw)',
+          stage: RefineStage.pre,
         );
 
         // 'a' fails (length < 5), but the raw rule still runs and
@@ -810,12 +812,13 @@ void main() {
     );
 
     test(
-      'VMap.refineFieldRaw error path is [path] — surfaces inline, not in root',
+      'VMap.refineField(stage: pre) error path is [path] — surfaces inline, not in root',
       () {
-        final schema = V.map({'name': V.string()}).refineFieldRaw(
+        final schema = V.map({'name': V.string()}).refineField(
           (data) => false,
           path: 'name',
           message: 'always fails',
+          stage: RefineStage.pre,
         );
 
         final result = schema.safeParse({'name': 'x'});
@@ -826,27 +829,30 @@ void main() {
       },
     );
 
-    test('VMap.refineFieldRaw asserts that path exists in the schema', () {
+    test('VMap.refineField(stage: pre) asserts that path exists in the schema',
+        () {
       expect(
-        () => V.map({'name': V.string()}).refineFieldRaw(
+        () => V.map({'name': V.string()}).refineField(
           (data) => true,
           path: 'unknown',
+          stage: RefineStage.pre,
         ),
         throwsA(isA<AssertionError>()),
       );
     });
 
     test(
-      'VObject.refineFieldRaw runs once the cast succeeded, even when a '
-      'per-field validator fails afterwards',
+      'VObject.refineField(stage: pre) runs once the cast succeeded, even '
+      'when a per-field validator fails afterwards',
       () {
         final schema = V
             .object<_RawDemo>()
             .field('value', (d) => d.value, V.string().min(5))
-            .refineFieldRaw(
+            .refineField(
               (d) => d.flag,
               path: 'value',
               message: 'flag must be true',
+              stage: RefineStage.pre,
             );
 
         // 'value' fails per-field (length < 5); the raw rule still runs
@@ -857,13 +863,15 @@ void main() {
       },
     );
 
-    test('refineFieldRaw runs through async pipeline as well', () async {
+    test('refineField(stage: pre) runs through async pipeline as well',
+        () async {
       final schema = V
           .map({'email': V.string().toLowerCase()})
-          .refineFieldRaw(
+          .refineField(
             (data) => data['email'] == 'A@B.COM',
             path: 'email',
             message: 'raw must be A@B.COM',
+            stage: RefineStage.pre,
           )
           .refineAsync(
             (m) async => true,
@@ -878,15 +886,16 @@ void main() {
     });
 
     test(
-      'VMap.refineFieldRaw runs BEFORE strict()-mode unknown-key check',
+      'VMap.refineField(stage: pre) runs BEFORE strict()-mode unknown-key check',
       () {
         // Pipeline order pinned: step 4 (raw) before step 5 (strict).
         // The schema has `.strict()` and the input has an unknown key
         // AND the raw rule fires — both errors must appear.
-        final schema = V.map({'name': V.string()}).strict().refineFieldRaw(
+        final schema = V.map({'name': V.string()}).strict().refineField(
               (data) => data['name'] != 'forbidden',
               path: 'name',
               message: 'name forbidden',
+              stage: RefineStage.pre,
             );
 
         final errs = schema.errors({'name': 'forbidden', 'extra': true});
@@ -908,15 +917,16 @@ void main() {
     );
 
     test(
-      'VMap.refineFieldRaw runs BEFORE per-field iteration (sees raw values)',
+      'VMap.refineField(stage: pre) runs BEFORE per-field iteration (sees raw values)',
       () {
         // Pipeline order pinned: step 4 (raw) before step 6 (per-field
         // iteration). The field has a `.toLowerCase()` pre-transform; the
         // raw callback must see the ORIGINAL casing.
-        final schema = V.map({'tag': V.string().toLowerCase()}).refineFieldRaw(
+        final schema = V.map({'tag': V.string().toLowerCase()}).refineField(
           (data) => data['tag'] == data['tag'].toString().toUpperCase(),
           path: 'tag',
           message: 'tag must be uppercase (raw)',
+          stage: RefineStage.pre,
         );
 
         // 'HELLO' raw → all uppercase → raw rule passes.
@@ -932,15 +942,16 @@ void main() {
     );
 
     test(
-      'VMap.refineFieldRaw works alongside .passthrough()',
+      'VMap.refineField(stage: pre) works alongside .passthrough()',
       () {
         // Passthrough copies unrecognized keys to the parsed output (step
-        // 8); refineFieldRaw runs at step 4. Both must coexist without
-        // either swallowing the other's effect.
-        final schema = V.map({'name': V.string()}).passthrough().refineFieldRaw(
+        // 8); refineField(stage: pre) runs at step 4. Both must coexist
+        // without either swallowing the other's effect.
+        final schema = V.map({'name': V.string()}).passthrough().refineField(
               (data) => data['name'] != 'forbidden',
               path: 'name',
               message: 'name forbidden',
+              stage: RefineStage.pre,
             );
 
         // Valid name + extra key → no error, extra is in parsed output.
@@ -955,17 +966,18 @@ void main() {
     );
 
     test(
-      'VObject.refineFieldRaw asserts that path exists in the schema',
+      'VObject.refineField(stage: pre) asserts that path exists in the schema',
       () {
-        // VMap.refineFieldRaw is asserted above; pin the same behavior on
-        // VObject so the parity is enforced by the suite.
+        // VMap.refineField(stage: pre) is asserted above; pin the same
+        // behavior on VObject so the parity is enforced by the suite.
         expect(
           () => V
               .object<_RawDemo>()
               .field('value', (d) => d.value, V.string())
-              .refineFieldRaw(
+              .refineField(
                 (d) => true,
                 path: 'unknown',
+                stage: RefineStage.pre,
               ),
           throwsA(isA<AssertionError>()),
         );
@@ -1105,11 +1117,11 @@ void main() {
 
   group('refineField — dependsOn override', () {
     test(
-      'VMap.refineField with explicit dependsOn aggregates with unrelated '
-      'fields, but skips when a declared dep fails',
+      'VMap.refineField with explicit extra dependsOn unions with {path} and '
+      'aggregates with unrelated fields',
       () {
         // The check on `email` ALSO depends on `domain` having passed
-        // its own validation. With the override:
+        // its own validation. dependsOn: {domain} → effective {email, domain}.
         //   - if `domain` failed, the check is skipped (cast safety).
         //   - if `name` (unrelated) failed, the check still runs.
         final schema = V.map({
@@ -1120,7 +1132,7 @@ void main() {
           (data) =>
               (data['email'] as String).endsWith(data['domain'] as String),
           path: 'email',
-          dependsOn: const {'email', 'domain'},
+          dependsOn: const {'domain'},
           message: 'email must match domain',
         );
 
@@ -1141,59 +1153,62 @@ void main() {
     );
 
     test(
-      'VMap.refineField with dependsOn: const {} runs even when its own '
-      'declared field failed',
+      'VMap.refineField with extra dependsOn skips when the extra dep fails',
       () {
-        // Empty dependsOn = explicit "always run, callback must be
-        // defensive". Useful for audit / logging rules. Compare with
-        // the default `{path}` which would skip in this scenario.
+        // Pins the union: dependsOn: {domain} actually carries domain into
+        // the skip set (besides {path}).
         var ran = 0;
         final schema = V.map({
-          'name': V.string().min(3),
+          'email': V.string().email(),
+          'domain': V.string().min(1),
         }).refineField(
           (data) {
             ran++;
-            return true; // refine itself passes
+            return true;
           },
-          path: 'name',
-          dependsOn: const {},
+          path: 'email',
+          dependsOn: const {'domain'},
         );
 
-        // 'name' fails .min(3) — with the default dependsOn: {path},
-        // the refine would skip. With dependsOn: const {}, it runs.
-        schema.errors({'name': 'Al'});
+        // domain fails its own validation → refine must skip.
+        schema.errors({
+          'email': 'a@example.com',
+          'domain': '', // fails min(1)
+        });
+        expect(ran, 0);
+      },
+    );
+
+    test(
+      'VMap.refineField with empty dependsOn throws AssertionError at '
+      'construction',
+      () {
         expect(
-          ran,
-          1,
-          reason: 'dependsOn: const {} must NOT be gated by field failures',
+          () => V.map({'name': V.string().min(3)}).refineField(
+            (data) => true,
+            path: 'name',
+            dependsOn: const {},
+          ),
+          throwsA(isA<AssertionError>()),
         );
       },
     );
 
     test(
-      'VObject.refineField with dependsOn: const {} runs even when its own '
-      'declared field failed (parity with VMap)',
+      'VObject.refineField with empty dependsOn throws AssertionError at '
+      'construction (parity with VMap)',
       () {
-        var ran = 0;
-        final schema = V
-            .object<_RawDemo>()
-            .field('value', (d) => d.value, V.string().min(5))
-            .field('flag', (d) => d.flag, V.bool())
-            .refineField(
-          (d) {
-            ran++;
-            return true;
-          },
-          path: 'value',
-          dependsOn: const {},
-        );
-
-        schema.errors(const _RawDemo(value: 'no', flag: false));
         expect(
-          ran,
-          1,
-          reason: 'VObject.refineField with dependsOn: const {} must NOT be '
-              'gated by field failures (mirrors VMap.refineField)',
+          () => V
+              .object<_RawDemo>()
+              .field('value', (d) => d.value, V.string().min(5))
+              .field('flag', (d) => d.flag, V.bool())
+              .refineField(
+            (d) => true,
+            path: 'value',
+            dependsOn: const {},
+          ),
+          throwsA(isA<AssertionError>()),
         );
       },
     );
@@ -1248,7 +1263,7 @@ void main() {
             .refineField(
               (d) => d.a == d.b,
               path: 'a',
-              dependsOn: const {'a', 'b'},
+              dependsOn: const {'b'},
               message: 'a and b must be equal',
             );
 
@@ -1256,6 +1271,30 @@ void main() {
         final errs = schema.errors(const _DependsOnDemo(a: 'x', b: 'y'));
         expect(errs!.first.message, 'a and b must be equal');
         expect(errs.first.path, ['a']);
+      },
+    );
+
+    test(
+      'VObject.refineField unions {path} into dependsOn — skips when path '
+      'itself failed even though only an extra dep was declared',
+      () {
+        var ran = 0;
+        final schema = V
+            .object<_DependsOnDemo>()
+            .field('a', (d) => d.a, V.string().min(3))
+            .field('b', (d) => d.b, V.string().min(1))
+            .refineField(
+          (d) {
+            ran++;
+            return true;
+          },
+          path: 'a',
+          dependsOn: const {'b'},
+        );
+
+        // 'a' fails min(3) — path is in the effective dep set → skip.
+        schema.errors(const _DependsOnDemo(a: 'x', b: 'ok'));
+        expect(ran, 0);
       },
     );
   });

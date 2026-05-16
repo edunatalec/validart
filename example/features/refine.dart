@@ -61,9 +61,9 @@ void runRefineExamples() {
     print(f.rootMessages()); // [endDate must be after startDate]
   }
 
-  section('refineFieldRaw — pre-pipeline rule scoped to a field');
+  section('refineField(stage: pre) — pre-pipeline rule scoped to a field');
 
-  // Unlike `refineField`, `refineFieldRaw` runs BEFORE per-field
+  // With stage: RefineStage.pre, refineField runs BEFORE per-field
   // preprocess / validators / transforms. It sees the input as the
   // user typed it. Use when a rule depends on raw casing / whitespace
   // / pre-coercion shape that would otherwise be lost by the field's
@@ -71,10 +71,11 @@ void runRefineExamples() {
   final emailMatch = V.map({
     'email': V.string().toLowerCase(), // transform applied after raw rule
     'expected': V.string(),
-  }).refineFieldRaw(
+  }).refineField(
     (data) => data['email'] == data['expected'],
     path: 'email',
     message: 'email must match expected (raw, case-sensitive)',
+    stage: RefineStage.pre,
   );
 
   // 'A@B.COM' raw matches 'A@B.COM' expected — passes.

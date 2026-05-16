@@ -160,6 +160,185 @@ void main() {
       });
     });
 
+    group('date.isToday', () {
+      final schema = VDate().isToday();
+
+      DateTime today({int hour = 0, int minute = 0}) {
+        final now = DateTime.now();
+
+        return DateTime(now.year, now.month, now.day, hour, minute);
+      }
+
+      test('should pass for any time on the current day', () {
+        expect(schema.validate(today()), isTrue);
+        expect(schema.validate(today(hour: 9, minute: 30)), isTrue);
+        expect(schema.validate(today(hour: 23, minute: 59)), isTrue);
+      });
+
+      test('should fail for yesterday and tomorrow', () {
+        expect(
+          schema.validate(today().subtract(const Duration(days: 1))),
+          isFalse,
+        );
+        expect(
+          schema.validate(today().add(const Duration(days: 1))),
+          isFalse,
+        );
+      });
+
+      test('should return error with code date.is_today', () {
+        final errs = schema.errors(today().add(const Duration(days: 1)));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'date.is_today');
+      });
+
+      test('default message reads "Must be today"', () {
+        final errs = schema.errors(today().add(const Duration(days: 1)));
+        expect(errs!.first.message, 'Must be today');
+      });
+
+      test('should use custom message', () {
+        final custom = VDate().isToday(message: 'Pick today');
+        final errs = custom.errors(today().add(const Duration(days: 1)));
+        expect(errs!.first.message, 'Pick today');
+      });
+    });
+
+    group('date.sameDayAs', () {
+      final reference = DateTime(2026, 5, 16, 14, 0);
+      final schema = VDate().sameDayAs(reference);
+
+      test('should pass when y/m/d matches, regardless of time', () {
+        expect(schema.validate(DateTime(2026, 5, 16)), isTrue);
+        expect(schema.validate(DateTime(2026, 5, 16, 9, 30)), isTrue);
+        expect(schema.validate(DateTime(2026, 5, 16, 23, 59, 59)), isTrue);
+      });
+
+      test('should fail when day differs by one', () {
+        expect(schema.validate(DateTime(2026, 5, 15, 14, 0)), isFalse);
+        expect(schema.validate(DateTime(2026, 5, 17, 14, 0)), isFalse);
+      });
+
+      test('should fail when month or year differs', () {
+        expect(schema.validate(DateTime(2026, 6, 16)), isFalse);
+        expect(schema.validate(DateTime(2027, 5, 16)), isFalse);
+      });
+
+      test('should return error with code date.same_day', () {
+        final errs = schema.errors(DateTime(2026, 5, 17));
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'date.same_day');
+      });
+
+      test('default message interpolates {date}', () {
+        final errs = schema.errors(DateTime(2026, 5, 17));
+        expect(errs!.first.message, 'Must be the same day as $reference');
+      });
+
+      test('should use custom message function', () {
+        final custom = VDate().sameDayAs(
+          reference,
+          message: (d) => 'Pick the day of ${d.toIso8601String()}',
+        );
+        final errs = custom.errors(DateTime(2026, 5, 17));
+        expect(
+          errs!.first.message,
+          'Pick the day of ${reference.toIso8601String()}',
+        );
+      });
+    });
+
+    group('date.afterToday', () {
+      final schema = VDate().afterToday();
+
+      DateTime today() {
+        final now = DateTime.now();
+
+        return DateTime(now.year, now.month, now.day);
+      }
+
+      test('should pass for any future day', () {
+        expect(
+          schema.validate(today().add(const Duration(days: 1))),
+          isTrue,
+        );
+        expect(
+          schema.validate(today().add(const Duration(days: 30))),
+          isTrue,
+        );
+      });
+
+      test('should reject today (strict comparison)', () {
+        final now = DateTime.now();
+        expect(schema.validate(now), isFalse);
+        expect(schema.validate(today()), isFalse);
+      });
+
+      test('should reject any past day', () {
+        expect(
+          schema.validate(today().subtract(const Duration(days: 1))),
+          isFalse,
+        );
+      });
+
+      test('should return error with code date.after_today', () {
+        final errs = schema.errors(DateTime.now());
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'date.after_today');
+      });
+
+      test('should use custom message', () {
+        final custom = VDate().afterToday(message: 'Must be in the future');
+        final errs = custom.errors(DateTime.now());
+        expect(errs!.first.message, 'Must be in the future');
+      });
+    });
+
+    group('date.beforeToday', () {
+      final schema = VDate().beforeToday();
+
+      DateTime today() {
+        final now = DateTime.now();
+
+        return DateTime(now.year, now.month, now.day);
+      }
+
+      test('should pass for any past day', () {
+        expect(
+          schema.validate(today().subtract(const Duration(days: 1))),
+          isTrue,
+        );
+        expect(
+          schema.validate(today().subtract(const Duration(days: 365))),
+          isTrue,
+        );
+      });
+
+      test('should reject today (strict comparison)', () {
+        expect(schema.validate(DateTime.now()), isFalse);
+        expect(schema.validate(today()), isFalse);
+      });
+
+      test('should reject any future day', () {
+        expect(
+          schema.validate(today().add(const Duration(days: 1))),
+          isFalse,
+        );
+      });
+
+      test('should return error with code date.before_today', () {
+        final errs = schema.errors(DateTime.now());
+        expect(errs, isNotNull);
+        expect(errs!.first.code, 'date.before_today');
+      });
+
+      test('should use custom message', () {
+        final custom = VDate().beforeToday(message: 'Must be in the past');
+        final errs = custom.errors(DateTime.now());
+        expect(errs!.first.message, 'Must be in the past');
+      });
+    });
+
     group('validate', () {
       final schema = VDate();
 

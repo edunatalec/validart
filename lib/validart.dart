@@ -16,7 +16,8 @@ export 'src/types/type.dart'
         VLiteral,
         VUnion,
         VTransformed,
-        VTransformedAsync;
+        VTransformedAsync,
+        RefineStage;
 export 'src/v.dart';
 export 'src/validators/string/card_brand_pattern.dart'
     show

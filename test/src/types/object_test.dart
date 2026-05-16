@@ -1293,6 +1293,79 @@ void main() {
         final merged = a.merge(b);
         expect(merged.whenMatchesRules, hasLength(2));
       });
+
+      test('rule is skipped when a declared dependsOn field failed per-field',
+          () {
+        int conditionRan = 0;
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string())
+            .field('age', (p) => p.age, V.int().positive())
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .whenMatches(
+          (p) {
+            conditionRan++;
+            return true;
+          },
+          dependsOn: const {'age'},
+          then: {'bio': V.string().min(5)},
+        );
+
+        // age is invalid → whenMatches must be skipped entirely.
+        schema.errors(
+          _Profile(name: 'A', age: -1, email: 'a@b.com', bio: null),
+        );
+
+        expect(
+          conditionRan,
+          0,
+          reason:
+              'condition must not run when a declared dependsOn field failed',
+        );
+      });
+
+      test('rule still runs when failing field is NOT in dependsOn', () {
+        int conditionRan = 0;
+        final schema = V
+            .object<_Profile>()
+            .field('name', (p) => p.name, V.string().min(5))
+            .field('age', (p) => p.age, V.int())
+            .field('email', (p) => p.email, V.string().email())
+            .field('bio', (p) => p.bio, V.string().nullable())
+            .whenMatches(
+          (p) {
+            conditionRan++;
+            return true;
+          },
+          dependsOn: const {'age'},
+          then: {'bio': V.string().min(5)},
+        );
+
+        // name fails min(5) but is not in dependsOn → whenMatches still runs.
+        schema.errors(
+          _Profile(name: 'A', age: 30, email: 'a@b.com', bio: 'x'),
+        );
+
+        expect(conditionRan, 1);
+      });
+
+      test('empty dependsOn throws AssertionError at construction', () {
+        expect(
+          () => V
+              .object<_Profile>()
+              .field('name', (p) => p.name, V.string())
+              .field('age', (p) => p.age, V.int())
+              .field('email', (p) => p.email, V.string().email())
+              .field('bio', (p) => p.bio, V.string().nullable())
+              .whenMatches(
+            (p) => true,
+            dependsOn: const <String>{},
+            then: const <String, VType>{},
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
     });
 
     group('refineField', () {
@@ -2156,12 +2229,13 @@ void main() {
             (e) => e.id,
             V.union([V.string().uuid(), V.int().min(1)]),
           )
-          .refineFieldRaw(
+          .refineField(
             // Raw rule — runs at step 4 of the container pipeline, before
             // any field's own preprocess / validators / transforms apply.
             (entity) => entity.name != 'forbidden',
             path: 'name',
             message: 'Name "forbidden" is reserved',
+            stage: RefineStage.pre,
           );
 
       _KitchenSinkEntity goodEntity() => _KitchenSinkEntity(

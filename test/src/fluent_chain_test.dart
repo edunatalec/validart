@@ -80,6 +80,21 @@ void main() {
       expect(a.validate('x'), isTrue);
     });
 
+    test('VObject.strict() / passthrough() return VObject<T> (fluent chain)',
+        () {
+      final VObject<String> a = V
+          .object<String>()
+          .field('length', (s) => s.length, V.int().positive())
+          .strict();
+      final VObject<String> b = V
+          .object<String>()
+          .field('length', (s) => s.length, V.int().positive())
+          .passthrough();
+
+      expect(a.validate('x'), isTrue);
+      expect(b.validate('x'), isTrue);
+    });
+
     test('VObject.field returns VObject<T> (fluent chain)', () {
       final VObject<String> a = V
           .object<String>()

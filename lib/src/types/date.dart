@@ -173,4 +173,69 @@ class VDate extends VType<DateTime> {
 
     return add(AgeValidator(min: min, max: max), message: message);
   }
+
+  /// Validates that the value falls on the current calendar day.
+  ///
+  /// Compares y/m/d only — hour/minute/second are ignored, so any
+  /// `DateTime` whose date part equals today's date passes. Resolved
+  /// against `DateTime.now()` at validation time in **local time**.
+  /// Callers operating in UTC should normalize the input first.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().isToday().validate(DateTime.now()); // true
+  /// V.date().isToday().validate(DateTime.now().add(const Duration(days: 1))); // false
+  /// ```
+  VDate isToday({String? message}) =>
+      add(const IsTodayValidator(), message: message);
+
+  /// Validates that the value falls on the same calendar day as [other],
+  /// ignoring hour/minute/second.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// final reference = DateTime(2026, 5, 16, 14, 0);
+  /// V.date().sameDayAs(reference).validate(DateTime(2026, 5, 16, 9, 30)); // true
+  /// V.date().sameDayAs(reference).validate(DateTime(2026, 5, 17));         // false
+  /// ```
+  VDate sameDayAs(DateTime other, {String Function(DateTime)? message}) {
+    return add(
+      SameDayAsValidator(other: other),
+      message: message?.call(other),
+    );
+  }
+
+  /// Validates that the value is strictly after today (y/m/d comparison).
+  ///
+  /// "Today" itself is rejected — combine with [isToday] (e.g. in a
+  /// [VUnion]) when you want "today or any future day". Resolved against
+  /// `DateTime.now()` in local time.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().afterToday()
+  ///   .validate(DateTime.now().add(const Duration(days: 1))); // true
+  /// V.date().afterToday().validate(DateTime.now());            // false
+  /// ```
+  VDate afterToday({String? message}) =>
+      add(const AfterTodayValidator(), message: message);
+
+  /// Validates that the value is strictly before today (y/m/d comparison).
+  ///
+  /// "Today" itself is rejected — combine with [isToday] when you need
+  /// "today or any past day". Resolved against `DateTime.now()` in local
+  /// time.
+  ///
+  /// Runs in the validation phase.
+  ///
+  /// ```dart
+  /// V.date().beforeToday()
+  ///   .validate(DateTime.now().subtract(const Duration(days: 1))); // true
+  /// V.date().beforeToday().validate(DateTime.now());                // false
+  /// ```
+  VDate beforeToday({String? message}) =>
+      add(const BeforeTodayValidator(), message: message);
 }

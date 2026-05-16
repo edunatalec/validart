@@ -101,6 +101,36 @@ void runObjectExamples() {
   print(patchSchema
       .validate(const SignInDto(email: 'bad', password: 'Str0ng!Pass')));
   // false — non-null email still validated by .email()
+
+  section('VObject — safeParseRaw: validate Map without constructing T');
+
+  // Use `safeParseRaw` when the caller cannot build `T` ahead of time —
+  // typically because the source data is partial and the `T` constructor
+  // rejects null on required fields. The schema reads each field by name
+  // (`map[fieldName]`); per-field validators, `when`, `whenMatches`,
+  // `strict`, and `passthrough` apply the same way as in entity mode.
+  final rawSchema = V
+      .object<SignInDto>()
+      .field('email', (d) => d.email, V.string().email())
+      .field('password', (d) => d.password, V.string().password())
+      .strict();
+
+  print(rawSchema.validateRaw({
+    'email': 'a@b.com',
+    'password': 'Str0ng!Pass',
+  })); // true
+
+  print(rawSchema.errorsRaw({
+    'email': 'bad',
+    'password': 'weak',
+    'unexpected': 1,
+  }));
+  // Three errors: invalid email, weak password, and the unknown key
+  // rejected by strict().
+
+  // A partial payload missing a required field — the entity constructor
+  // would throw here, but `safeParseRaw` surfaces a clean field error.
+  print(rawSchema.errorsRaw({'email': 'a@b.com'}));
 }
 
 void main() => runObjectExamples();

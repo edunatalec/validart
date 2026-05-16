@@ -36,11 +36,39 @@ class _ObjectWhenMatchesRule<T> {
   });
 }
 
+class _ObjectWhenMatchesRawRule {
+  final bool Function(Map<String, dynamic> input) condition;
+  final Set<String> dependsOn;
+  final Map<String, VType> then;
+
+  const _ObjectWhenMatchesRawRule({
+    required this.condition,
+    required this.dependsOn,
+    required this.then,
+  });
+}
+
+class _ObjectRawFieldRule {
+  final bool Function(Map<String, dynamic> data) check;
+  final String path;
+  final String? message;
+  final Set<String> dependsOn;
+  final RefineStage stage;
+
+  const _ObjectRawFieldRule({
+    required this.check,
+    required this.path,
+    required this.message,
+    required this.dependsOn,
+    required this.stage,
+  });
+}
+
 /// Validates class/entity instances of type [T] via type-safe field
 /// extraction callbacks.
 ///
 /// ```dart
-/// final schema = V.object<User>()
+/// final schema = V.object<T>()
 ///     .field('name', (u) => u.name, V.string().min(2))
 ///     .field('age', (u) => u.age, V.int().positive());
 /// schema.validate(User(name: 'Jo', age: 25)); // true
@@ -49,6 +77,10 @@ class VObject<T> extends VType<T> {
   final List<_FieldEntry<T>> _fields = [];
   final List<_ObjectWhenRule<T>> _whenRules = [];
   final List<_ObjectWhenMatchesRule<T>> _whenMatchesRules = [];
+  final List<_ObjectWhenMatchesRawRule> _whenMatchesRawRules = [];
+  final List<_ObjectRawFieldRule> _rawFieldRules = [];
+  bool _isStrict = false;
+  bool _isPassthrough = false;
 
   VObject._({super.message, super.invalidTypeMessage});
 
@@ -172,6 +204,11 @@ class VObject<T> extends VType<T> {
     }
 
     for (final rule in _whenMatchesRules) {
+      keys.addAll(rule.then.keys);
+      keys.addAll(rule.dependsOn);
+    }
+
+    for (final rule in _whenMatchesRawRules) {
       keys.addAll(rule.then.keys);
       keys.addAll(rule.dependsOn);
     }
@@ -322,13 +359,29 @@ class VObject<T> extends VType<T> {
           .toList();
 
   /// The predicate-based conditional validation rules added via
-  /// [whenMatches].
+  /// [whenMatches] — entity-mode only (callback receives `T`).
   List<
       ({
         bool Function(T entity) condition,
         Set<String> dependsOn,
         Map<String, VType> then,
       })> get whenMatchesRules => _whenMatchesRules
+      .map((r) => (
+            condition: r.condition,
+            dependsOn: r.dependsOn,
+            then: r.then,
+          ))
+      .toList();
+
+  /// The predicate-based conditional validation rules added via
+  /// [whenMatchesRaw] — universal (callback receives the raw
+  /// `Map<String, dynamic>` view of the input).
+  List<
+      ({
+        bool Function(Map<String, dynamic> input) condition,
+        Set<String> dependsOn,
+        Map<String, VType> then,
+      })> get whenMatchesRawRules => _whenMatchesRawRules
       .map((r) => (
             condition: r.condition,
             dependsOn: r.dependsOn,
@@ -470,15 +523,57 @@ class VObject<T> extends VType<T> {
   void _copyObjectStateTo(VObject<T> target) {
     target._whenRules.addAll(_whenRules);
     target._whenMatchesRules.addAll(_whenMatchesRules);
+    target._whenMatchesRawRules.addAll(_whenMatchesRawRules);
+    target._rawFieldRules.addAll(_rawFieldRules);
     target._steps.addAll(_steps);
     target._preprocessors.addAll(_preprocessors);
 
+    if (_isStrict) target._isStrict = true;
+    if (_isPassthrough) target._isPassthrough = true;
     if (_isNullable) target._isNullable = true;
 
     if (_hasDefault) {
       target._defaultValue = _defaultValue;
       target._hasDefault = true;
     }
+  }
+
+  /// Rejects raw map inputs that contain keys not declared on this schema.
+  ///
+  /// No-op in entity mode (`safeParse(T)`) — declared fields are read
+  /// through their extractors, so the `T` instance never exposes unknown
+  /// keys. Active in raw mode (`safeParseRaw`): each unrecognized key
+  /// emits an `object.unrecognized_key` error scoped to that key's path.
+  /// Mirrors `VMap.strict()`.
+  ///
+  /// ```dart
+  /// V.object<User>()
+  ///     .field('name', (u) => u.name, V.string())
+  ///     .strict()
+  ///     .errorsRaw({'name': 'Jo', 'extra': true}); // VFailure
+  /// ```
+  VObject<T> strict() {
+    _isStrict = true;
+    return this;
+  }
+
+  /// Allows raw map inputs to carry keys not declared on this schema and
+  /// preserves them in the validated map.
+  ///
+  /// No-op in entity mode (`safeParse(T)`) — declared fields are read
+  /// through their extractors, so unknown keys cannot arrive. Active in
+  /// raw mode (`safeParseRaw`): non-declared keys flow through to the
+  /// returned map unchanged. Mirrors `VMap.passthrough()`.
+  ///
+  /// ```dart
+  /// V.object<User>()
+  ///     .field('name', (u) => u.name, V.string())
+  ///     .passthrough()
+  ///     .parseRaw({'name': 'Jo', 'extra': true}); // {'name': 'Jo', 'extra': true}
+  /// ```
+  VObject<T> passthrough() {
+    _isPassthrough = true;
+    return this;
   }
 
   /// Applies conditional validation rules based on a field's value. When the
@@ -520,24 +615,39 @@ class VObject<T> extends VType<T> {
   }
 
   /// Applies conditional validation rules based on an arbitrary predicate
-  /// that reads the typed entity.
+  /// that reads the typed entity `T`.
   ///
-  /// Use this when [when] is not expressive enough — when the trigger
-  /// depends on a comparison other than `==` (`>`, `oneOf`, etc.) or on
-  /// the combined value of multiple fields. The [condition] receives the
-  /// entity `T` (after the container preprocess and type cast). When it
+  /// **Entity-only.** This method is intended for schemas that are
+  /// validated via [safeParse] / [parse] / [validate] / [errors] — the
+  /// callback receives a fully-constructed `T` instance. Schemas with
+  /// `whenMatches` rules **cannot** be validated via [safeParseRaw] and
+  /// friends — those throw [VException] at the entry point because `T`
+  /// does not exist in raw mode. If you need a rule that works in both
+  /// entity and raw modes, use [whenMatchesRaw] (callback receives the
+  /// raw `Map<String, dynamic>` view).
+  ///
+  /// Use this when [when] is not expressive enough — multi-field
+  /// triggers, range comparisons, `oneOf` membership. When [condition]
   /// returns `true`, every validator in [then] is applied to the
   /// corresponding field in addition to its baseline validator.
   ///
-  /// [dependsOn] is required: it declares the field names the predicate
-  /// reads, so subsequent `refine(dependsOn:)` / `refineField(dependsOn:)`
-  /// rules can reference those fields without tripping the
-  /// `_knownKeys()` assertion. Every key in [dependsOn] and in [then]
-  /// must already be declared via [field] before calling this method.
+  /// [dependsOn] is required and must be **non-empty**: every key must
+  /// already be declared via [field] before calling this method. The
+  /// rule uses [dependsOn] for two purposes:
   ///
-  /// The predicate is always synchronous; validators inside [then] may be
-  /// sync or async. A [whenMatches] rule whose [then] contains an async
-  /// validator opts the schema into async mode (`hasAsync == true`).
+  /// 1. **Skip gating** (defensive). If any declared dependency failed
+  ///    its own per-field validation, the entire rule is skipped —
+  ///    avoids running the predicate on data that did not pass its own
+  ///    validator (logical correctness; in entity mode the cast is
+  ///    safe because `T` is typed, but the value may be reprovado).
+  /// 2. **Visibility for downstream `refine(dependsOn:)`**. Keys
+  ///    declared here enter `_knownKeys()`, letting later refines
+  ///    reference them without tripping the assertion.
+  ///
+  /// The predicate is always synchronous; validators inside [then] may
+  /// be sync or async. A [whenMatches] rule whose [then] contains an
+  /// async validator opts the schema into async mode
+  /// (`hasAsync == true`).
   ///
   /// ```dart
   /// V.object<TaxPayer>()
@@ -555,6 +665,13 @@ class VObject<T> extends VType<T> {
     required Set<String> dependsOn,
     required Map<String, VType> then,
   }) {
+    assert(
+      dependsOn.isNotEmpty,
+      'whenMatches dependsOn must declare at least one schema field — '
+      'the rule is skipped when a declared dependency failed per-field '
+      'validation. Use refine() or add() for rules that should always run.',
+    );
+
     for (final key in dependsOn) {
       assert(
         _fields.any((f) => f.name == key),
@@ -578,20 +695,100 @@ class VObject<T> extends VType<T> {
     return this;
   }
 
-  /// Adds a custom validation targeting a specific field [path]. The [check]
-  /// receives the whole instance and the emitted error is scoped to [path].
+  /// Predicate-based conditional rule whose callback receives the raw
+  /// `Map<String, dynamic>` view of the input — the universal sibling
+  /// of [whenMatches].
   ///
-  /// Runs in the validation phase. By default declares
-  /// `dependsOn: {path}` — when the field at [path] fails its own
-  /// validation, this check is skipped; otherwise the result is
-  /// aggregated alongside any unrelated field errors in a single
-  /// `VFailure`. Pass [dependsOn] to override the default — useful when
-  /// the check on [path] also depends on OTHER fields (or to opt out
-  /// of the skip entirely with `dependsOn: const {}`, which makes the
-  /// check always run regardless of field failures; the callback must
-  /// be defensive about partially-parsed input).
+  /// **Works in both modes.** In `safeParse(T)`, the map is rebuilt
+  /// lazily via each declared field's extractor before the predicate
+  /// is invoked. In `safeParseRaw(Map)`, the input flows through
+  /// untouched. Use this when the schema needs to support raw map
+  /// validation (e.g. `valiform` consuming a partial payload, or a
+  /// backend handler accepting JSON without constructing `T` first).
+  /// For entity-only schemas where the predicate naturally reads
+  /// typed fields off `T`, prefer [whenMatches] for ergonomic reasons.
+  ///
+  /// Same [dependsOn] contract as [whenMatches]: required, non-empty,
+  /// keys must be declared via [field]. The rule is skipped when any
+  /// declared dependency failed per-field validation — protects the
+  /// callback from a `m['x'] as int` cast crash on a partial / wrong-
+  /// typed payload.
   ///
   /// ```dart
+  /// V.object<TaxPayer>()
+  ///     .field('country', (t) => t.country, V.string())
+  ///     .field('age', (t) => t.age, V.int())
+  ///     .field('taxId', (t) => t.taxId, V.string())
+  ///     .whenMatchesRaw(
+  ///       (m) => m['country'] == 'US' && (m['age'] as int) >= 21,
+  ///       dependsOn: const {'country', 'age'},
+  ///       then: {'taxId': V.string().min(9)},
+  ///     );
+  /// ```
+  VObject<T> whenMatchesRaw(
+    bool Function(Map<String, dynamic> input) condition, {
+    required Set<String> dependsOn,
+    required Map<String, VType> then,
+  }) {
+    assert(
+      dependsOn.isNotEmpty,
+      'whenMatchesRaw dependsOn must declare at least one schema field — '
+      'the rule is skipped when a declared dependency failed per-field '
+      'validation. Use refine() or add() for rules that should always run.',
+    );
+
+    for (final key in dependsOn) {
+      assert(
+        _fields.any((f) => f.name == key),
+        "The whenMatchesRaw dependsOn key '$key' does not exist in the schema.",
+      );
+    }
+
+    for (final key in then.keys) {
+      assert(
+        _fields.any((f) => f.name == key),
+        "The whenMatchesRaw 'then' field '$key' does not exist in the schema.",
+      );
+    }
+
+    _whenMatchesRawRules.add(_ObjectWhenMatchesRawRule(
+      condition: condition,
+      dependsOn: dependsOn,
+      then: then,
+    ));
+
+    return this;
+  }
+
+  /// Adds an **entity-only** custom validation targeting a specific
+  /// field [path]. The [check] receives the whole `T` instance and the
+  /// emitted error is scoped to [path].
+  ///
+  /// The [stage] controls when the check runs in the container pipeline:
+  ///
+  /// - [RefineStage.post] (default): runs **after** every field has
+  ///   been parsed and transformed. Skipped when any declared
+  ///   dependency failed per-field validation.
+  /// - [RefineStage.pre]: runs **before** any per-field iteration.
+  ///   Callback sees the `T` instance straight from the caller —
+  ///   useful when the rule depends on the raw user input before any
+  ///   per-field preprocess / transform applies. Always runs once the
+  ///   type cast succeeded; [dependsOn] is not accepted.
+  ///
+  /// **`refineField` is entity-only**: in raw mode (`safeParseRaw`)
+  /// the callback would have no `T` to receive, so it is silently
+  /// skipped. Use [refineFieldRaw] for rules that must work in both
+  /// modes.
+  ///
+  /// In [RefineStage.post]: **`path` is always part of the dependency
+  /// set**, even when [dependsOn] is omitted. When [dependsOn] is
+  /// provided it is **unioned with `{path}`**, not replaced — you only
+  /// declare the *extra* fields the callback reads. Passing an empty
+  /// set triggers an `AssertionError`: for "always run regardless",
+  /// use a plain `refine(dependsOn: const {})`.
+  ///
+  /// ```dart
+  /// // Default (post) — implicit dependsOn = {age}.
   /// V.object<User>()
   ///     .field('age', (u) => u.age, V.int())
   ///     .refineField(
@@ -599,71 +796,135 @@ class VObject<T> extends VType<T> {
   ///       path: 'age',
   ///       message: 'Must be at least 18',
   ///     );
+  ///
+  /// // Cross-field (post) — declares the extra dep; path is implicit.
+  /// V.object<Booking>()
+  ///     .field('startsAt', (b) => b.startsAt, V.date())
+  ///     .field('endsAt', (b) => b.endsAt, V.date())
+  ///     .refineField(
+  ///       (b) => b.endsAt.isAfter(b.startsAt),
+  ///       path: 'endsAt',
+  ///       dependsOn: const {'startsAt'},
+  ///       message: 'endsAt must be after startsAt',
+  ///     );
+  ///
+  /// // Pre-pipeline — see raw T before per-field transforms apply.
+  /// V.object<TaxPayer>()
+  ///     .field('country', (t) => t.country, V.string())
+  ///     .field('taxId', (t) => t.taxId, V.string())
+  ///     .refineField(
+  ///       (t) => t.country == 'US' ? t.taxId.length == 9 : true,
+  ///       path: 'taxId',
+  ///       stage: RefineStage.pre,
+  ///       message: 'US taxId must be 9 chars',
+  ///     );
   /// ```
   VObject<T> refineField(
     bool Function(T instance) check, {
     required String path,
     String? message,
     Set<String>? dependsOn,
+    RefineStage stage = RefineStage.post,
   }) {
     assert(
       _fields.any((f) => f.name == path),
       "The provided path '$path' does not exist in the schema.",
+    );
+    assert(
+      stage == RefineStage.post || dependsOn == null,
+      'refineField with stage: RefineStage.pre cannot declare dependsOn — '
+      'pre-pipeline runs unconditionally (no field has been validated yet).',
+    );
+    assert(
+      dependsOn == null || dependsOn.isNotEmpty,
+      'refineField dependsOn must declare at least one extra schema field '
+      'when provided — the path is implicitly included. To run a check '
+      'that should fire regardless of field failures, use stage: '
+      'RefineStage.pre (raw input) or refine(dependsOn: const {}) '
+      '(entity-level, post).',
     );
     _assertDependsOnKeys(dependsOn);
 
-    return add(
-      _RefineValidator<T>(check: check, validatorCode: VCode.custom),
-      message: message,
-      path: [path],
-      dependsOn: dependsOn ?? {path},
-    );
+    switch (stage) {
+      case RefineStage.pre:
+        addRaw(
+          _RefineValidator<T>(check: check, validatorCode: VCode.custom),
+          message: message,
+          path: [path],
+        );
+        return this;
+      case RefineStage.post:
+        final Set<String> effectiveDeps =
+            dependsOn == null ? {path} : {...dependsOn, path};
+
+        return add(
+          _RefineValidator<T>(check: check, validatorCode: VCode.custom),
+          message: message,
+          path: [path],
+          dependsOn: effectiveDeps,
+        );
+    }
   }
 
-  /// Adds an entity-level rule scoped to a specific field path that
-  /// runs **before** any per-field iteration. The [check] callback
-  /// receives the `T` instance after the container preprocess and
-  /// type cast — no per-field pipeline has run yet.
+  /// Adds a **universal** custom validation targeting a specific field
+  /// [path]. The [check] receives a `Map<String, dynamic>` view of the
+  /// input and the emitted error is scoped to [path].
   ///
-  /// Compare with [refineField], whose callback runs after every
-  /// declared field has been individually validated and transformed.
-  /// In practice, since `VObject` does not mutate `T` between the cast
-  /// and the per-field iteration, the two callbacks observe the same
-  /// instance most of the time — the meaningful difference is
-  /// **timing**: [refineFieldRaw] always runs once the input is a
-  /// valid `T`, while [refineField] is gated on the field at [path]
-  /// passing per-field validation. Use [refineFieldRaw] when the rule
-  /// must run regardless of per-field results, or to mirror the same
-  /// semantics across `VMap` and `VObject<T>`.
+  /// Mirror of [refineField] for use cases that need the callback to
+  /// also work in raw mode (`safeParseRaw`). In `safeParse(T)` the map
+  /// is rebuilt lazily from each declared field's extractor before the
+  /// callback is invoked; in `safeParseRaw(Map)` the input flows
+  /// through untouched. Reach for this when the schema is consumed by
+  /// `valiform` or any other pipeline that validates partial payloads.
   ///
-  /// The error is emitted with `path: [path]` so consumers like
-  /// `valiform`'s `VForm` surface it inline under that field.
+  /// Same [stage] / [dependsOn] semantics as [refineField] — see its
+  /// docstring for the full contract. The only difference is the
+  /// callback signature (`Map<String, dynamic>` vs `T`).
   ///
   /// ```dart
-  /// V.object<TaxPayer>()
-  ///   .field('country', (t) => t.country, V.string())
-  ///   .field('taxId', (t) => t.taxId, V.string())
-  ///   .refineFieldRaw(
-  ///     (t) => t.country == 'US' ? t.taxId.length == 9 : true,
-  ///     path: 'taxId',
-  ///     message: 'US taxId must be 9 chars',
-  ///   );
+  /// V.object<Booking>()
+  ///     .field('startsAt', (b) => b.startsAt, V.date())
+  ///     .field('endsAt', (b) => b.endsAt, V.date())
+  ///     .refineFieldRaw(
+  ///       (m) => (m['endsAt'] as DateTime)
+  ///           .isAfter(m['startsAt'] as DateTime),
+  ///       path: 'endsAt',
+  ///       dependsOn: const {'startsAt'},
+  ///     );
   /// ```
   VObject<T> refineFieldRaw(
-    bool Function(T instance) check, {
+    bool Function(Map<String, dynamic> data) check, {
     required String path,
     String? message,
+    Set<String>? dependsOn,
+    RefineStage stage = RefineStage.post,
   }) {
     assert(
       _fields.any((f) => f.name == path),
       "The provided path '$path' does not exist in the schema.",
     );
-
-    addRaw(
-      _RefineValidator<T>(check: check, validatorCode: VCode.custom),
-      message: message,
-      path: [path],
+    assert(
+      stage == RefineStage.post || dependsOn == null,
+      'refineFieldRaw with stage: RefineStage.pre cannot declare dependsOn — '
+      'pre-pipeline runs unconditionally (no field has been validated yet).',
     );
+    assert(
+      dependsOn == null || dependsOn.isNotEmpty,
+      'refineFieldRaw dependsOn must declare at least one extra schema '
+      'field when provided — the path is implicitly included.',
+    );
+    _assertDependsOnKeys(dependsOn);
+
+    final Set<String> effectiveDeps =
+        dependsOn == null ? {path} : {...dependsOn, path};
+
+    _rawFieldRules.add(_ObjectRawFieldRule(
+      check: check,
+      path: path,
+      message: message,
+      dependsOn: effectiveDeps,
+      stage: stage,
+    ));
 
     return this;
   }
@@ -683,6 +944,12 @@ class VObject<T> extends VType<T> {
     }
 
     for (final rule in _whenMatchesRules) {
+      for (final validator in rule.then.values) {
+        if (validator.hasAsync) return true;
+      }
+    }
+
+    for (final rule in _whenMatchesRawRules) {
       for (final validator in rule.then.values) {
         if (validator.hasAsync) return true;
       }
@@ -715,10 +982,31 @@ class VObject<T> extends VType<T> {
       return _typeError<T>(T.toString(), input!);
     }
 
-    // Raw entity-level validators (refineFieldRaw) run BEFORE any
-    // per-field iteration. They see `typed` as it was after container
+    // Raw entity-level validators (`refineField(stage: pre)` →
+    // `_RefineValidator<T>` via `addRaw`) run BEFORE any per-field
+    // iteration. They see `typed` as it was after container
     // preprocess + cast, with no per-field pipeline yet executed.
     final errors = <VError>[..._runRawValidators(typed)];
+
+    // Map view used by Map-typed rules (whenMatchesRaw + rawFieldRules)
+    // in entity mode. Lazy-built only when at least one such rule exists.
+    final bool needsMapView =
+        _whenMatchesRawRules.isNotEmpty || _rawFieldRules.isNotEmpty;
+    final Map<String, dynamic>? mapView = needsMapView ? extract(typed) : null;
+
+    // Map-typed pre-pipeline rules (refineFieldRaw stage: pre) — run
+    // alongside the entity-typed raw step above. Always fire.
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.pre) continue;
+
+      if (!rule.check(mapView!)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
 
     for (final field in _fields) {
       final fieldValue = field.extractor(typed);
@@ -756,7 +1044,16 @@ class VObject<T> extends VType<T> {
       }
     }
 
+    final Set<String> failedAfterPerField = _firstSegments(errors);
+
     for (final rule in _whenMatchesRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedAfterPerField,
+      )) {
+        continue;
+      }
+
       if (!rule.condition(typed)) continue;
 
       for (final thenEntry in rule.then.entries) {
@@ -772,6 +1069,52 @@ class VObject<T> extends VType<T> {
               errors.add(error.copyWith(path: [thenEntry.key, ...error.path]));
             }
         }
+      }
+    }
+
+    for (final rule in _whenMatchesRawRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedAfterPerField,
+      )) {
+        continue;
+      }
+
+      if (!rule.condition(mapView!)) continue;
+
+      for (final thenEntry in rule.then.entries) {
+        final targetField = _fields.firstWhere((f) => f.name == thenEntry.key);
+        final fieldValue = targetField.extractor(typed);
+        final result = thenEntry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            break;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [thenEntry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    // Map-typed post-pipeline rules (refineFieldRaw stage: post).
+    final Set<String> failedBeforePostRawField = _firstSegments(errors);
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.post) continue;
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedBeforePostRawField,
+      )) {
+        continue;
+      }
+
+      if (!rule.check(mapView!)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
       }
     }
 
@@ -799,10 +1142,26 @@ class VObject<T> extends VType<T> {
       return _typeError<T>(T.toString(), input!);
     }
 
-    // Raw entity-level validators (refineFieldRaw) run BEFORE any
-    // per-field iteration. They see `typed` as it was after container
-    // preprocess + cast, with no per-field pipeline yet executed.
+    // Raw entity-level validators (`refineField(stage: pre)` →
+    // `_RefineValidator<T>` via `addRaw`) run BEFORE any per-field
+    // iteration.
     final errors = <VError>[..._runRawValidators(typed)];
+
+    final bool needsMapView =
+        _whenMatchesRawRules.isNotEmpty || _rawFieldRules.isNotEmpty;
+    final Map<String, dynamic>? mapView = needsMapView ? extract(typed) : null;
+
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.pre) continue;
+
+      if (!rule.check(mapView!)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
 
     for (final field in _fields) {
       final fieldValue = field.extractor(typed);
@@ -844,7 +1203,16 @@ class VObject<T> extends VType<T> {
       }
     }
 
+    final Set<String> failedAfterPerField = _firstSegments(errors);
+
     for (final rule in _whenMatchesRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedAfterPerField,
+      )) {
+        continue;
+      }
+
       if (!rule.condition(typed)) continue;
 
       for (final thenEntry in rule.then.entries) {
@@ -865,10 +1233,488 @@ class VObject<T> extends VType<T> {
       }
     }
 
+    for (final rule in _whenMatchesRawRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedAfterPerField,
+      )) {
+        continue;
+      }
+
+      if (!rule.condition(mapView!)) continue;
+
+      for (final thenEntry in rule.then.entries) {
+        final targetField = _fields.firstWhere((f) => f.name == thenEntry.key);
+        final fieldValue = targetField.extractor(typed);
+        final result = thenEntry.value.hasAsync
+            ? await thenEntry.value.safeParseAsync(fieldValue)
+            : thenEntry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            break;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [thenEntry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    final Set<String> failedBeforePostRawField = _firstSegments(errors);
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.post) continue;
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedBeforePostRawField,
+      )) {
+        continue;
+      }
+
+      if (!rule.check(mapView!)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
+
     return _runPipelineAsync(
       typed,
       carriedErrors: errors,
       failedFieldPaths: _firstSegments(errors),
     );
+  }
+
+  /// Validates [value] as a raw `Map<String, dynamic>` instead of a `T`
+  /// instance and returns the validated map.
+  ///
+  /// Use this when the caller cannot construct `T` ahead of time —
+  /// typically because the source data is partial or the `T` constructor
+  /// rejects null on required fields. Each declared field is read from
+  /// the input using its name as the key (the [field] extractor is not
+  /// consulted); per-field validators, transforms, `when` rules,
+  /// `whenMatches` rules, `strict`, and `passthrough` apply exactly as
+  /// they do for `safeParse(T)`.
+  ///
+  /// Differences from [safeParse]:
+  /// - Returns a `VResult<Map<String, dynamic>?>`, not `VResult<T?>`.
+  /// - Entity-level rules registered with [refine], [refineField],
+  ///   [refineFieldRaw], and [equalFields] are silently skipped — they
+  ///   are typed against `T` and have no place to run when `T` does not
+  ///   exist. Construct `T` from the returned map and revalidate with
+  ///   [safeParse] when those rules matter.
+  /// - Entity-level transforms registered via [transform] do not run.
+  /// - `defaultValue` is a no-op — its type is `T?`, not
+  ///   `Map<String, dynamic>?`. `nullable()` is honored as usual.
+  ///
+  /// Throws [VAsyncRequiredException] when the schema has any async
+  /// piece — use [safeParseRawAsync] instead.
+  ///
+  /// ```dart
+  /// final schema = V.object<StrictDto>()
+  ///     .field('title', (d) => d.title, V.string())
+  ///     .field('scheduledDate', (d) => d.scheduledDate, V.date());
+  /// schema.safeParseRaw({'title': 'meeting'});
+  /// // VFailure with `scheduledDate.required` — no need to build StrictDto.
+  /// ```
+  VResult<Map<String, dynamic>?> safeParseRaw(Object? value) {
+    if (hasAsync) {
+      throw const VAsyncRequiredException(
+        methodName: 'safeParseRaw',
+        suggestion: 'safeParseRawAsync',
+      );
+    }
+    if (_whenMatchesRules.isNotEmpty) {
+      throw const VException([
+        VError(
+          code: VCode.custom,
+          message:
+              'safeParseRaw cannot validate a schema that declares whenMatches '
+              '(entity-only). Use whenMatchesRaw instead, or validate via '
+              'safeParse(T) after constructing T.',
+        ),
+      ]);
+    }
+
+    final Object? preprocessed = runPreprocessors(value);
+
+    if (preprocessed == null) {
+      if (_isNullable) return const VSuccess<Map<String, dynamic>?>(null);
+
+      return VFailure<Map<String, dynamic>?>([
+        VError(
+          code: _requiredCode,
+          message: _message ?? V.t(_requiredCode),
+        ),
+      ]);
+    }
+
+    if (preprocessed is! Map<String, dynamic>) {
+      return _typeError<Map<String, dynamic>>(
+        'Map<String, dynamic>',
+        preprocessed,
+      );
+    }
+
+    final Map<String, dynamic> input = preprocessed;
+    final List<VError> errors = <VError>[];
+    final Map<String, dynamic> parsed = <String, dynamic>{};
+
+    final Set<String> declaredKeys = <String>{
+      for (final field in _fields) field.name,
+    };
+
+    if (_isStrict) {
+      for (final key in input.keys) {
+        if (!declaredKeys.contains(key)) {
+          errors.add(VError(
+            code: VObjectCode.unrecognizedKey,
+            message: V.t(VObjectCode.unrecognizedKey, {'key': key}),
+            path: [key],
+          ));
+        }
+      }
+    }
+
+    // Map-typed pre-pipeline rules (refineFieldRaw stage: pre).
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.pre) continue;
+
+      if (!rule.check(input)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
+
+    for (final field in _fields) {
+      final fieldValue = input[field.name];
+      final result = field.validator.safeParse(fieldValue);
+
+      switch (result) {
+        case VSuccess():
+          parsed[field.name] = result.value;
+        case VFailure():
+          for (final error in result.errors) {
+            errors.add(error.copyWith(path: [field.name, ...error.path]));
+          }
+      }
+    }
+
+    for (final rule in _whenRules) {
+      if (input[rule.field] != rule.equals) continue;
+
+      for (final entry in rule.then.entries) {
+        final fieldValue = input[entry.key];
+        final result = entry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            parsed[entry.key] = result.value;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [entry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    final Set<String> failedAfterPerField = _firstSegments(errors);
+
+    for (final rule in _whenMatchesRawRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedAfterPerField,
+      )) {
+        continue;
+      }
+
+      if (!rule.condition(input)) continue;
+
+      for (final entry in rule.then.entries) {
+        final fieldValue = input[entry.key];
+        final result = entry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            parsed[entry.key] = result.value;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [entry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    final Set<String> failedBeforePostRawField = _firstSegments(errors);
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.post) continue;
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedBeforePostRawField,
+      )) {
+        continue;
+      }
+
+      if (!rule.check(input)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
+
+    if (_isPassthrough) {
+      for (final entry in input.entries) {
+        if (!declaredKeys.contains(entry.key)) {
+          parsed[entry.key] = entry.value;
+        }
+      }
+    }
+
+    if (errors.isNotEmpty) return VFailure<Map<String, dynamic>?>(errors);
+
+    return VSuccess<Map<String, dynamic>?>(parsed);
+  }
+
+  /// Parses [value] as a raw map and returns the validated map, or
+  /// throws a [VException] on failure. See [safeParseRaw] for the full
+  /// semantics — what runs, what is skipped, and when to prefer this
+  /// over [parse].
+  ///
+  /// ```dart
+  /// final map = schema.parseRaw({'title': 'meeting', 'date': dt});
+  /// // throws VException if any field is missing / invalid.
+  /// ```
+  Map<String, dynamic>? parseRaw(Object? value) {
+    final result = safeParseRaw(value);
+
+    if (result case VFailure(:final errors)) {
+      throw VException(errors);
+    }
+
+    return (result as VSuccess<Map<String, dynamic>?>).value;
+  }
+
+  /// Validates [value] as a raw map and returns whether it passes. See
+  /// [safeParseRaw] for the full semantics.
+  ///
+  /// ```dart
+  /// schema.validateRaw({'title': 'meeting'}); // false — date missing
+  /// ```
+  bool validateRaw(Object? value) => safeParseRaw(value).isValid;
+
+  /// Validates [value] as a raw map and returns the list of errors, or
+  /// `null` when the input passed. See [safeParseRaw] for the full
+  /// semantics.
+  ///
+  /// ```dart
+  /// final errs = schema.errorsRaw({'title': 'meeting'});
+  /// // [VError(code: 'date.required', path: ['scheduledDate'], ...)]
+  /// ```
+  List<VError>? errorsRaw(Object? value) {
+    final result = safeParseRaw(value);
+
+    if (result case VFailure(:final errors)) return errors;
+
+    return null;
+  }
+
+  /// Async sibling of [safeParseRaw]. See [safeParseRaw] for the full
+  /// semantics. The same entity-level rules are skipped (refine,
+  /// refineField, equalFields, entity-level transforms); per-field,
+  /// `when`, `whenMatchesRaw`, and `refineFieldRaw` validators run —
+  /// awaited when async. Throws [VException] when the schema declares
+  /// `whenMatches` (entity-only) — those rules cannot run without `T`.
+  Future<VResult<Map<String, dynamic>?>> safeParseRawAsync(
+      Object? value) async {
+    if (_whenMatchesRules.isNotEmpty) {
+      throw const VException([
+        VError(
+          code: VCode.custom,
+          message: 'safeParseRawAsync cannot validate a schema that declares '
+              'whenMatches (entity-only). Use whenMatchesRaw instead, or '
+              'validate via safeParseAsync(T) after constructing T.',
+        ),
+      ]);
+    }
+
+    final Object? preprocessed = await runPreprocessorsAsync(value);
+
+    if (preprocessed == null) {
+      if (_isNullable) return const VSuccess<Map<String, dynamic>?>(null);
+
+      return VFailure<Map<String, dynamic>?>([
+        VError(
+          code: _requiredCode,
+          message: _message ?? V.t(_requiredCode),
+        ),
+      ]);
+    }
+
+    if (preprocessed is! Map<String, dynamic>) {
+      return _typeError<Map<String, dynamic>>(
+        'Map<String, dynamic>',
+        preprocessed,
+      );
+    }
+
+    final Map<String, dynamic> input = preprocessed;
+    final List<VError> errors = <VError>[];
+    final Map<String, dynamic> parsed = <String, dynamic>{};
+
+    final Set<String> declaredKeys = <String>{
+      for (final field in _fields) field.name,
+    };
+
+    if (_isStrict) {
+      for (final key in input.keys) {
+        if (!declaredKeys.contains(key)) {
+          errors.add(VError(
+            code: VObjectCode.unrecognizedKey,
+            message: V.t(VObjectCode.unrecognizedKey, {'key': key}),
+            path: [key],
+          ));
+        }
+      }
+    }
+
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.pre) continue;
+
+      if (!rule.check(input)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
+
+    for (final field in _fields) {
+      final fieldValue = input[field.name];
+      final result = field.validator.hasAsync
+          ? await field.validator.safeParseAsync(fieldValue)
+          : field.validator.safeParse(fieldValue);
+
+      switch (result) {
+        case VSuccess():
+          parsed[field.name] = result.value;
+        case VFailure():
+          for (final error in result.errors) {
+            errors.add(error.copyWith(path: [field.name, ...error.path]));
+          }
+      }
+    }
+
+    for (final rule in _whenRules) {
+      if (input[rule.field] != rule.equals) continue;
+
+      for (final entry in rule.then.entries) {
+        final fieldValue = input[entry.key];
+        final result = entry.value.hasAsync
+            ? await entry.value.safeParseAsync(fieldValue)
+            : entry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            parsed[entry.key] = result.value;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [entry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    final Set<String> failedAfterPerField = _firstSegments(errors);
+
+    for (final rule in _whenMatchesRawRules) {
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedAfterPerField,
+      )) {
+        continue;
+      }
+
+      if (!rule.condition(input)) continue;
+
+      for (final entry in rule.then.entries) {
+        final fieldValue = input[entry.key];
+        final result = entry.value.hasAsync
+            ? await entry.value.safeParseAsync(fieldValue)
+            : entry.value.safeParse(fieldValue);
+
+        switch (result) {
+          case VSuccess():
+            parsed[entry.key] = result.value;
+          case VFailure():
+            for (final error in result.errors) {
+              errors.add(error.copyWith(path: [entry.key, ...error.path]));
+            }
+        }
+      }
+    }
+
+    final Set<String> failedBeforePostRawField = _firstSegments(errors);
+    for (final rule in _rawFieldRules) {
+      if (rule.stage != RefineStage.post) continue;
+      if (VType._shouldSkipForFailedFields(
+        rule.dependsOn,
+        failedBeforePostRawField,
+      )) {
+        continue;
+      }
+
+      if (!rule.check(input)) {
+        errors.add(VError(
+          code: VCode.custom,
+          message: rule.message ?? V.t(VCode.custom),
+          path: [rule.path],
+        ));
+      }
+    }
+
+    if (_isPassthrough) {
+      for (final entry in input.entries) {
+        if (!declaredKeys.contains(entry.key)) {
+          parsed[entry.key] = entry.value;
+        }
+      }
+    }
+
+    if (errors.isNotEmpty) return VFailure<Map<String, dynamic>?>(errors);
+
+    return VSuccess<Map<String, dynamic>?>(parsed);
+  }
+
+  /// Async sibling of [parseRaw]. Returns the validated map or throws
+  /// [VException] on failure.
+  Future<Map<String, dynamic>?> parseRawAsync(Object? value) async {
+    final result = await safeParseRawAsync(value);
+
+    if (result case VFailure(:final errors)) {
+      throw VException(errors);
+    }
+
+    return (result as VSuccess<Map<String, dynamic>?>).value;
+  }
+
+  /// Async sibling of [validateRaw].
+  Future<bool> validateRawAsync(Object? value) async =>
+      (await safeParseRawAsync(value)).isValid;
+
+  /// Async sibling of [errorsRaw]. Returns the list of errors or `null`.
+  Future<List<VError>?> errorsRawAsync(Object? value) async {
+    final result = await safeParseRawAsync(value);
+
+    if (result case VFailure(:final errors)) return errors;
+
+    return null;
   }
 }
