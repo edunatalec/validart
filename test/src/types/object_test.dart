@@ -1368,6 +1368,231 @@ void main() {
       });
     });
 
+    group('whenMatchesRaw — entity mode', () {
+      test('condition receives map rebuilt via extractors', () {
+        Map<String, dynamic>? seen;
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatchesRaw(
+          (m) {
+            seen = m;
+            return false;
+          },
+          dependsOn: const {'country'},
+          then: const {},
+        );
+
+        schema.validate(_TaxPayer('US', '123456789'));
+
+        expect(seen, {'country': 'US', 'taxId': '123456789'});
+      });
+
+      test('skips when whenMatches.then fails a declared dep field', () {
+        // Pins B1 — when a whenMatches.then rule causes a field to fail
+        // AFTER per-field iteration, a subsequent whenMatchesRaw that
+        // depends on that same field MUST skip.
+        var whenMatchesRawRan = 0;
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatches(
+          (t) => true,
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(100)},
+        ).whenMatchesRaw(
+          (m) {
+            whenMatchesRawRan++;
+            return true;
+          },
+          dependsOn: const {'taxId'},
+          then: const {},
+        );
+
+        schema.validate(_TaxPayer('US', 'short'));
+
+        expect(
+          whenMatchesRawRan,
+          0,
+          reason: 'taxId failed via whenMatches.then → whenMatchesRaw with '
+              'dependsOn: {taxId} must skip',
+        );
+      });
+
+      test('runs when no declared dep failed (per-field + then both ok)', () {
+        var whenMatchesRawRan = 0;
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatchesRaw(
+          (m) {
+            whenMatchesRawRan++;
+            return false;
+          },
+          dependsOn: const {'country'},
+          then: const {},
+        );
+
+        schema.validate(_TaxPayer('US', '123456789'));
+
+        expect(whenMatchesRawRan, 1);
+      });
+
+      test('survives merge() — _whenMatchesRawRules copied', () {
+        final a = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .whenMatchesRaw(
+          (m) => m['country'] == 'US',
+          dependsOn: const {'country'},
+          then: {'taxId': V.string().min(9)},
+        );
+        final b = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string());
+
+        final merged = a.merge(b);
+        expect(merged.whenMatchesRawRules, hasLength(1));
+      });
+    });
+
+    group('refineFieldRaw (Map-typed) — entity mode', () {
+      test('callback receives map rebuilt via extractors (stage: post)', () {
+        Map<String, dynamic>? seen;
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .refineFieldRaw(
+          (m) {
+            seen = m;
+            return true;
+          },
+          path: 'taxId',
+        );
+
+        schema.validate(_TaxPayer('US', '123'));
+
+        expect(seen, {'country': 'US', 'taxId': '123'});
+      });
+
+      test('stage: post skips when declared dep failed', () {
+        var ran = 0;
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string().min(2))
+            .field('taxId', (t) => t.taxId, V.string())
+            .refineFieldRaw(
+          (m) {
+            ran++;
+            return true;
+          },
+          path: 'taxId',
+          dependsOn: const {'country'},
+        );
+
+        schema.validate(_TaxPayer('U', '123'));
+
+        expect(ran, 0, reason: 'country failed min(2) → refineFieldRaw skips');
+      });
+
+      test('emits VError with code custom and the declared path', () {
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .refineFieldRaw(
+              (m) => false,
+              path: 'taxId',
+              message: 'forbidden',
+            );
+
+        final errors = schema.errors(_TaxPayer('US', '123'));
+        expect(errors, isNotNull);
+        expect(errors!.last.path, ['taxId']);
+        expect(errors.last.message, 'forbidden');
+      });
+
+      test('async — runs through safeParseAsync', () async {
+        var ran = 0;
+        final schema = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field(
+              'taxId',
+              (t) => t.taxId,
+              V.string().refineAsync((s) async => true),
+            )
+            .refineFieldRaw(
+          (m) {
+            ran++;
+            return true;
+          },
+          path: 'taxId',
+        );
+
+        expect(schema.hasAsync, isTrue);
+        await schema.validateAsync(_TaxPayer('US', '123456789'));
+        expect(ran, 1);
+      });
+
+      test('survives pick() — _rawFieldRules copied via _copyObjectStateTo',
+          () {
+        var ran = 0;
+        final base = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .field('taxId', (t) => t.taxId, V.string())
+            .refineFieldRaw(
+          (m) {
+            ran++;
+            return true;
+          },
+          path: 'country',
+        );
+
+        final picked = base.pick(<String>['country']);
+        picked.validate(_TaxPayer('US', '123'));
+
+        expect(ran, 1, reason: 'refineFieldRaw must survive .pick()');
+      });
+
+      test('survives merge() — _rawFieldRules copied from both sides', () {
+        var ranA = 0;
+        var ranB = 0;
+        final a = V
+            .object<_TaxPayer>()
+            .field('country', (t) => t.country, V.string())
+            .refineFieldRaw(
+          (m) {
+            ranA++;
+            return true;
+          },
+          path: 'country',
+        );
+        final b = V
+            .object<_TaxPayer>()
+            .field('taxId', (t) => t.taxId, V.string())
+            .refineFieldRaw(
+          (m) {
+            ranB++;
+            return true;
+          },
+          path: 'taxId',
+        );
+
+        a.merge(b).validate(_TaxPayer('US', '123'));
+
+        expect(ranA, 1);
+        expect(ranB, 1);
+      });
+    });
+
     group('refineField', () {
       test('should emit error scoped to the declared path', () {
         final schema = V

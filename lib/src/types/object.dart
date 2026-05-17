@@ -248,6 +248,13 @@ class VObject<T> extends VType<T> {
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
   ///
+  /// Unlike [VMap] (which asserts at least one declared field at factory
+  /// time), `VObject<T>` accepts an empty schema. This supports partial
+  /// construction patterns like [fieldIf] returning the receiver
+  /// unchanged when a flag is off, or building a base schema that gets
+  /// fields added later via [merge]. A schema with zero fields
+  /// validates any `T` instance trivially.
+  ///
   /// ```dart
   /// final schema = VObject<User>()
   ///     .field('name', (u) => u.name, V.string());
@@ -1072,10 +1079,15 @@ class VObject<T> extends VType<T> {
       }
     }
 
+    // Recompute after whenMatches.then may have added field errors —
+    // whenMatchesRaw must gate against the latest failed-field set, not
+    // the snapshot taken before whenMatches ran.
+    final Set<String> failedAfterWhenMatches = _firstSegments(errors);
+
     for (final rule in _whenMatchesRawRules) {
       if (VType._shouldSkipForFailedFields(
         rule.dependsOn,
-        failedAfterPerField,
+        failedAfterWhenMatches,
       )) {
         continue;
       }
@@ -1233,10 +1245,14 @@ class VObject<T> extends VType<T> {
       }
     }
 
+    // Recompute after whenMatches.then may have added field errors —
+    // whenMatchesRaw must gate against the latest failed-field set.
+    final Set<String> failedAfterWhenMatches = _firstSegments(errors);
+
     for (final rule in _whenMatchesRawRules) {
       if (VType._shouldSkipForFailedFields(
         rule.dependsOn,
-        failedAfterPerField,
+        failedAfterWhenMatches,
       )) {
         continue;
       }

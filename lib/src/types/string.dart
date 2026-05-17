@@ -16,11 +16,25 @@ class VString extends VType<String> {
   /// translation used when the input is `null`.
   VString({super.message, super.invalidTypeMessage});
 
-  bool get _effectiveTreatEmptyAsNull =>
+  /// Whether this schema currently rewrites `""` to `null` before the
+  /// pipeline runs.
+  ///
+  /// Resolves the **effective** flag: a per-field override set via
+  /// [treatEmptyAsNull] wins; otherwise falls back to the global
+  /// [V.isEmptyAsNullEnabled]. Exposed so external packages (e.g.
+  /// valiform's form-wide getters) can mirror the same `""` → `null`
+  /// contract at the boundary without inspecting private state.
+  ///
+  /// ```dart
+  /// V.string().treatsEmptyAsNull;                           // global
+  /// V.string().treatEmptyAsNull().treatsEmptyAsNull;        // true (local on)
+  /// V.string().treatEmptyAsNull(enabled: false).treatsEmptyAsNull; // false (local off)
+  /// ```
+  bool get treatsEmptyAsNull =>
       _treatEmptyAsNullOverride ?? V.isEmptyAsNullEnabled;
 
   Object? _emptyToNull(Object? value) {
-    if (!_effectiveTreatEmptyAsNull) return value;
+    if (!treatsEmptyAsNull) return value;
     if (value is String && value.isEmpty) return null;
     return value;
   }
