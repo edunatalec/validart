@@ -9,6 +9,7 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
 
 ## Table of Contents
 
+- [Why Validart](#why-validart)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Types](#types)
@@ -30,6 +31,8 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
   - [Cross-Field Validation](#cross-field-validation-1)
   - [Custom Field Validation](#custom-field-validation-1)
   - [Conditional Validation](#conditional-validation-1)
+  - [Validating raw maps with `safeParseRaw`](#validating-raw-maps-with-safeparseraw)
+  - [Decision matrix — which API runs where](#decision-matrix--which-api-runs-where)
   - [Schema Composition](#schema-composition-1)
 - [Array](#array)
 - [Other Types](#other-types)
@@ -48,11 +51,12 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
   - [Custom pre-pipeline messages per schema](#custom-pre-pipeline-messages-per-schema)
 - [Async Validation](#async-validation)
   - [More async primitives](#more-async-primitives)
+- [Form Patterns](#form-patterns)
 - [Form Errors](#form-errors)
   - [Reading raw errors](#reading-raw-errors)
   - [Root-level errors via `rootMessages()`](#root-level-errors-via-rootmessages)
   - [Custom error codes in refine](#custom-error-codes-in-refine)
-  - [`refine` with `dependsOn` for error aggregation on `VMap` / `VObject`](#refine-with-dependson-for-error-aggregation-on-vmap--vobject)
+  - [`refine` with `dependsOn`](#refine-with-dependson)
 - [i18n (Internationalization)](#i18n-internationalization)
   - [Type-specific overrides](#type-specific-overrides)
   - [Manual translation](#manual-translation)
@@ -61,6 +65,16 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
 - [Extensibility](#extensibility)
   - [Pluggable patterns](#pluggable-patterns)
 - [License](#license)
+
+## Why Validart
+
+- **Schema as data, not callbacks.** A `V.string().email().min(5)` is a value you can compose, reuse, share between client and server, and serialize into a form library.
+- **Type-safe entities without code generation.** `V.object<T>().field('name', (u) => u.name, V.string())` validates instances of your existing class with compile-time-checked field extractors. No build runner, no generated files.
+- **Structured errors with paths.** Every error carries `code`, `message`, `path` — drives forms, server responses, audit logs without writing parsers.
+- **i18n built-in.** Override default messages globally (`V.setLocale(VLocale({...}))`) or per validator. No tinkering with `intl` to translate error strings.
+- **Both entity and raw modes.** Validate a fully-built `T` (`safeParse`) or a `Map<String, dynamic>` straight from JSON/Firestore (`safeParseRaw`) reusing the **same schema** — no defensive `fromMap` needed before validation.
+- **Async-aware pipeline.** Mix `refineAsync` (DB lookups, remote checks) with sync rules; the schema short-circuits at the right place and surfaces async-vs-sync mistakes with `VAsyncRequiredException`.
+- **Zero runtime dependencies.** Pure Dart, works in Flutter / server / CLI / scripts.
 
 ## Installation
 
@@ -72,7 +86,7 @@ Or in pubspec.yaml:
 
 ```yaml
 dependencies:
-  validart: ^2.2.0
+  validart: ^3.0.0
 ```
 
 ```dart
@@ -83,22 +97,23 @@ import 'package:validart/validart.dart';
 
 ```dart
 // No instantiation needed — V is a static class
-final schema = V.string().email();
+final schema = V.string().trim().toLowerCase().email();
 
-schema.validate('user@example.com'); // true
-schema.validate('invalid');          // false
+schema.validate('  User@Example.COM  '); // true — trim + lowercase before .email()
+schema.validate('invalid');              // false
 
 // Get structured errors
 final errors = schema.errors('invalid');
 // [VError(code: 'string.email', message: 'Invalid email address')]
 
-// Parse — throws on failure
-final value = schema.parse('user@example.com'); // 'user@example.com'
+// Parse — runs the pipeline and returns the normalized value; throws on failure
+final value = schema.parse('  USER@Example.com  ');
+// 'user@example.com' (trim + lowercase applied)
 
-// SafeParse — never throws
+// SafeParse — never throws; branch on success vs failure
 final result = schema.safeParse('invalid');
 if (result case VFailure(:final errors)) {
-  print(errors.first.message);
+  print(errors.first.message); // 'Invalid email address'
 }
 ```
 
@@ -131,6 +146,32 @@ Accents are transliterated by default (`São João` → `sao-joao`). Pass `keepA
 V.string().toSlug().parse('São João');                  // 'sao-joao'
 V.string().toSlug(keepAccents: true).parse('São João'); // 'são-joão'
 ```
+
+#### Empty as null
+
+Forms typically treat an empty input as "missing" rather than "empty string". The schema-level `.treatEmptyAsNull()` (and its global twin `V.treatEmptyAsNull(bool)`) normalizes `""` to `null` **before** the pipeline runs — so `nullable()` accepts it, `defaultValue(x)` substitutes `x`, and a bare schema reports `string.required` instead of `string.too_small` / `string.not_empty`.
+
+```dart
+// Local — turn it on per schema:
+V.string().treatEmptyAsNull().nullable().parse('');         // null
+V.string().treatEmptyAsNull().defaultValue('x').parse('');  // 'x'
+V.string().treatEmptyAsNull().parse('');                    // throws — required
+
+// Global — flip the default for every V.string() created afterwards:
+void main() {
+  V.treatEmptyAsNull(true);
+  runApp(MyApp());
+}
+
+// Opt out per field when the global is on:
+V.treatEmptyAsNull(true);
+V.string().treatEmptyAsNull(enabled: false).min(1).validate(''); // false → string.too_small
+```
+
+- Only `""` exactly is normalized. Whitespace-only inputs (`"   "`) pass through untouched. To also collapse whitespace, preprocess with a manual trim (`.preprocess((v) => (v as String?)?.trim()).treatEmptyAsNull()`).
+- The normalization runs **before** any `.preprocess()` you register — so your preprocessors see `null` (when the flag fires) instead of `""`.
+- Default is `false` globally (opt-in, non-breaking). Local `.treatEmptyAsNull(enabled: ...)` overrides the global on that schema.
+- `.notEmpty()` is the orthogonal pattern: keeps `""` as a value and reports `string.not_empty`. Use that when you want the empty-vs-missing distinction explicit; use `treatEmptyAsNull` when "missing" is the right mental model.
 
 #### Date
 
@@ -219,7 +260,7 @@ V.string()
   .validate('4111111111111111'); // true (Visa)
 ```
 
-Built-in brands: `VisaBrand`, `MastercardBrand`, `AmexBrand`, `DinersBrand`, `DiscoverBrand`, `JcbBrand`. External packages can extend `CardBrandPattern` to add more (e.g. `EloBrand`, `HipercardBrand` in `validart_br`).
+Built-in brands: `VisaBrand`, `MastercardBrand`, `AmexBrand`, `DinersBrand`, `DiscoverBrand`, `JcbBrand`. External packages can extend `CardBrandPattern` to add more (e.g. `EloBrand`, `HipercardBrand` in [validart_br](https://pub.dev/packages/validart_br)).
 
 Pin the input shape with `ValidationMode`:
 
@@ -392,7 +433,9 @@ Validates boolean values. Use `isTrue()` for terms-acceptance or opt-in flags, `
 final accepted = V.bool(message: 'You must accept the terms').isTrue();
 accepted.validate(true);  // true
 accepted.validate(false); // false
-accepted.validate(null);  // false — factory-level `message` fires for null
+
+// `validate` returns bool. To see the factory-level message:
+accepted.errors(null)!.first.message; // 'You must accept the terms'
 
 V.bool().isFalse().validate(false); // true
 ```
@@ -417,7 +460,7 @@ V.date().weekday().validate(DateTime(2024, 1, 15)); // true (Monday)
 V.date().weekend().validate(DateTime(2024, 1, 6));  // true (Saturday)
 ```
 
-Available: `after`, `before`, `between`, `weekday`, `weekend`, `age`.
+Available: `after`, `before`, `between`, `weekday`, `weekend`, `age`, `isToday`, `sameDayAs`, `afterToday`, `beforeToday`.
 
 `age` validates the age derived from a birthdate (computed against `DateTime.now()` at validation time):
 
@@ -426,6 +469,17 @@ V.date().age(min: 18);          // 18 or older
 V.date().age(min: 18, max: 65); // between 18 and 65
 V.date().age(max: 120);         // sanity check on claimed birthdate
 ```
+
+**Calendar helpers** — compare only the calendar day (y/m/d), ignoring hour/minute/second. Resolved against `DateTime.now()` in local time at validation time; callers operating in UTC should normalize the input first.
+
+```dart
+V.date().isToday();                       // value must fall on today
+V.date().sameDayAs(DateTime(2026, 5, 16)); // value must share y/m/d with reference
+V.date().afterToday();                    // strictly after today (today rejected)
+V.date().beforeToday();                   // strictly before today (today rejected)
+```
+
+Use `isToday` for "is the booking for today?", `sameDayAs(reference)` when comparing two scheduled events, and the `*Today` pair when filtering past vs future submissions. For "today or later" / "today or earlier", compose with a `VUnion` against `isToday`.
 
 ## Map (Structured Objects)
 
@@ -502,24 +556,25 @@ err.path;    // [age]
 err.message; // Must be at least 18
 ```
 
-#### `refineField` vs `refineFieldRaw`
+#### `refineField` stages (`post` vs `pre`)
 
-Both attach a path-keyed entity-level rule, but they differ in **when** the callback runs and **what** it sees:
+`refineField` accepts a `stage:` parameter (`RefineStage.post` default, `RefineStage.pre`) that controls when the callback runs in the container pipeline:
 
-|                   | `refineField` (recommended)                                                                                                | `refineFieldRaw`                                                                                                                        |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Callback receives | `Map<String, dynamic>` after every field's preprocess + validators + transforms ran                                        | `Map<String, dynamic>` after the container preprocess + type check, **before** any per-field iteration — each value still as it arrived |
-| Runs when         | inside the entity-level pipeline, gated on the field at `path` passing per-field validation (implicit `dependsOn: {path}`) | always, once the input is a valid `Map` — no per-field results to gate on                                                               |
-| Use when          | the rule depends on parsed/transformed values (the common case)                                                            | the rule depends on the raw input as the user typed it — original casing, whitespace, pre-coercion shape                                |
+|                   | `stage: RefineStage.post` (default)                                                                                            | `stage: RefineStage.pre`                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Callback receives | values after every field's preprocess + validators + transforms ran                                                            | values exactly as they arrived — no per-field preprocess / validators / transforms have applied yet                                     |
+| Runs when         | inside the entity-level pipeline, gated on `dependsOn` (`{path}` always included; pass extras as needed)                       | always, once the input is a valid `Map` / `T` — `dependsOn` is not accepted at this stage                                               |
+| Use when          | the rule depends on parsed/transformed values (the common case)                                                                | the rule depends on the raw input as the user typed it — original casing, whitespace, pre-coercion shape                                |
 
 ```dart
-// Same callback, two semantics:
+// Same callback, two stages:
 final schema = V.map({
   'email': V.string().toLowerCase(),
 })
-.refineFieldRaw(
+.refineField(
   (data) => data['email'] == 'A@B.COM',     // sees raw input
   path: 'email',
+  stage: RefineStage.pre,
   message: 'raw must be A@B.COM',
 )
 .refineField(
@@ -532,9 +587,9 @@ schema.errors({'email': 'A@B.COM'});
 // → only the 'parsed' rule fails; 'raw' rule passed.
 ```
 
-`VObject<T>.refineFieldRaw` mirrors `VMap.refineFieldRaw` for typed schemas — the callback receives the `T` instance after the container preprocess and cast, before any per-field pipeline runs. Useful for rules that must execute regardless of per-field results.
+On `VObject<T>`, the callback is typed against `T` (`refineField((T) => ..., ...)`). For schemas that need to also work in raw mode (`safeParseRaw`), use **`refineFieldRaw((Map<String, dynamic>) => ..., path:, stage:)`** — same `stage:` semantics, callback receives the map view. Skip semantics in `stage: post`: `path` is always part of the effective `dependsOn`, plus any extras you declare.
 
-In most cases, prefer `refineField`. Reach for `refineFieldRaw` only when the rule explicitly depends on the input as it arrived.
+In most cases, default `stage: post` is the right call. Reach for `stage: pre` only when the rule explicitly depends on the input as it arrived.
 
 ### Conditional Validation
 
@@ -555,7 +610,7 @@ account.validate({'type': 'company', 'cnpj': null});              // false — c
 
 Multiple `when` calls can be chained; each is independent.
 
-When a single literal `equals` is not enough — multi-field triggers, range comparisons (`>`, `>=`), `oneOf` membership — use `whenMatches(condition, dependsOn:, then:)`. The predicate receives the raw input map; `dependsOn` is required and declares the fields the predicate reads, so subsequent `refine(dependsOn:)` rules can reference them.
+When a single literal `equals` is not enough — multi-field triggers, range comparisons (`>`, `>=`), `oneOf` membership — use `whenMatches(condition, dependsOn:, then:)`. The predicate receives the raw input map; `dependsOn` is required and **must be non-empty**: it declares the fields the predicate reads, and the whole rule is **skipped when any declared dependency failed per-field validation** (the same gating `refine(dependsOn:)` uses — protects the predicate from casting a malformed value). Subsequent `refine(dependsOn:)` rules can also reference these fields.
 
 ```dart
 final order = V.map({
@@ -574,7 +629,7 @@ order.validate({'subtotal': 200.0, 'country': 'BR', 'note': 'leave here'}); // t
 order.validate({'subtotal': 200.0, 'country': 'BR', 'note': null});         // false — note now required
 ```
 
-`whenMatches` runs at the same pipeline step as `when` — failures inside `then` contribute to `failedFieldPaths`, and `refine(dependsOn: {<key in then>})` is gated on those failures the same way.
+`whenMatches` runs at the same pipeline step as `when` — failures inside `then` contribute to `failedFieldPaths`, and `refine(dependsOn: {<key in then>})` is gated on those failures the same way. The rule itself is gated on its own `dependsOn`: if any of the declared dependencies failed in step 6 (per-field iteration), the predicate is not called and `then` is not applied.
 
 ### Array of Maps
 
@@ -727,7 +782,7 @@ V.object<User>()
   );
 ```
 
-`VObject<T>.refineFieldRaw(check, path:)` mirrors `VMap.refineFieldRaw` — the callback receives the `T` instance after the cast but **before** any per-field pipeline runs. Reach for it when the rule must execute regardless of per-field results, or when it depends on the input as it arrived. See the [refineField vs refineFieldRaw table under Map](#refinefield-vs-refinefieldraw) for the full comparison; the semantics are identical, only the callback signature changes (`Map` for `VMap`, `T` for `VObject<T>`).
+`VObject<T>.refineField(check, path:, {stage, dependsOn})` accepts the same `stage:` parameter described in the VMap section above — `RefineStage.pre` runs the entity-typed callback before per-field iteration; `RefineStage.post` (default) runs after, gated by `dependsOn`. For schemas that need to also work in raw mode, `VObject<T>.refineFieldRaw((Map) => bool, path:, {stage, dependsOn})` accepts a Map-typed callback and applies in both `safeParse(T)` and `safeParseRaw(Map)`.
 
 ### Conditional Validation
 
@@ -751,10 +806,16 @@ schema.validate(TaxPayer(country: 'US', taxId: '123-45-6789')); // true
 schema.validate(TaxPayer(country: 'BR', taxId: 'anything'));    // true
 ```
 
-For predicate-based triggers (multi-field, non-equality, `oneOf`), use `whenMatches((entity) => bool, dependsOn:, then:)`. The predicate receives the typed instance; `dependsOn` and every key in `then` must already be declared via `field(...)`.
+For predicate-based triggers (multi-field, non-equality, `oneOf`), `VObject<T>` has two variants:
+
+- **`whenMatches((T) => bool, dependsOn:, then:)`** — **entity-only**, callback receives the typed `T` instance. Ergonomic for schemas validated via `safeParse(T)`. Schemas with `whenMatches` rules **cannot** be validated via `safeParseRaw` — those throw `VException` because `T` does not exist in raw mode.
+- **`whenMatchesRaw((Map<String, dynamic>) => bool, dependsOn:, then:)`** — **universal**, callback receives the raw map view (rebuilt lazily from extractors in entity mode, passed through directly in raw mode). Use when the schema needs to support both modes — typical for `valiform` or any pipeline that validates partial payloads.
+
+Both share the same contract: `dependsOn` and every key in `then` must already be declared via `field(...)`; `dependsOn` must be non-empty. The rule is **skipped when any declared dependency failed per-field validation** (same gating as `refine(dependsOn:)`).
 
 ```dart
-final schema = V.object<TaxPayer>()
+// Entity-only — ergonomic typed callback. Cannot be used via safeParseRaw.
+V.object<TaxPayer>()
   .field('country', (t) => t.country, V.string())
   .field('taxId', (t) => t.taxId, V.string())
   .whenMatches(
@@ -762,6 +823,74 @@ final schema = V.object<TaxPayer>()
     dependsOn: const {'country', 'taxId'},
     then: {'taxId': V.string().min(13)},
   );
+
+// Universal — works in both entity and raw modes.
+V.object<TaxPayer>()
+  .field('country', (t) => t.country, V.string())
+  .field('taxId', (t) => t.taxId, V.string())
+  .whenMatchesRaw(
+    (m) =>
+        m['country'] == 'US' &&
+        (m['taxId'] as String).startsWith('SSN-'),
+    dependsOn: const {'country', 'taxId'},
+    then: {'taxId': V.string().min(13)},
+  );
+```
+
+### Validating raw maps with `safeParseRaw`
+
+Sometimes the caller cannot construct `T` ahead of time — typically because the source data is partial and `T`'s constructor rejects null on a required field. Building `T` from `{title: 'fix'}` throws before any validator can run; the error never surfaces. `safeParseRaw` (and `parseRaw` / `validateRaw` / `errorsRaw`, plus their async siblings) accepts a `Map<String, dynamic>` directly and returns the validated map — the caller constructs `T` afterwards with the guarantee that every required field is present.
+
+```dart
+class StrictDto {
+  final String title;
+  final DateTime scheduledDate;
+  StrictDto({required this.title, required this.scheduledDate});
+}
+
+final schema = V.object<StrictDto>()
+  .field('title', (d) => d.title, V.string().min(2))
+  .field('scheduledDate', (d) => d.scheduledDate, V.date());
+
+// Raw mode — works on partial / unconverted input.
+schema.errorsRaw({'title': 'fix'});
+// [VError(code: 'date.required', path: ['scheduledDate'], ...)]
+
+// Entity mode — same schema, typed input.
+schema.validate(StrictDto(title: 'fix', scheduledDate: DateTime.now()));
+```
+
+The schema reads each field by name (`map[field.name]`); per-field validators, transforms, `when`, `whenMatchesRaw`, `refineFieldRaw`, `strict`, and `passthrough` apply exactly as they do in entity mode. Entity-level rules that are typed against `T` (`refine`, `refineField`, `equalFields`) and entity-level transforms are silently skipped — pass the validated map through `T`'s constructor and revalidate with `safeParse(T)` when those rules matter. Schemas declaring `whenMatches` (entity-only) **throw `VException`** at the `safeParseRaw` entry point — use `whenMatchesRaw` instead. `defaultValue` is a no-op in raw mode (typed as `T?`, cannot substitute into `Map`); `nullable()` is honored.
+
+#### Decision matrix — which API runs where
+
+| Rule type                            | `safeParse(T)` (entity)                       | `safeParseRaw(Map)` (raw)                          |
+| ------------------------------------ | --------------------------------------------- | -------------------------------------------------- |
+| `field(name, extractor, validator)`  | reads via extractor                           | reads via `map[name]`                              |
+| `when(field, equals:, then:)`        | runs                                          | runs                                               |
+| `whenMatches((T) => bool, ...)`      | runs                                          | **throws `VException`** at entry point             |
+| `whenMatchesRaw((Map) => bool, ...)` | runs (map rebuilt via extractors)             | runs                                               |
+| `refineField((T) => bool, ...)`      | runs                                          | silently skipped (callback typed against `T`)      |
+| `refineFieldRaw((Map) => bool, ...)` | runs (map rebuilt via extractors)             | runs                                               |
+| `refine((T) => bool)` (entity-level) | runs                                          | silently skipped                                   |
+| `equalFields(a, b)`                  | runs                                          | silently skipped                                   |
+| `.transform<O>(fn)` (entity-level)   | runs                                          | skipped (output stays `Map`, not `O`)              |
+| `.defaultValue(t)`                   | substitutes `t` when input is `null`          | no-op (`t` is `T?`, can't replace `Map`)           |
+| `.nullable()`                        | accepts `null`                                | accepts `null`                                     |
+| `.strict()` / `.passthrough()`       | no-op                                         | strict rejects unknown keys; passthrough copies them |
+
+**Picking the right rule type:**
+
+- Will every consumer hold a fully-built `T`? → use `whenMatches` / `refineField` / `refine` (entity-typed, ergonomic).
+- Will some consumer (form, JSON endpoint, Firestore) feed `safeParseRaw` directly? → use `whenMatchesRaw` / `refineFieldRaw` so the same schema works in both modes.
+- Need to compare across fields when one of them might fail per-field? → declare `dependsOn` on the rule. See [`refine` with `dependsOn`](#refine-with-dependson) for the full skip matrix.
+
+```dart
+V.object<User>()
+  .field('name', (u) => u.name, V.string())
+  .strict()
+  .errorsRaw({'name': 'Jo', 'extra': true});
+// [VError(code: 'object.unrecognized_key', path: ['extra'], message: 'Unrecognized key "extra"')]
 ```
 
 ### Schema Composition
@@ -792,7 +921,7 @@ final merged = identity.merge(contactOnly); // name + email
 
 > Note: unlike TypeScript, `pick`/`omit` do not generate a subset _type_. The input still has to be a full instance of `T` — only the validation surface is narrowed.
 >
-> `strict()` and `passthrough()` from `VMap` are **not** available on `VObject`. They assume a runtime-shapeable container (extra/missing keys), but a `VObject<T>` validates instances of a nominal Dart class — the field set is fixed at compile time and the type system already rejects unknown keys.
+> `strict()` and `passthrough()` are available on `VObject<T>` but only take effect in raw mode (`safeParseRaw`) — in entity mode the declared fields are read through extractors, so unknown keys cannot arrive in the first place. State propagates through `pick` / `omit` / `merge` / `partial`.
 
 ## Array
 
@@ -932,7 +1061,7 @@ V.coerce.date().parse('2024-01-15'); // DateTime(2024, 1, 15)
 > ```dart
 > V.coerce.date().parse('2024-01-15'); // DateTime(2024, 1, 15)
 > V.coerce.date().parse('15/01/2024'); // DateTime(2024, 1, 15)
-> V.coerce.date().parse('01/02/2024'); // DateTime(2024, 2, 1) — DD/MM wins by list order
+> V.coerce.date().parse('15/01/2024'); // DateTime(2024, 1, 15) — DD/MM wins by list order (15 is unambiguous)
 > V.coerce.date().parse('30/02/2024'); // throws — calendar-invalid
 > ```
 
@@ -977,24 +1106,29 @@ Containers add an extra block between the type check and the entity-level valida
 | 1   | Container preprocess             | `.preprocess(fn)` / `.preprocessAsync(fn)` on the `V.map(...)` / `V.object<T>()` itself                      | Receives the raw container value (the whole `Map` / `T`), not individual fields.                                                                                                                                                                                                                                                                                                      |
 | 2   | Null / default                   | `.nullable()`, `.defaultValue(...)`                                                                          | Same as primitives.                                                                                                                                                                                                                                                                                                                                                                   |
 | 3   | Type check                       | (automatic)                                                                                                  | `Map<String, dynamic>` for `VMap`, `T` for `VObject<T>`.                                                                                                                                                                                                                                                                                                                              |
-| 4   | **Raw entity validators**        | `.refineFieldRaw(check, path:)` (also `.addRaw(...)`)                                                        | Runs **once the type check succeeded, before any per-field iteration**. The callback sees fields **as the user typed them** — no field-level preprocess / validators / transforms have applied yet. Always runs (no `dependsOn` gating, no field has been validated). Useful when a rule depends on raw casing or whitespace that a field's `.trim()` / `.toLowerCase()` would erase. |
-| 5   | **Strict / unknown-key check**   | `.strict()` on `VMap`                                                                                        | If enabled, every key not declared in the schema emits an `unrecognized_key` error.                                                                                                                                                                                                                                                                                                   |
+| 4   | **Raw entity validators**        | `.refineField(check, path:, stage: RefineStage.pre)` and `.refineFieldRaw(check, path:, stage: RefineStage.pre)` (also `.addRaw(...)`) | Runs **once the type check succeeded, before any per-field iteration**. The callback sees fields **as the user typed them** — no field-level preprocess / validators / transforms have applied yet. Always runs (no `dependsOn` gating, no field has been validated). Useful when a rule depends on raw casing or whitespace that a field's `.trim()` / `.toLowerCase()` would erase. Entity-typed `refineField(stage: pre)` is skipped under `VObject.safeParseRaw` (no `T`); the Map-typed `refineFieldRaw(stage: pre)` runs in both modes.                                                                                                                                                                                                                                                                |
+| 5   | **Strict / unknown-key check**   | `.strict()` on `VMap` or `VObject`                                                                           | If enabled, every key not declared in the schema emits an `unrecognized_key` error. On `VObject` this only fires under `safeParseRaw` — entity-mode inputs cannot carry unknown keys.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 6   | **Per-field iteration**          | Each declared field via `V.map({...})` / `.field(name, extractor, validator)`                                | Every field runs its **own full pipeline** (steps 1–8 from the primitives table) on the corresponding value. Field errors are aggregated into a single `VFailure`; the field's path is prepended to each error's `path`.                                                                                                                                                              |
-| 7   | **`when` / `whenMatches` rules** | `.when(field, equals:, then: {...})` and `.whenMatches((data) => bool, dependsOn:, then: {...})`             | When the discriminator matches (`equals` for `when`, predicate for `whenMatches`), the listed extra validators run on the corresponding fields, just like step 6. Both rule types run at this step, in registration order; failures inside `then` contribute to `failedFieldPaths` for step 9's gating.                                                                               |
+| 7   | **`when` / `whenMatches` rules** | `.when(field, equals:, then: {...})` and `.whenMatches((data) => bool, dependsOn:, then: {...})`             | When the discriminator matches (`equals` for `when`, predicate for `whenMatches`), the listed extra validators run on the corresponding fields, just like step 6. Both rule types run at this step, in registration order; failures inside `then` contribute to `failedFieldPaths` for step 9's gating. `whenMatches` is additionally **gated on its own `dependsOn`**: if any declared dependency failed in step 6, the rule is skipped (predicate not called, `then` not applied) — mirrors `refine(dependsOn:)`.                                                                                                                       |
 | 8   | **Passthrough**                  | `.passthrough()` on `VMap`                                                                                   | Copies any input keys not in the schema onto the parsed output (no validation; the schema decided to keep them).                                                                                                                                                                                                                                                                      |
-| 9   | Entity-level validators          | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See _`refine` with `dependsOn`_ below.                                                              |
-| 10  | Entity-level transforms          | `.transform<O>(fn)`                                                                                          | Only run if every step above passed. Rare on containers, but works the same as on primitives.                                                                                                                                                                                                                                                                                         |
+| 9   | Entity-level validators          | `.refine(...)`, `.refineField(...)`, `.equalFields(...)`, `.add(...)`, `.refineAsync(...)`, `.addAsync(...)` | Run via `_runPipeline` after every field has been parsed. Steps with `dependsOn: {a, b}` skip only when `a` or `b` itself failed; without `dependsOn`, the step skips conservatively whenever any field failed (because the callback might cast a field that was never produced). See _`refine` with `dependsOn`_ below. Skipped under `VObject.safeParseRaw` (callbacks are typed against `T`).                                                                                                                                                                                                                                                                                                                                                                |
+| 10  | Entity-level transforms          | `.transform<O>(fn)`                                                                                          | Only run if every step above passed. Rare on containers, but works the same as on primitives. Skipped under `VObject.safeParseRaw` (output is the validated `Map`, not the transformed `T`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 > `.strict()` (step 5) and `.passthrough()` (step 8) are conceptually opposite — only one applies to any given schema. If both flags somehow get set on the same `VMap`, the strict check still runs first and rejects unknown keys before passthrough has a chance to copy them.
 
+> Under `VObject<T>.safeParseRaw`, the pipeline is the same minus steps 4 (raw entity validators), 9 (entity-level validators), and 10 (entity-level transforms) — all of which are typed against `T`. To run those rules on a raw payload, validate with `safeParseRaw`, construct `T` from the returned map, and revalidate with `safeParse(T)`.
+
+#### Example — `stage: pre` sees the raw input before field transforms
+
 ```dart
-// Why refineFieldRaw runs before per-field — a raw casing check.
+// Why stage: pre runs before per-field — a raw casing check.
 V.map({
   'email': V.string().toLowerCase(),
   'expected': V.string(),
-}).refineFieldRaw(
+}).refineField(
   (data) => data['email'] == data['expected'],   // sees uppercase
   path: 'email',
+  stage: RefineStage.pre,
   message: 'email must match expected (raw, case-sensitive)',
 );
 // At step 4 the callback sees 'A@B.COM' (raw); only later, at step 6,
@@ -1091,7 +1225,15 @@ V.string().defaultValue('hello').min(3).parse(null); // 'hello'
 `applyIf(condition, builder)` is an extension on every `VType` that conditionally transforms the schema **at construction time**. Unlike `when` / `whenMatches`, which run during validation against the input, `applyIf` decides which schema to build based on a flag known at the call site (a feature toggle, a request context, a config value).
 
 ```dart
+class VerifyDeviceDto {
+  final String code;
+  final String? email;
+  const VerifyDeviceDto({required this.code, this.email});
+}
+
 // Make `email` nullable only when the caller did not require it.
+// The builder `(s) => s.nullable()` receives the `VString` already
+// shaped by `.email()` — the chain stays type-safe.
 V.object<VerifyDeviceDto>()
     .field('code', (d) => d.code, V.string().min(6))
     .field(
@@ -1189,6 +1331,18 @@ final loader = V.string().uuid().transformAsync<User>(
 final user = await loader.parseAsync('550e8400-...'); // User
 ```
 
+## Form Patterns
+
+Three features that mostly exist for form workflows — grouped here for discoverability. Each is documented in detail in its own section; this is the index.
+
+| Pattern                                                            | Use when                                                                              | Where                                                       |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `V.string().treatEmptyAsNull()` (+ global `V.treatEmptyAsNull(b)`) | empty inputs in forms should mean "missing" (`null`), not `""`                        | [Empty as null](#empty-as-null) (under String)              |
+| `applyIf(condition, builder)`                                      | branch the schema **at construction time** (feature flag, request context, mode)     | [Conditional schema construction with `applyIf`](#conditional-schema-construction-with-applyif) |
+| `safeParseRaw` / `whenMatchesRaw` / `refineFieldRaw`               | the form's payload is a `Map<String, dynamic>` and `T` cannot be built yet            | [Validating raw maps with safeParseRaw](#validating-raw-maps-with-safeparseraw) |
+
+The first two reshape the schema before validation runs; the third lets the same schema validate both an entity `T` and the raw `Map` a form library emits. Combining them is the typical valiform / partial-update / submit-from-JSON setup.
+
 ## Form Errors
 
 Three field-keyed accessors on `VFailure`, each fitting a different UI shape:
@@ -1205,7 +1359,7 @@ final result = schema.safeParse(data);
 
 if (result case VFailure() && final f) {
   final fieldErrors = f.toMapFirst();   // {'email': 'Invalid email address', 'name': 'Required'}
-  final allErrors   = f.toMapAll();     // {'pwd': ['Must be ≥ 8 chars', 'Invalid pattern', ...]}
+  final allErrors   = f.toMapAll();     // {'pwd': ['Must be >= 8 chars', 'Invalid pattern', ...]}
   final formErrors  = f.rootMessages(); // ['endDate must be after startDate']
 }
 ```
@@ -1299,7 +1453,9 @@ Pass `code:` to assign a machine-readable identifier — useful for i18n keys, a
 
 Without `code`, the emitted code is `'custom'` (constant `VCode.custom`). The `code:` parameter is also accepted by `refineAsync`.
 
-### `refine` with `dependsOn` for error aggregation on `VMap` / `VObject`
+<a id="refine-with-dependson"></a>
+
+### `refine` with `dependsOn`
 
 By default, a generic `.refine(check)` on a `VMap` or `VObject` is **skipped** when any field already failed validation — a conservative rule that avoids `cast` crashes on partially-parsed inputs (the failed field is missing from the map passed to `check`). Built-in `equalFields(a, b)` and `refineField(check, path: x)` are the exception: they declare their dependencies internally and run as long as those specific fields passed, so their error is aggregated alongside unrelated field errors.
 
@@ -1328,7 +1484,7 @@ schema.errors({
 // ]
 ```
 
-`dependsOn` accepts any field declared in the base schema OR injected via any `when.then` block. Unknown keys throw an `AssertionError` at construction time. The same parameter is available on `refineAsync` and `refineField`.
+`dependsOn` accepts any field declared in the base schema OR injected via any `when.then` block. Unknown keys throw an `AssertionError` at construction time. The same parameter is available on `refineAsync`.
 
 Three modes summarised:
 
@@ -1339,6 +1495,8 @@ Three modes summarised:
 | `const {}` (empty) | always — opt-out of the conservative skip; callback **must** be defensive about missing fields |
 
 Use `dependsOn: const {}` for audit / logging / always-on rules where the callback safely handles partially-parsed input (e.g. uses `m['x'] as String?` instead of `m['x'] as String`). Without that explicit opt-in, a refine without `dependsOn` is silently skipped whenever any field fails.
+
+**`refineField(check, path:, dependsOn:, stage:)`** has a tighter contract: in default `stage: post`, `path` is **always** part of the dependency set, even when `dependsOn` is omitted. When you provide `dependsOn`, it is unioned with `{path}` — you only declare the *extra* fields the callback reads. Passing `dependsOn: const {}` throws an `AssertionError` (a refineField that should run regardless of field failures is a `refineField(stage: RefineStage.pre)` or a plain `refine(dependsOn: const {})`, not an empty `dependsOn` on `refineField`). In `stage: pre`, `dependsOn` is not accepted (the pre-pipeline runs unconditionally). Same contract on `VObject.refineField` and on `VObject.refineFieldRaw` (Map-typed variant). Skip semantics also apply to `whenMatches` (entity-only) and `whenMatchesRaw` (universal) on VObject, and to `whenMatches` on VMap: `dependsOn` is required, non-empty, and the entire rule (predicate + `then`) is skipped when any declared dep failed per-field.
 
 ## i18n (Internationalization)
 
@@ -1431,8 +1589,13 @@ VNumberCode.tooSmall      // 'number.too_small'
 VBoolCode.isTrue          // 'bool.is_true'
 VDateCode.tooSmall        // 'date.too_small'
 VDateCode.weekday         // 'date.weekday'
+VDateCode.isToday         // 'date.is_today'
+VDateCode.sameDay         // 'date.same_day'
+VDateCode.afterToday      // 'date.after_today'
+VDateCode.beforeToday     // 'date.before_today'
 VArrayCode.unique         // 'array.unique'
 VMapCode.unrecognizedKey  // 'map.unrecognized_key'
+VObjectCode.unrecognizedKey // 'object.unrecognized_key' (raw-mode strict only)
 VEnumCode.invalid         // 'enum.invalid'
 VLiteralCode.invalid      // 'literal.invalid'
 VUnionCode.invalid        // 'union.invalid'
@@ -1532,6 +1695,10 @@ V.setLocale(const VLocale({
   'date.not_in_range': 'Must be between {min} and {max}',
   'date.weekday': 'Must be a weekday',
   'date.weekend': 'Must be a weekend',
+  'date.is_today': 'Must be today',
+  'date.same_day': 'Must be the same day as {date}',
+  'date.after_today': 'Must be after today',
+  'date.before_today': 'Must be before today',
   'date.age': 'Age is out of the allowed range',
 
   'array.required': 'Required',
@@ -1548,6 +1715,7 @@ V.setLocale(const VLocale({
 
   'object.required': 'Required',
   'object.invalid_type': 'Expected {expected}, received {received}',
+  'object.unrecognized_key': 'Unrecognized key "{key}"',
   'object.fields_not_equal': '{field} must be equal to {other}',
 
   'enum.required': 'Required',
@@ -1665,6 +1833,10 @@ V.setLocale(const VLocale({
     'not_in_range': 'Must be between {min} and {max}',
     'weekday': 'Must be a weekday',
     'weekend': 'Must be a weekend',
+    'is_today': 'Must be today',
+    'same_day': 'Must be the same day as {date}',
+    'after_today': 'Must be after today',
+    'before_today': 'Must be before today',
     'age': 'Age is out of the allowed range',
   },
 
@@ -1687,6 +1859,7 @@ V.setLocale(const VLocale({
   'object': {
     'required': 'Required',
     'invalid_type': 'Expected {expected}, received {received}',
+    'unrecognized_key': 'Unrecognized key "{key}"',
     'fields_not_equal': '{field} must be equal to {other}',
   },
 
