@@ -86,7 +86,7 @@ Or in pubspec.yaml:
 
 ```yaml
 dependencies:
-  validart: ^3.0.0
+  validart: ^3.0.1
 ```
 
 ```dart

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.0.1] - 2026-07-28
+
+### Changed
+
+- Adopted the stricter shared analysis options (strict casts, plus async, import, immutability and bug-prone lints); source, tests and examples adjusted to the new rules — no behavior change.
+
 ## [3.0.0] - 2026-05-17
 
 ### Added
