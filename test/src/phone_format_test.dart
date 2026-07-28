@@ -26,7 +26,7 @@ void main() {
         patterns: [
           const E164PhonePattern(
             countryCode: CountryCodeFormat.required,
-          )
+          ),
         ],
       );
 
@@ -47,9 +47,11 @@ void main() {
       const required = E164PhonePattern(
         countryCode: CountryCodeFormat.required,
       );
+
       const optional = E164PhonePattern(
         countryCode: CountryCodeFormat.optional,
       );
+
       const none = E164PhonePattern(countryCode: CountryCodeFormat.none);
 
       for (final pattern in [required, optional, none]) {

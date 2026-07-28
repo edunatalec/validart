@@ -1,4 +1,4 @@
-import 'package:validart/src/types/type.dart';
+import '../types/type.dart';
 
 /// Conditional schema construction. Applies a [builder] transformation to
 /// the receiver only when [condition] is `true`, returning the receiver

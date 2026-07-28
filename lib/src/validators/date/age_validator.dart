@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that the age derived from a [DateTime] (treated as a date of
 /// birth) falls within the given `[min, max]` range. The comparison is
@@ -12,14 +12,14 @@ import 'package:validart/src/validators/validator.dart';
 /// V.date().age(max: 120);         // sanity check on claimed birthdate
 /// ```
 class AgeValidator extends Validator<DateTime> {
+  /// Creates an [AgeValidator].
+  const AgeValidator({this.min, this.max});
+
   /// Minimum age (in full years). `null` means no lower bound.
   final int? min;
 
   /// Maximum age (in full years). `null` means no upper bound.
   final int? max;
-
-  /// Creates an [AgeValidator].
-  const AgeValidator({this.min, this.max});
 
   @override
   String get code => VDateCode.age;

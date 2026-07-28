@@ -13,13 +13,18 @@ void runWhenExamples() {
   final account = V.map({
     'type': V.string(),
     'taxId': V.string().nullable(),
-  }).when('type', equals: 'company', then: {
-    'taxId': V.string().min(11),
-  });
+  }).when(
+    'type',
+    equals: 'company',
+    then: {
+      'taxId': V.string().min(11),
+    },
+  );
 
   print(account.validate({'type': 'person', 'taxId': null})); // true
   print(
-      account.validate({'type': 'company', 'taxId': '12345678901234'})); // true
+    account.validate({'type': 'company', 'taxId': '12345678901234'}),
+  ); // true
   print(account.validate({'type': 'company', 'taxId': null})); // false
 
   section('VMap.when — multiple branches');
@@ -29,11 +34,19 @@ void runWhenExamples() {
     'type': V.string(),
     'cnpj': V.string().nullable(),
     'cpf': V.string().nullable(),
-  }).when('type', equals: 'company', then: {
-    'cnpj': V.string().min(14),
-  }).when('type', equals: 'person', then: {
-    'cpf': V.string().min(11),
-  });
+  }).when(
+    'type',
+    equals: 'company',
+    then: {
+      'cnpj': V.string().min(14),
+    },
+  ).when(
+    'type',
+    equals: 'person',
+    then: {
+      'cpf': V.string().min(11),
+    },
+  );
 
   print(form.validate({'type': 'company', 'cnpj': '12345678901234'})); // true
   print(form.validate({'type': 'person', 'cpf': '12345678901'})); // true
@@ -58,11 +71,15 @@ void runWhenExamples() {
     },
   );
 
-  print(signUp.validate(const SignUpDto(
-    email: 'a@b.com',
-    password: 'Str0ng!Pass',
-    confirm: 'Str0ng!Pass',
-  ))); // true
+  print(
+    signUp.validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'Str0ng!Pass',
+      ),
+    ),
+  ); // true
 }
 
 /// Examples for `.whenMatches((data) => bool, dependsOn: {...}, then: {...})`
@@ -85,29 +102,37 @@ void runWhenMatchesExamples() {
     then: {'note': V.string().min(3)},
   );
 
-  print(order.validate({
-    'subtotal': 50.0,
-    'country': 'BR',
-    'note': null,
-  })); // true — predicate false (subtotal <= 100), note stays nullable
+  print(
+    order.validate({
+      'subtotal': 50.0,
+      'country': 'BR',
+      'note': null,
+    }),
+  ); // true — predicate false (subtotal <= 100), note stays nullable
 
-  print(order.validate({
-    'subtotal': 200.0,
-    'country': 'US',
-    'note': null,
-  })); // true — predicate false (country != BR)
+  print(
+    order.validate({
+      'subtotal': 200.0,
+      'country': 'US',
+      'note': null,
+    }),
+  ); // true — predicate false (country != BR)
 
-  print(order.validate({
-    'subtotal': 200.0,
-    'country': 'BR',
-    'note': 'leave at door',
-  })); // true — predicate matches and note is valid
+  print(
+    order.validate({
+      'subtotal': 200.0,
+      'country': 'BR',
+      'note': 'leave at door',
+    }),
+  ); // true — predicate matches and note is valid
 
-  print(order.validate({
-    'subtotal': 200.0,
-    'country': 'BR',
-    'note': null,
-  })); // false — predicate matches → note required and >= 3 chars
+  print(
+    order.validate({
+      'subtotal': 200.0,
+      'country': 'BR',
+      'note': null,
+    }),
+  ); // false — predicate matches → note required and >= 3 chars
 
   section('VMap.whenMatches — non-equality operator (oneOf)');
 
@@ -140,23 +165,35 @@ void runWhenMatchesExamples() {
     then: {'confirm': V.string().min(12)},
   );
 
-  print(signUp.validate(const SignUpDto(
-    email: 'a@admin.com',
-    password: 'Str0ng!Pass99',
-    confirm: 'Str0ng!Pass99',
-  ))); // true
+  print(
+    signUp.validate(
+      const SignUpDto(
+        email: 'a@admin.com',
+        password: 'Str0ng!Pass99',
+        confirm: 'Str0ng!Pass99',
+      ),
+    ),
+  ); // true
 
-  print(signUp.validate(const SignUpDto(
-    email: 'a@admin.com',
-    password: 'Str0ng!Pass99',
-    confirm: 'short',
-  ))); // false — predicate matches → confirm must be >= 12
+  print(
+    signUp.validate(
+      const SignUpDto(
+        email: 'a@admin.com',
+        password: 'Str0ng!Pass99',
+        confirm: 'short',
+      ),
+    ),
+  ); // false — predicate matches → confirm must be >= 12
 
-  print(signUp.validate(const SignUpDto(
-    email: 'a@user.com',
-    password: 'Str0ng!Pass',
-    confirm: 'short',
-  ))); // true — predicate false → confirm bypasses the extra rule
+  print(
+    signUp.validate(
+      const SignUpDto(
+        email: 'a@user.com',
+        password: 'Str0ng!Pass',
+        confirm: 'short',
+      ),
+    ),
+  ); // true — predicate false → confirm bypasses the extra rule
 }
 
 void main() {

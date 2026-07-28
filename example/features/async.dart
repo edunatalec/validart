@@ -67,8 +67,9 @@ Future<void> runAsyncExamples() async {
     await Future<void>.delayed(const Duration(milliseconds: 1));
     return id.length;
   });
-  print(await lengthFromUuid
-      .parseAsync('550e8400-e29b-41d4-a716-446655440000')); // 36
+  print(
+    await lengthFromUuid.parseAsync('550e8400-e29b-41d4-a716-446655440000'),
+  ); // 36
 
   section('sync schemas keep working without overhead');
 

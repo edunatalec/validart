@@ -2,21 +2,23 @@ import 'package:test/test.dart';
 import 'package:validart/validart.dart';
 
 class _StrictDto {
+  _StrictDto({required this.title, required this.scheduledDate});
+
   final String title;
   final DateTime scheduledDate;
-  _StrictDto({required this.title, required this.scheduledDate});
 }
 
 class _UserDto {
+  _UserDto({required this.name, required this.age});
+
   final String name;
   final int age;
-  _UserDto({required this.name, required this.age});
 }
 
 class _TaxPayer {
+  _TaxPayer(this.country, this.taxId);
   final String country;
   final String taxId;
-  _TaxPayer(this.country, this.taxId);
 }
 
 void main() {
@@ -31,7 +33,10 @@ void main() {
             .object<_StrictDto>()
             .field('title', (_StrictDto d) => d.title, V.string())
             .field(
-                'scheduledDate', (_StrictDto d) => d.scheduledDate, V.date());
+              'scheduledDate',
+              (_StrictDto d) => d.scheduledDate,
+              V.date(),
+            );
 
         final List<VError>? errors =
             schema.errorsRaw(<String, dynamic>{'title': 'meeting'});
@@ -107,8 +112,11 @@ void main() {
       test('per-field transforms are applied to the resulting map', () {
         final VObject<_UserDto> schema = V
             .object<_UserDto>()
-            .field('name', (_UserDto d) => d.name,
-                V.string().transform<String>((String s) => s.toUpperCase()))
+            .field(
+              'name',
+              (_UserDto d) => d.name,
+              V.string().transform<String>((String s) => s.toUpperCase()),
+            )
             .field('age', (_UserDto d) => d.age, V.int());
 
         final Map<String, dynamic>? parsed =
@@ -259,17 +267,20 @@ void main() {
 
         expect(
           schema.validateRaw(
-              <String, dynamic>{'country': 'US', 'taxId': '123456789'}),
+            <String, dynamic>{'country': 'US', 'taxId': '123456789'},
+          ),
           isTrue,
         );
         expect(
           schema.validateRaw(
-              <String, dynamic>{'country': 'US', 'taxId': 'short'}),
+            <String, dynamic>{'country': 'US', 'taxId': 'short'},
+          ),
           isFalse,
         );
         expect(
           schema.validateRaw(
-              <String, dynamic>{'country': 'BR', 'taxId': 'short'}),
+            <String, dynamic>{'country': 'BR', 'taxId': 'short'},
+          ),
           isTrue,
           reason: 'country != US → when bypassed',
         );
@@ -314,7 +325,8 @@ void main() {
         );
 
         schema.validateRaw(
-            <String, dynamic>{'country': 'US', 'taxId': '123456789'});
+          <String, dynamic>{'country': 'US', 'taxId': '123456789'},
+        );
 
         expect(seen, <String, dynamic>{'country': 'US', 'taxId': '123456789'});
       });
@@ -394,8 +406,10 @@ void main() {
           stage: RefineStage.pre,
         );
 
-        expect(schema.validateRaw(<String, dynamic>{'name': 'Jo', 'age': 1}),
-            isTrue);
+        expect(
+          schema.validateRaw(<String, dynamic>{'name': 'Jo', 'age': 1}),
+          isTrue,
+        );
         expect(ran, 0);
       });
 
@@ -410,8 +424,10 @@ void main() {
           return false;
         });
 
-        expect(schema.validateRaw(<String, dynamic>{'name': 'Jo', 'age': 1}),
-            isTrue);
+        expect(
+          schema.validateRaw(<String, dynamic>{'name': 'Jo', 'age': 1}),
+          isTrue,
+        );
         expect(ran, 0);
       });
 
@@ -429,8 +445,10 @@ void main() {
           path: 'name',
         );
 
-        expect(schema.validateRaw(<String, dynamic>{'name': 'Jo', 'age': 1}),
-            isTrue);
+        expect(
+          schema.validateRaw(<String, dynamic>{'name': 'Jo', 'age': 1}),
+          isTrue,
+        );
         expect(ran, 0);
       });
 
@@ -554,8 +572,11 @@ void main() {
       test('async: safeParseRawAsync mirrors the sync semantics', () async {
         final VObject<_UserDto> schema = V
             .object<_UserDto>()
-            .field('name', (_UserDto d) => d.name,
-                V.string().refineAsync((String s) async => s.length >= 2))
+            .field(
+              'name',
+              (_UserDto d) => d.name,
+              V.string().refineAsync((String s) async => s.length >= 2),
+            )
             .field('age', (_UserDto d) => d.age, V.int().positive());
 
         expect(schema.hasAsync, isTrue);
@@ -593,17 +614,20 @@ void main() {
 
         expect(
           await schema.validateRawAsync(
-              <String, dynamic>{'country': 'US', 'taxId': 'US-12345'}),
+            <String, dynamic>{'country': 'US', 'taxId': 'US-12345'},
+          ),
           isTrue,
         );
         expect(
           await schema.validateRawAsync(
-              <String, dynamic>{'country': 'US', 'taxId': 'BR-12345'}),
+            <String, dynamic>{'country': 'US', 'taxId': 'BR-12345'},
+          ),
           isFalse,
         );
         expect(
           await schema.validateRawAsync(
-              <String, dynamic>{'country': 'BR', 'taxId': 'anything'}),
+            <String, dynamic>{'country': 'BR', 'taxId': 'anything'},
+          ),
           isTrue,
         );
       });
@@ -649,7 +673,8 @@ void main() {
         );
         expect(
           schema.validateRaw(
-              <String, dynamic>{'name': null, 'age': null, 'extra': true}),
+            <String, dynamic>{'name': null, 'age': null, 'extra': true},
+          ),
           isFalse,
           reason: 'strict still rejects unknown keys after partial()',
         );

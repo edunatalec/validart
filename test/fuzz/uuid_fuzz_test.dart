@@ -46,16 +46,20 @@ void main() {
       for (final version in UuidVersion.values) {
         final versioned = V.string().uuid(version: version);
 
-        fuzz('only matching version passes ($version)', (rng, _) {
-          final input = randomAdversarial(rng, rng.nextInt(60) + 1);
+        fuzz(
+          'only matching version passes ($version)',
+          (rng, _) {
+            final input = randomAdversarial(rng, rng.nextInt(60) + 1);
 
-          if (versioned.validate(input)) {
-            // 15th char (index 14) encodes the version digit in UUIDs.
-            final versionChar = input[14].toLowerCase();
-            final expected = version.toString().split('.').last.substring(1);
-            expect(versionChar, expected, reason: 'accepted: $input');
-          }
-        }, iterations: 100);
+            if (versioned.validate(input)) {
+              // 15th char (index 14) encodes the version digit in UUIDs.
+              final versionChar = input[14].toLowerCase();
+              final expected = version.toString().split('.').last.substring(1);
+              expect(versionChar, expected, reason: 'accepted: $input');
+            }
+          },
+          iterations: 100,
+        );
       }
     });
   });

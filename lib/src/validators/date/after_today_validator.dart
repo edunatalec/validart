@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a [DateTime] is strictly after today (y/m/d comparison
 /// against `DateTime.now()` in local time). The current calendar day is

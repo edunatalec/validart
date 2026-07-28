@@ -113,9 +113,10 @@ void main() {
     });
 
     test('VMap.partial(except:) returns VMap (fluent chain)', () {
-      final VMap a = V
-          .map({'id': V.string().uuid(), 'name': V.string()}).partial(
-              except: const ['id']);
+      final VMap a =
+          V.map({'id': V.string().uuid(), 'name': V.string()}).partial(
+        except: const ['id'],
+      );
 
       expect(
         a.validate({'id': '550e8400-e29b-41d4-a716-446655440000'}),

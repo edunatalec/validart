@@ -9,17 +9,6 @@ import 'package:validart/validart.dart';
 import 'fuzz_helpers.dart';
 
 class _Wide {
-  final String f0;
-  final String f1;
-  final String f2;
-  final String f3;
-  final String f4;
-  final String f5;
-  final String f6;
-  final String f7;
-  final String f8;
-  final String f9;
-
   _Wide({
     required this.f0,
     required this.f1,
@@ -45,6 +34,17 @@ class _Wide {
         f8: value,
         f9: value,
       );
+
+  final String f0;
+  final String f1;
+  final String f2;
+  final String f3;
+  final String f4;
+  final String f5;
+  final String f6;
+  final String f7;
+  final String f8;
+  final String f9;
 }
 
 const List<String> _allKeys = [

@@ -11,10 +11,12 @@ void runDateExamples() {
 
   print(V.date().after(ref).validate(DateTime(2024, 6, 15))); // true
   print(V.date().before(ref).validate(DateTime(2023, 6, 15))); // true
-  print(V
-      .date()
-      .between(ref, DateTime(2024, 12, 31))
-      .validate(DateTime(2024, 6, 15))); // true
+  print(
+    V
+        .date()
+        .between(ref, DateTime(2024, 12, 31))
+        .validate(DateTime(2024, 6, 15)),
+  ); // true
 
   section('VDate — weekday / weekend');
 

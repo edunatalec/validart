@@ -112,6 +112,7 @@ void main() {
           10,
           message: (min, max) => 'must be between $min and $max',
         );
+
         final errs = custom.errors(20);
         expect(errs!.first.message, 'must be between 1 and 10');
       });
@@ -142,6 +143,7 @@ void main() {
           3,
           message: (factor) => 'must be a multiple of $factor',
         );
+
         final errs = custom.errors(4);
         expect(errs!.first.message, 'must be a multiple of 3');
       });
@@ -475,7 +477,7 @@ void main() {
 
     group('array', () {
       test('should create array of doubles', () {
-        final schema = (VDouble().finite()).array();
+        final schema = VDouble().finite().array();
         expect(schema.validate([1.0, 2.5]), isTrue);
         expect(schema.validate([1.0, double.infinity]), isFalse);
       });
@@ -484,7 +486,7 @@ void main() {
 
   group('VInt array', () {
     test('should create array of ints', () {
-      final schema = (VInt().min(0)).array();
+      final schema = VInt().min(0).array();
       expect(schema.validate([1, 2, 3]), isTrue);
       expect(schema.validate([1, -1, 3]), isFalse);
     });

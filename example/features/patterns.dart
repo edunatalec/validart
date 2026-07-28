@@ -36,9 +36,9 @@ void runPatternsExamples() {
   section('postalCode — multi-country (US / CA / UK)');
 
   // Single country.
-  print(V
-      .string()
-      .postalCode(patterns: const [UsZipPattern()]).validate('94103')); // true
+  print(
+    V.string().postalCode(patterns: const [UsZipPattern()]).validate('94103'),
+  ); // true
 
   // Multi-country: validation passes on the first matching pattern.
   final multiCountry = V.string().postalCode(
@@ -54,34 +54,50 @@ void runPatternsExamples() {
   print(multiCountry.validate('nope')); // false
 
   // ValidationMode pins formatted vs unformatted shape.
-  print(V.string().postalCode(
-    patterns: const [UkPostcodePattern(mode: ValidationMode.formatted)],
-  ).validate('SW1A1AA')); // false (no space)
-  print(V.string().postalCode(
-    patterns: const [CaPostalCodePattern(mode: ValidationMode.unformatted)],
-  ).validate('K1A0B1')); // true
+  print(
+    V.string().postalCode(
+      patterns: const [UkPostcodePattern(mode: ValidationMode.formatted)],
+    ).validate('SW1A1AA'),
+  ); // false (no space)
+  print(
+    V.string().postalCode(
+      patterns: const [CaPostalCodePattern(mode: ValidationMode.unformatted)],
+    ).validate('K1A0B1'),
+  ); // true
 
   section('taxId — built-in patterns + custom');
 
-  print(V
-      .string()
-      .taxId(patterns: const [UsSsnPattern()]).validate('123-45-6789')); // true
-  print(V.string().taxId(
-      patterns: const [UkNiNumberPattern()]).validate('AB123456C')); // true
-  print(V
-      .string()
-      .taxId(patterns: const [CaSinPattern()]).validate('130-692-544')); // true
+  print(
+    V.string().taxId(patterns: const [UsSsnPattern()]).validate('123-45-6789'),
+  ); // true
+  print(
+    V.string().taxId(
+      patterns: const [UkNiNumberPattern()],
+    ).validate('AB123456C'),
+  ); // true
+  print(
+    V.string().taxId(patterns: const [CaSinPattern()]).validate('130-692-544'),
+  ); // true
 
   // Custom tax-id pattern from shared/fixtures.dart.
-  print(V.string().taxId(
-      patterns: const [DummyTaxIdPattern()]).validate('TAX:123')); // true
+  print(
+    V.string().taxId(
+      patterns: const [DummyTaxIdPattern()],
+    ).validate('TAX:123'),
+  ); // true
 
   section('licensePlate — built-in + custom');
 
-  print(V.string().licensePlate(
-      patterns: const [UkPlatePattern()]).validate('AB12 CDE')); // true
-  print(V.string().licensePlate(
-      patterns: const [DummyPlatePattern()]).validate('ABC-1234')); // true
+  print(
+    V.string().licensePlate(
+      patterns: const [UkPlatePattern()],
+    ).validate('AB12 CDE'),
+  ); // true
+  print(
+    V.string().licensePlate(
+      patterns: const [DummyPlatePattern()],
+    ).validate('ABC-1234'),
+  ); // true
 
   section('card — brand restriction + format mode');
 

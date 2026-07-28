@@ -41,20 +41,26 @@ void runObjectExamples() {
 
   // Schema lives on the DTO as a static, built once per isolate and
   // reused across every call site.
-  print(SignInDto.schema.validate(
-    const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
-  )); // true
+  print(
+    SignInDto.schema.validate(
+      const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+    ),
+  ); // true
 
-  print(SignInDto.schema.validate(
-    const SignInDto(email: 'bad', password: 'Str0ng!Pass'),
-  )); // false
+  print(
+    SignInDto.schema.validate(
+      const SignInDto(email: 'bad', password: 'Str0ng!Pass'),
+    ),
+  ); // false
 
   section('VObject — array of entities');
 
-  print(SignInDto.schema.array().validate(const [
-    SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
-    SignInDto(email: 'c@d.com', password: 'An0ther!Pass'),
-  ])); // true
+  print(
+    SignInDto.schema.array().validate(const [
+      SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+      SignInDto(email: 'c@d.com', password: 'An0ther!Pass'),
+    ]),
+  ); // true
 
   section('VObject — fieldIf for conditional field declaration');
 
@@ -71,16 +77,22 @@ void runObjectExamples() {
         V.string().password(),
       );
 
-  print(credentialsSchema(requirePassword: true)
-      .validate(const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass')));
+  print(
+    credentialsSchema(requirePassword: true)
+        .validate(const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass')),
+  );
   // true — both fields validated
 
-  print(credentialsSchema(requirePassword: true)
-      .validate(const SignInDto(email: 'a@b.com', password: 'weak')));
+  print(
+    credentialsSchema(requirePassword: true)
+        .validate(const SignInDto(email: 'a@b.com', password: 'weak')),
+  );
   // false — password fails the password() rule
 
-  print(credentialsSchema(requirePassword: false)
-      .validate(const SignInDto(email: 'a@b.com', password: 'weak')));
+  print(
+    credentialsSchema(requirePassword: false)
+        .validate(const SignInDto(email: 'a@b.com', password: 'weak')),
+  );
   // true — password field not declared, so its value is ignored
 
   section('VObject — partial: every field accepts null');
@@ -94,12 +106,16 @@ void runObjectExamples() {
       .field('password', (d) => d.password, V.string().password())
       .partial();
 
-  print(patchSchema.validate(
-    const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
-  )); // true
+  print(
+    patchSchema.validate(
+      const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+    ),
+  ); // true
 
-  print(patchSchema
-      .validate(const SignInDto(email: 'bad', password: 'Str0ng!Pass')));
+  print(
+    patchSchema
+        .validate(const SignInDto(email: 'bad', password: 'Str0ng!Pass')),
+  );
   // false — non-null email still validated by .email()
 
   section('VObject — safeParseRaw: validate Map without constructing T');
@@ -115,16 +131,20 @@ void runObjectExamples() {
       .field('password', (d) => d.password, V.string().password())
       .strict();
 
-  print(rawSchema.validateRaw({
-    'email': 'a@b.com',
-    'password': 'Str0ng!Pass',
-  })); // true
+  print(
+    rawSchema.validateRaw({
+      'email': 'a@b.com',
+      'password': 'Str0ng!Pass',
+    }),
+  ); // true
 
-  print(rawSchema.errorsRaw({
-    'email': 'bad',
-    'password': 'weak',
-    'unexpected': 1,
-  }));
+  print(
+    rawSchema.errorsRaw({
+      'email': 'bad',
+      'password': 'weak',
+      'unexpected': 1,
+    }),
+  );
   // Three errors: invalid email, weak password, and the unknown key
   // rejected by strict().
 

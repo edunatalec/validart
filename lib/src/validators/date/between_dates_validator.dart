@@ -1,16 +1,16 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a date is between [min] and [max] (inclusive).
 class BetweenDatesValidator extends Validator<DateTime> {
+  /// Creates a [BetweenDatesValidator] with the given [min] and [max].
+  const BetweenDatesValidator({required this.min, required this.max});
+
   /// The earliest allowed date.
   final DateTime min;
 
   /// The latest allowed date.
   final DateTime max;
-
-  /// Creates a [BetweenDatesValidator] with the given [min] and [max].
-  const BetweenDatesValidator({required this.min, required this.max});
 
   @override
   String get code => VDateCode.notInRange;

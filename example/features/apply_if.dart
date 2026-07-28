@@ -49,17 +49,25 @@ void runApplyIfExamples() {
         V.string().applyIf(publicFlow, (s) => s.min(8)),
       );
 
-  print(signUpSchema(publicFlow: true).validate(const SignUpDto(
-    email: 'a@b.com',
-    password: 'Str0ng!Pass',
-    confirm: 'Str0ng!',
-  ))); // false — confirm too short on public flow
+  print(
+    signUpSchema(publicFlow: true).validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'Str0ng!',
+      ),
+    ),
+  ); // false — confirm too short on public flow
 
-  print(signUpSchema(publicFlow: false).validate(const SignUpDto(
-    email: 'a@b.com',
-    password: 'Str0ng!Pass',
-    confirm: 'x',
-  ))); // true — internal flow skips the confirm length check
+  print(
+    signUpSchema(publicFlow: false).validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'x',
+      ),
+    ),
+  ); // true — internal flow skips the confirm length check
 }
 
 void main() => runApplyIfExamples();

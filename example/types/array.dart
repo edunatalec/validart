@@ -11,7 +11,8 @@ void runArrayExamples() {
   print(V.string().array().min(1).validate(['a'])); // true
   print(V.string().array().max(3).validate(['a', 'b'])); // true
   print(
-      V.string().array().min(2).max(2).validate(['a', 'b'])); // true (exact 2)
+    V.string().array().min(2).max(2).validate(['a', 'b']),
+  ); // true (exact 2)
 
   print(V.int().array().unique().validate([1, 2, 3])); // true
   print(V.int().array().unique().validate([1, 1, 2])); // false
@@ -26,15 +27,19 @@ void runArrayExamples() {
       .array()
       .distinct((m) => m['id'] as Object);
 
-  print(usersById.validate([
-    {'id': 1, 'name': 'a'},
-    {'id': 2, 'name': 'b'},
-  ])); // true
+  print(
+    usersById.validate([
+      {'id': 1, 'name': 'a'},
+      {'id': 2, 'name': 'b'},
+    ]),
+  ); // true
 
-  print(usersById.validate([
-    {'id': 1, 'name': 'a'},
-    {'id': 1, 'name': 'different name'},
-  ])); // false — same id, distinct rejects
+  print(
+    usersById.validate([
+      {'id': 1, 'name': 'a'},
+      {'id': 1, 'name': 'different name'},
+    ]),
+  ); // false — same id, distinct rejects
 
   section('VArray — contains');
 
@@ -47,10 +52,12 @@ void runArrayExamples() {
 
   // VArray<List<int>> — a list of lists.
   final VArray<List<int>> matrix = VArray<List<int>>(V.int().array());
-  print(matrix.validate([
-    [1, 2],
-    [3, 4],
-  ])); // true
+  print(
+    matrix.validate([
+      [1, 2],
+      [3, 4],
+    ]),
+  ); // true
 
   section('VArray — array-level refine');
 

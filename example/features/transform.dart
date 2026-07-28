@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:validart/validart.dart';
 
 import '../shared/fixtures.dart';
@@ -46,10 +48,10 @@ void runTransformExamples() {
     return id.length;
   });
 
-  () async {
+  unawaited(() async {
     print(await loadId.parseAsync('550e8400-e29b-41d4-a716-446655440000'));
     // 36 (the UUID length)
-  }();
+  }());
 
   section('transform on a transformed schema (chain)');
 

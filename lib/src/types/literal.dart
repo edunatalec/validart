@@ -8,13 +8,13 @@ part of 'type.dart';
 /// schema.parse('inactive'); // throws VException
 /// ```
 class VLiteral<T> extends VType<T> {
-  final T _expected;
-
   /// Creates a literal validator that only accepts [_expected].
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
   VLiteral(this._expected, {super.message, super.invalidTypeMessage});
+
+  final T _expected;
 
   @override
   String get typeName => 'literal';

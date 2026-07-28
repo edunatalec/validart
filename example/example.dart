@@ -12,6 +12,7 @@
 //   example/shared/fixtures.dart    — DTOs, enums, custom patterns
 //                                     reused across the files above
 
+import 'features/apply_if.dart';
 import 'features/async.dart';
 import 'features/coerce.dart';
 import 'features/composition.dart';
@@ -23,7 +24,6 @@ import 'features/patterns.dart';
 import 'features/preprocess.dart';
 import 'features/refine.dart';
 import 'features/transform.dart';
-import 'features/apply_if.dart';
 import 'features/when.dart';
 import 'types/array.dart';
 import 'types/bool.dart';

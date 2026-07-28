@@ -2,10 +2,10 @@ import 'package:test/test.dart';
 import 'package:validart/validart.dart';
 
 class _VerifyDeviceDto {
+  const _VerifyDeviceDto({required this.code, this.email});
+
   final String code;
   final String? email;
-
-  const _VerifyDeviceDto({required this.code, this.email});
 }
 
 void main() {

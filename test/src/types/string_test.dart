@@ -1567,7 +1567,7 @@ void main() {
         test('formatted requires the space', () {
           final schema = VString().postalCode(
             patterns: [
-              const CaPostalCodePattern(mode: ValidationMode.formatted)
+              const CaPostalCodePattern(mode: ValidationMode.formatted),
             ],
           );
 
@@ -1578,7 +1578,7 @@ void main() {
         test('unformatted rejects the space', () {
           final schema = VString().postalCode(
             patterns: [
-              const CaPostalCodePattern(mode: ValidationMode.unformatted)
+              const CaPostalCodePattern(mode: ValidationMode.unformatted),
             ],
           );
 
@@ -1608,7 +1608,7 @@ void main() {
         test('unformatted rejects the space', () {
           final schema = VString().postalCode(
             patterns: [
-              const UkPostcodePattern(mode: ValidationMode.unformatted)
+              const UkPostcodePattern(mode: ValidationMode.unformatted),
             ],
           );
 
@@ -1763,7 +1763,7 @@ void main() {
         test('unformatted rejects any whitespace', () {
           final schema = VString().taxId(
             patterns: [
-              const UkNiNumberPattern(mode: ValidationMode.unformatted)
+              const UkNiNumberPattern(mode: ValidationMode.unformatted),
             ],
           );
 
@@ -1828,6 +1828,7 @@ void main() {
       test('returns error code license_plate', () {
         final schema =
             VString().licensePlate(patterns: [const _DummyPlatePattern()]);
+
         final errors = schema.errors('nope');
         expect(errors!.first.code, 'string.license_plate');
       });

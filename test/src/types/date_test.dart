@@ -32,6 +32,7 @@ void main() {
       test('should use custom message', () {
         final custom =
             VDate().after(DateTime(2024, 1, 1), message: (d) => 'Too early');
+
         final errs = custom.errors(DateTime(2023, 1, 1));
         expect(errs!.first.message, 'Too early');
       });
@@ -61,6 +62,7 @@ void main() {
       test('should use custom message', () {
         final custom =
             VDate().before(DateTime(2024, 12, 31), message: (d) => 'Too late');
+
         final errs = custom.errors(DateTime(2025, 1, 1));
         expect(errs!.first.message, 'Too late');
       });
@@ -100,6 +102,7 @@ void main() {
       test('should use custom message', () {
         final custom =
             VDate().between(min, max, message: (a, b) => 'Out of range');
+
         final errs = custom.errors(DateTime(2023, 1, 1));
         expect(errs!.first.message, 'Out of range');
       });
@@ -240,6 +243,7 @@ void main() {
           reference,
           message: (d) => 'Pick the day of ${d.toIso8601String()}',
         );
+
         final errs = custom.errors(DateTime(2026, 5, 17));
         expect(
           errs!.first.message,
@@ -452,7 +456,7 @@ void main() {
       test('should create array of dates', () {
         final now = DateTime.now();
         final future = now.add(const Duration(days: 1));
-        final schema = (VDate().after(now)).array();
+        final schema = VDate().after(now).array();
 
         expect(schema.validate([future]), isTrue);
         expect(

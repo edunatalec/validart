@@ -21,7 +21,9 @@ void main() {
       );
       expect(
         locale.translate(
-            'invalid_type', {'expected': 'String', 'received': 'int'}),
+          'invalid_type',
+          {'expected': 'String', 'received': 'int'},
+        ),
         'Expected String, received int',
       );
     });
@@ -65,36 +67,47 @@ void main() {
 
   group('V.setLocale', () {
     test('should change translations for string validators', () {
-      V.setLocale(const VLocale({
-        'string.email': 'Email inválido',
-      }));
+      V.setLocale(
+        const VLocale({
+          'string.email': 'Email inválido',
+        }),
+      );
+
       final schema = VString().email();
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Email inválido');
     });
 
     test('should change translations for number validators', () {
-      V.setLocale(const VLocale({
-        'number.positive': 'Deve ser positivo',
-      }));
+      V.setLocale(
+        const VLocale({
+          'number.positive': 'Deve ser positivo',
+        }),
+      );
+
       final schema = VInt().positive();
       final errs = schema.errors(-1);
       expect(errs!.first.message, 'Deve ser positivo');
     });
 
     test('should change translations for bool validators', () {
-      V.setLocale(const VLocale({
-        'bool.is_true': 'Deve ser verdadeiro',
-      }));
+      V.setLocale(
+        const VLocale({
+          'bool.is_true': 'Deve ser verdadeiro',
+        }),
+      );
+
       final schema = VBool().isTrue();
       final errs = schema.errors(false);
       expect(errs!.first.message, 'Deve ser verdadeiro');
     });
 
     test('should change required message globally', () {
-      V.setLocale(const VLocale({
-        'required': 'Campo obrigatório',
-      }));
+      V.setLocale(
+        const VLocale({
+          'required': 'Campo obrigatório',
+        }),
+      );
 
       final stringErrs = VString().errors(null);
       expect(stringErrs!.first.message, 'Campo obrigatório');
@@ -110,9 +123,12 @@ void main() {
     });
 
     test('should change invalidType message globally', () {
-      V.setLocale(const VLocale({
-        'invalid_type': 'Esperado {expected}, recebido {received}',
-      }));
+      V.setLocale(
+        const VLocale({
+          'invalid_type': 'Esperado {expected}, recebido {received}',
+        }),
+      );
+
       final errs = VString().errors(123);
       expect(errs!.first.message, contains('Esperado'));
       expect(errs.first.message, contains('recebido'));
@@ -121,16 +137,20 @@ void main() {
 
   group('V.t', () {
     test('should translate codes using current locale', () {
-      V.setLocale(const VLocale({
-        'required': 'Obrigatório',
-      }));
+      V.setLocale(
+        const VLocale({
+          'required': 'Obrigatório',
+        }),
+      );
       expect(V.t('required'), 'Obrigatório');
     });
 
     test('should interpolate params', () {
-      V.setLocale(const VLocale({
-        'string.too_small': 'Min {min}',
-      }));
+      V.setLocale(
+        const VLocale({
+          'string.too_small': 'Min {min}',
+        }),
+      );
       expect(V.t('string.too_small', {'min': 3}), 'Min 3');
     });
 
@@ -147,9 +167,12 @@ void main() {
 
   group('Per-validator override bypasses locale', () {
     test('should use per-validator message over locale', () {
-      V.setLocale(const VLocale({
-        'string.email': 'Global email msg',
-      }));
+      V.setLocale(
+        const VLocale({
+          'string.email': 'Global email msg',
+        }),
+      );
+
       final schema = VString().email(message: 'Per-validator msg');
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Per-validator msg');
@@ -166,9 +189,11 @@ void main() {
   group('Fallback chain', () {
     test('custom locale -> default -> code itself', () {
       // Custom translation takes priority
-      V.setLocale(const VLocale({
-        'required': 'Custom required',
-      }));
+      V.setLocale(
+        const VLocale({
+          'required': 'Custom required',
+        }),
+      );
       expect(V.t('required'), 'Custom required');
 
       // Default is used when no custom
@@ -181,20 +206,24 @@ void main() {
 
   group('Prefixed codes and nested translations', () {
     test('flat prefixed override wins over generic', () {
-      V.setLocale(const VLocale({
-        'required': 'Generic required',
-        'string.required': 'String required',
-      }));
+      V.setLocale(
+        const VLocale({
+          'required': 'Generic required',
+          'string.required': 'String required',
+        }),
+      );
 
       expect(VString().errors(null)!.first.message, 'String required');
       expect(VInt().errors(null)!.first.message, 'Generic required');
     });
 
     test('nested map override wins over generic', () {
-      V.setLocale(const VLocale({
-        'required': 'Generic required',
-        'string': {'required': 'String required'},
-      }));
+      V.setLocale(
+        const VLocale({
+          'required': 'Generic required',
+          'string': {'required': 'String required'},
+        }),
+      );
 
       expect(VString().errors(null)!.first.message, 'String required');
       expect(VInt().errors(null)!.first.message, 'Generic required');
@@ -210,20 +239,24 @@ void main() {
     });
 
     test('prefixed invalid_type overrides generic', () {
-      V.setLocale(const VLocale({
-        'invalid_type': 'Generic type',
-        'string.invalid_type': 'String type',
-      }));
+      V.setLocale(
+        const VLocale({
+          'invalid_type': 'Generic type',
+          'string.invalid_type': 'String type',
+        }),
+      );
 
       expect(VString().errors(42)!.first.message, 'String type');
       expect(VInt().errors('x')!.first.message, 'Generic type');
     });
 
     test('nested and flat can coexist', () {
-      V.setLocale(const VLocale({
-        'int.required': 'Int required',
-        'string': {'required': 'String required'},
-      }));
+      V.setLocale(
+        const VLocale({
+          'int.required': 'Int required',
+          'string': {'required': 'String required'},
+        }),
+      );
 
       expect(VString().errors(null)!.first.message, 'String required');
       expect(VInt().errors(null)!.first.message, 'Int required');
@@ -261,17 +294,22 @@ void main() {
       expect(locale.translate('string.required'), 'Required');
       expect(locale.translate('int.required'), 'Required');
       expect(
-          locale.translate(
-              'map.invalid_type', {'expected': 'Map', 'received': 'int'}),
-          'Expected Map, received int');
+        locale.translate(
+          'map.invalid_type',
+          {'expected': 'Map', 'received': 'int'},
+        ),
+        'Expected Map, received int',
+      );
     });
 
     test('full 5-layer fallback chain resolves in the documented order', () {
       // Layer 1: custom prefixed wins
-      V.setLocale(const VLocale({
-        'string.email': 'L1 custom prefixed',
-        'email': 'L2 custom drop',
-      }));
+      V.setLocale(
+        const VLocale({
+          'string.email': 'L1 custom prefixed',
+          'email': 'L2 custom drop',
+        }),
+      );
       expect(V.t('string.email'), 'L1 custom prefixed');
 
       // Layer 2: custom drop-prefix (no prefixed match)

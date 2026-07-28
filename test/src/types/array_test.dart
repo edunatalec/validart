@@ -4,9 +4,9 @@ import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
 
 class _User {
+  const _User(this.id, this.name);
   final String id;
   final String name;
-  const _User(this.id, this.name);
 }
 
 void main() {
@@ -250,11 +250,12 @@ void main() {
           isTrue,
         );
         expect(
-            schema.validate([
-              {'id': 1},
-            ]),
-            isFalse,
-            reason: 'min(2) fails');
+          schema.validate([
+            {'id': 1},
+          ]),
+          isFalse,
+          reason: 'min(2) fails',
+        );
         expect(
           schema.validate([
             {'id': 1},
@@ -417,6 +418,7 @@ void main() {
         final schema = VArray<List<String>>(
           VArray<String>(VString().email()),
         );
+
         final errors = schema.errors([
           ['a@b.com'],
           ['bad'],

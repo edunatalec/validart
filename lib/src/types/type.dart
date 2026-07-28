@@ -1,95 +1,95 @@
-import 'package:validart/src/error.dart';
-import 'package:validart/src/result.dart';
-import 'package:validart/src/v.dart';
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validation_mode.dart';
-import 'package:validart/src/validators/array/contains_all_validator.dart';
-import 'package:validart/src/validators/array/distinct_validator.dart';
-import 'package:validart/src/validators/array/max_length_list_validator.dart';
-import 'package:validart/src/validators/array/min_length_list_validator.dart';
-import 'package:validart/src/validators/array/unique_validator.dart';
-import 'package:validart/src/validators/bool/is_false_validator.dart';
-import 'package:validart/src/validators/map/equal_fields_validator.dart';
-import 'package:validart/src/validators/object/equal_fields_validator.dart';
-import 'package:validart/src/validators/bool/is_true_validator.dart';
-import 'package:validart/src/validators/date/after_today_validator.dart';
-import 'package:validart/src/validators/date/after_validator.dart';
-import 'package:validart/src/validators/date/age_validator.dart';
-import 'package:validart/src/validators/date/before_today_validator.dart';
-import 'package:validart/src/validators/date/before_validator.dart';
-import 'package:validart/src/validators/date/between_dates_validator.dart';
-import 'package:validart/src/validators/date/is_today_validator.dart';
-import 'package:validart/src/validators/date/same_day_as_validator.dart';
-import 'package:validart/src/validators/date/weekday_validator.dart';
-import 'package:validart/src/validators/date/weekend_validator.dart';
-import 'package:validart/src/validators/number/between_validator.dart';
-import 'package:validart/src/validators/number/decimal_validator.dart';
-import 'package:validart/src/validators/number/even_validator.dart';
-import 'package:validart/src/validators/number/finite_validator.dart';
-import 'package:validart/src/validators/number/integer_double_validator.dart';
-import 'package:validart/src/validators/number/max_validator.dart';
-import 'package:validart/src/validators/number/min_validator.dart';
-import 'package:validart/src/validators/number/multiple_of_validator.dart';
-import 'package:validart/src/validators/number/negative_validator.dart';
-import 'package:validart/src/validators/number/odd_validator.dart';
-import 'package:validart/src/validators/number/positive_validator.dart';
-import 'package:validart/src/validators/number/prime_validator.dart';
-import 'package:validart/src/validators/string/alpha_validator.dart';
-import 'package:validart/src/validators/string/alphanumeric_validator.dart';
-import 'package:validart/src/validators/string/base64_validator.dart';
-import 'package:validart/src/validators/string/card_brand_pattern.dart';
-import 'package:validart/src/validators/string/card_validator.dart';
-import 'package:validart/src/validators/string/contains_validator.dart';
-import 'package:validart/src/validators/string/cvv_validator.dart';
-import 'package:validart/src/validators/string/date_string_validator.dart';
-import 'package:validart/src/validators/string/domain_validator.dart';
-import 'package:validart/src/validators/string/email_validator.dart';
-import 'package:validart/src/validators/string/ends_with_validator.dart';
-import 'package:validart/src/validators/string/equals_validator.dart';
-import 'package:validart/src/validators/string/hex_color_validator.dart';
-import 'package:validart/src/validators/string/iban_validator.dart';
-import 'package:validart/src/validators/string/integer_string_validator.dart';
-import 'package:validart/src/validators/string/ip_validator.dart';
-import 'package:validart/src/validators/string/json_validator.dart';
-import 'package:validart/src/validators/string/jwt_validator.dart';
-import 'package:validart/src/validators/string/length_validator.dart';
-import 'package:validart/src/validators/string/license_plate_pattern.dart';
-import 'package:validart/src/validators/string/license_plate_validator.dart';
-import 'package:validart/src/validators/string/mac_validator.dart';
-import 'package:validart/src/validators/string/max_length_validator.dart';
-import 'package:validart/src/validators/string/min_length_validator.dart';
-import 'package:validart/src/validators/string/mongo_id_validator.dart';
-import 'package:validart/src/validators/string/nano_id_validator.dart';
-import 'package:validart/src/validators/string/not_empty_validator.dart';
-import 'package:validart/src/validators/string/numeric_string_validator.dart';
-import 'package:validart/src/validators/string/password_validator.dart';
-import 'package:validart/src/validators/string/pattern_validator.dart';
-import 'package:validart/src/validators/string/phone_pattern.dart';
-import 'package:validart/src/validators/string/phone_validator.dart';
-import 'package:validart/src/validators/string/postal_code_pattern.dart';
-import 'package:validart/src/validators/string/postal_code_validator.dart';
-import 'package:validart/src/validators/string/semver_validator.dart';
-import 'package:validart/src/validators/string/slug_validator.dart';
-import 'package:validart/src/validators/string/starts_with_validator.dart';
-import 'package:validart/src/validators/string/tax_id_pattern.dart';
-import 'package:validart/src/validators/string/tax_id_validator.dart';
-import 'package:validart/src/validators/string/time_validator.dart';
-import 'package:validart/src/validators/string/ulid_validator.dart';
-import 'package:validart/src/validators/string/url_validator.dart';
-import 'package:validart/src/validators/string/uuid_validator.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../error.dart';
+import '../result.dart';
+import '../v.dart';
+import '../v_code.dart';
+import '../validation_mode.dart';
+import '../validators/array/contains_all_validator.dart';
+import '../validators/array/distinct_validator.dart';
+import '../validators/array/max_length_list_validator.dart';
+import '../validators/array/min_length_list_validator.dart';
+import '../validators/array/unique_validator.dart';
+import '../validators/bool/is_false_validator.dart';
+import '../validators/bool/is_true_validator.dart';
+import '../validators/date/after_today_validator.dart';
+import '../validators/date/after_validator.dart';
+import '../validators/date/age_validator.dart';
+import '../validators/date/before_today_validator.dart';
+import '../validators/date/before_validator.dart';
+import '../validators/date/between_dates_validator.dart';
+import '../validators/date/is_today_validator.dart';
+import '../validators/date/same_day_as_validator.dart';
+import '../validators/date/weekday_validator.dart';
+import '../validators/date/weekend_validator.dart';
+import '../validators/map/equal_fields_validator.dart';
+import '../validators/number/between_validator.dart';
+import '../validators/number/decimal_validator.dart';
+import '../validators/number/even_validator.dart';
+import '../validators/number/finite_validator.dart';
+import '../validators/number/integer_double_validator.dart';
+import '../validators/number/max_validator.dart';
+import '../validators/number/min_validator.dart';
+import '../validators/number/multiple_of_validator.dart';
+import '../validators/number/negative_validator.dart';
+import '../validators/number/odd_validator.dart';
+import '../validators/number/positive_validator.dart';
+import '../validators/number/prime_validator.dart';
+import '../validators/object/equal_fields_validator.dart';
+import '../validators/string/alpha_validator.dart';
+import '../validators/string/alphanumeric_validator.dart';
+import '../validators/string/base64_validator.dart';
+import '../validators/string/card_brand_pattern.dart';
+import '../validators/string/card_validator.dart';
+import '../validators/string/contains_validator.dart';
+import '../validators/string/cvv_validator.dart';
+import '../validators/string/date_string_validator.dart';
+import '../validators/string/domain_validator.dart';
+import '../validators/string/email_validator.dart';
+import '../validators/string/ends_with_validator.dart';
+import '../validators/string/equals_validator.dart';
+import '../validators/string/hex_color_validator.dart';
+import '../validators/string/iban_validator.dart';
+import '../validators/string/integer_string_validator.dart';
+import '../validators/string/ip_validator.dart';
+import '../validators/string/json_validator.dart';
+import '../validators/string/jwt_validator.dart';
+import '../validators/string/length_validator.dart';
+import '../validators/string/license_plate_pattern.dart';
+import '../validators/string/license_plate_validator.dart';
+import '../validators/string/mac_validator.dart';
+import '../validators/string/max_length_validator.dart';
+import '../validators/string/min_length_validator.dart';
+import '../validators/string/mongo_id_validator.dart';
+import '../validators/string/nano_id_validator.dart';
+import '../validators/string/not_empty_validator.dart';
+import '../validators/string/numeric_string_validator.dart';
+import '../validators/string/password_validator.dart';
+import '../validators/string/pattern_validator.dart';
+import '../validators/string/phone_pattern.dart';
+import '../validators/string/phone_validator.dart';
+import '../validators/string/postal_code_pattern.dart';
+import '../validators/string/postal_code_validator.dart';
+import '../validators/string/semver_validator.dart';
+import '../validators/string/slug_validator.dart';
+import '../validators/string/starts_with_validator.dart';
+import '../validators/string/tax_id_pattern.dart';
+import '../validators/string/tax_id_validator.dart';
+import '../validators/string/time_validator.dart';
+import '../validators/string/ulid_validator.dart';
+import '../validators/string/url_validator.dart';
+import '../validators/string/uuid_validator.dart';
+import '../validators/validator.dart';
 
-part 'string.dart';
-part 'bool.dart';
-part 'number.dart';
-part 'date.dart';
 part 'array.dart';
-part 'map.dart';
-part 'object.dart';
+part 'bool.dart';
+part 'date.dart';
 part 'enum.dart';
 part 'literal.dart';
-part 'union.dart';
+part 'map.dart';
+part 'number.dart';
+part 'object.dart';
+part 'string.dart';
 part 'transformed.dart';
+part 'union.dart';
 
 /// Controls when a [VMap.refineField], [VObject.refineField] or
 /// [VObject.refineFieldRaw] callback runs in the container pipeline.
@@ -235,12 +235,14 @@ abstract class VType<T> {
     List<Object>? path,
     Set<String>? dependsOn,
   }) {
-    return _addStep(_ValidatorStep<T>(
-      validator,
-      messageOverride: message,
-      path: path,
-      dependsOn: dependsOn,
-    ));
+    return _addStep(
+      _ValidatorStep<T>(
+        validator,
+        messageOverride: message,
+        path: path,
+        dependsOn: dependsOn,
+      ),
+    );
   }
 
   /// Adds a [Validator] that runs in the **raw** validation phase —
@@ -264,11 +266,13 @@ abstract class VType<T> {
     String? message,
     List<Object>? path,
   }) {
-    return _addStep(_RawValidatorStep<T>(
-      validator,
-      messageOverride: message,
-      path: path,
-    ));
+    return _addStep(
+      _RawValidatorStep<T>(
+        validator,
+        messageOverride: message,
+        path: path,
+      ),
+    );
   }
 
   /// Adds an [AsyncValidator] to the validation phase.
@@ -286,13 +290,15 @@ abstract class VType<T> {
     List<Object>? path,
     Set<String>? dependsOn,
   }) {
-    _addStep(_AsyncValidatorStep<T>(
-      validate: validator.validate,
-      code: validator.code,
-      messageOverride: message,
-      path: path,
-      dependsOn: dependsOn,
-    ));
+    _addStep(
+      _AsyncValidatorStep<T>(
+        validate: validator.validate,
+        code: validator.code,
+        messageOverride: message,
+        path: path,
+        dependsOn: dependsOn,
+      ),
+    );
 
     return this;
   }
@@ -560,11 +566,13 @@ abstract class VType<T> {
 
         if (params != null) {
           final message = messageOverride ?? V.t(validator.code, params);
-          errors.add(VError(
-            code: validator.code,
-            message: message,
-            path: path ?? const [],
-          ));
+          errors.add(
+            VError(
+              code: validator.code,
+              message: message,
+              path: path ?? const [],
+            ),
+          );
         }
       }
     }
@@ -609,11 +617,13 @@ abstract class VType<T> {
 
         if (params != null) {
           final message = messageOverride ?? V.t(validator.code, params);
-          errors.add(VError(
-            code: validator.code,
-            message: message,
-            path: path ?? const [],
-          ));
+          errors.add(
+            VError(
+              code: validator.code,
+              message: message,
+              path: path ?? const [],
+            ),
+          );
         }
       }
     }
@@ -656,11 +666,13 @@ abstract class VType<T> {
 
         if (params != null) {
           final message = messageOverride ?? V.t(validator.code, params);
-          errors.add(VError(
-            code: validator.code,
-            message: message,
-            path: path ?? const [],
-          ));
+          errors.add(
+            VError(
+              code: validator.code,
+              message: message,
+              path: path ?? const [],
+            ),
+          );
         }
       } else if (step
           case _AsyncValidatorStep<T>(
@@ -678,11 +690,13 @@ abstract class VType<T> {
 
         if (params != null) {
           final message = messageOverride ?? V.t(code, params);
-          errors.add(VError(
-            code: code,
-            message: message,
-            path: path ?? const [],
-          ));
+          errors.add(
+            VError(
+              code: code,
+              message: message,
+              path: path ?? const [],
+            ),
+          );
         }
       }
     }
@@ -887,19 +901,21 @@ abstract class VType<T> {
     Duration? timeout,
     Set<String>? dependsOn,
   }) {
-    _addStep(_AsyncValidatorStep<T>(
-      validate: (value) async {
-        final future = check(value);
-        final result = timeout != null
-            ? await future.timeout(timeout, onTimeout: () => false)
-            : await future;
+    _addStep(
+      _AsyncValidatorStep<T>(
+        validate: (value) async {
+          final future = check(value);
+          final result = timeout != null
+              ? await future.timeout(timeout, onTimeout: () => false)
+              : await future;
 
-        return result ? null : {};
-      },
-      code: code ?? VCode.custom,
-      messageOverride: message,
-      dependsOn: dependsOn,
-    ));
+          return result ? null : {};
+        },
+        code: code ?? VCode.custom,
+        messageOverride: message,
+        dependsOn: dependsOn,
+      ),
+    );
 
     return this;
   }
@@ -911,9 +927,8 @@ abstract class VType<T> {
 }
 
 class _NullableWrapper<T> extends VType<T> {
-  final VType<T> _inner;
-
   _NullableWrapper(this._inner);
+  final VType<T> _inner;
 
   @override
   String get typeName => _inner.typeName;
@@ -950,13 +965,13 @@ class _NullableWrapper<T> extends VType<T> {
 }
 
 class _RefineValidator<T> extends Validator<T> {
-  final bool Function(T value) check;
-  final String validatorCode;
-
   const _RefineValidator({
     required this.check,
     required this.validatorCode,
   });
+
+  final bool Function(T value) check;
+  final String validatorCode;
 
   @override
   String get code => validatorCode;
@@ -970,12 +985,19 @@ sealed class _PipelineStep<T> {
 }
 
 final class _PreTransformStep<T> extends _PipelineStep<T> {
-  final T Function(T value) transform;
-
   const _PreTransformStep({required this.transform});
+
+  final T Function(T value) transform;
 }
 
 final class _ValidatorStep<T> extends _PipelineStep<T> {
+  const _ValidatorStep(
+    this.validator, {
+    this.messageOverride,
+    this.path,
+    this.dependsOn,
+  });
+
   final Validator<T> validator;
   final String? messageOverride;
   final List<Object>? path;
@@ -985,24 +1007,9 @@ final class _ValidatorStep<T> extends _PipelineStep<T> {
   /// (default), the conservative rule applies — the step is skipped if
   /// any field at all has failed.
   final Set<String>? dependsOn;
-
-  const _ValidatorStep(
-    this.validator, {
-    this.messageOverride,
-    this.path,
-    this.dependsOn,
-  });
 }
 
 final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
-  final Future<Map<String, dynamic>?> Function(T value) validate;
-  final String code;
-  final String? messageOverride;
-  final List<Object>? path;
-
-  /// See [_ValidatorStep.dependsOn].
-  final Set<String>? dependsOn;
-
   const _AsyncValidatorStep({
     required this.validate,
     required this.code,
@@ -1010,6 +1017,14 @@ final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
     this.path,
     this.dependsOn,
   });
+
+  final Future<Map<String, dynamic>?> Function(T value) validate;
+  final String code;
+  final String? messageOverride;
+  final List<Object>? path;
+
+  /// See [_ValidatorStep.dependsOn].
+  final Set<String>? dependsOn;
 }
 
 /// Validator step that runs **before** any per-field iteration in a
@@ -1027,15 +1042,15 @@ final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
 /// Always runs when reached — there are no per-field failures yet to
 /// gate on, so [_RawValidatorStep] does not carry a `dependsOn` set.
 final class _RawValidatorStep<T> extends _PipelineStep<T> {
-  final Validator<T> validator;
-  final String? messageOverride;
-  final List<Object>? path;
-
   const _RawValidatorStep(
     this.validator, {
     this.messageOverride,
     this.path,
   });
+
+  final Validator<T> validator;
+  final String? messageOverride;
+  final List<Object>? path;
 }
 
 /// Extracts the first path segment from each error in [errors] as a string,

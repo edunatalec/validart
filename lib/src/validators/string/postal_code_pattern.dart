@@ -1,4 +1,4 @@
-import 'package:validart/src/validation_mode.dart';
+import '../../validation_mode.dart';
 
 /// A pluggable postal-code validation strategy.
 ///
@@ -56,10 +56,14 @@ class UsZipPattern extends PostalCodePattern {
 /// );
 /// ```
 class CaPostalCodePattern extends PostalCodePattern {
+  /// Creates a [CaPostalCodePattern].
+  const CaPostalCodePattern({this.mode = ValidationMode.any});
+
   static final _formattedRegex = RegExp(
     r'^[ABCEGHJ-NPRSTVXY]\d[A-Z] \d[A-Z]\d$',
     caseSensitive: false,
   );
+
   static final _unformattedRegex = RegExp(
     r'^[ABCEGHJ-NPRSTVXY]\d[A-Z]\d[A-Z]\d$',
     caseSensitive: false,
@@ -68,9 +72,6 @@ class CaPostalCodePattern extends PostalCodePattern {
   /// Controls whether the separating space is required, forbidden, or
   /// optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [CaPostalCodePattern].
-  const CaPostalCodePattern({this.mode = ValidationMode.any});
 
   @override
   bool matches(String value) {
@@ -100,10 +101,14 @@ class CaPostalCodePattern extends PostalCodePattern {
 /// );
 /// ```
 class UkPostcodePattern extends PostalCodePattern {
+  /// Creates a [UkPostcodePattern].
+  const UkPostcodePattern({this.mode = ValidationMode.any});
+
   static final _formattedRegex = RegExp(
     r'^[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2}$',
     caseSensitive: false,
   );
+
   static final _unformattedRegex = RegExp(
     r'^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$',
     caseSensitive: false,
@@ -112,9 +117,6 @@ class UkPostcodePattern extends PostalCodePattern {
   /// Controls whether the separating space is required, forbidden, or
   /// optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [UkPostcodePattern].
-  const UkPostcodePattern({this.mode = ValidationMode.any});
 
   @override
   String get name => 'UK Postcode';

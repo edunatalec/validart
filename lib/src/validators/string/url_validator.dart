@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a string is a valid URL.
 ///
@@ -22,19 +22,19 @@ import 'package:validart/src/validators/validator.dart';
 /// alphabetic characters, OR the literal `localhost`. An optional `:port`
 /// suffix is always allowed.
 class UrlValidator extends Validator<String> {
-  /// Set of accepted URL schemes (without `://`). Pass `const {}` to
-  /// make the scheme optional.
-  final Set<String> schemes;
-
-  /// When `true`, rejects any path / query / fragment after the host.
-  final bool hostOnly;
-
   /// Creates a [UrlValidator]. Defaults to `{http, https}` required and
   /// path/query/fragment allowed.
   const UrlValidator({
     this.schemes = const {'http', 'https'},
     this.hostOnly = false,
   });
+
+  /// Set of accepted URL schemes (without `://`). Pass `const {}` to
+  /// make the scheme optional.
+  final Set<String> schemes;
+
+  /// When `true`, rejects any path / query / fragment after the host.
+  final bool hostOnly;
 
   @override
   String get code => VStringCode.url;

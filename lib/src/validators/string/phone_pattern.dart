@@ -1,5 +1,5 @@
-import 'package:validart/src/phone_format.dart';
-import 'package:validart/src/v_code.dart';
+import '../../phone_format.dart';
+import '../../v_code.dart';
 
 /// A pluggable phone-number validation strategy.
 ///
@@ -53,12 +53,12 @@ abstract class PhonePattern {
 /// );
 /// ```
 class E164PhonePattern extends PhonePattern {
+  /// Creates an [E164PhonePattern].
+  const E164PhonePattern({this.countryCode = CountryCodeFormat.optional});
+
   /// Whether the leading country code (`+`) must be present, is optional,
   /// or must be absent. Defaults to [CountryCodeFormat.optional].
   final CountryCodeFormat countryCode;
-
-  /// Creates an [E164PhonePattern].
-  const E164PhonePattern({this.countryCode = CountryCodeFormat.optional});
 
   @override
   String get code => VStringCode.phone;

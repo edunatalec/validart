@@ -12,9 +12,9 @@ class TestStringType extends VType<String> {
 }
 
 class _LengthValidator extends Validator<String> {
-  final int min;
-
   const _LengthValidator({required this.min});
+
+  final int min;
 
   @override
   String get code => 'custom';
@@ -167,8 +167,12 @@ void main() {
       });
 
       test('should use custom code', () {
-        final schema = TestStringType().refine((v) => v.isNotEmpty,
-            code: 'string.not_empty', message: 'Cannot be empty');
+        final schema = TestStringType().refine(
+          (v) => v.isNotEmpty,
+          code: 'string.not_empty',
+          message: 'Cannot be empty',
+        );
+
         final errs = schema.errors('');
         expect(errs!.first.code, 'string.not_empty');
       });
@@ -314,9 +318,9 @@ void main() {
     });
 
     test('should propagate errors from inner schema', () {
-      final schema =
-          (TestStringType().refine((v) => v.length >= 5, message: 'Too short'))
-              .transform<int>((s) => s.length);
+      final schema = TestStringType()
+          .refine((v) => v.length >= 5, message: 'Too short')
+          .transform<int>((s) => s.length);
       expect(schema.validate('hi'), isFalse);
     });
 
@@ -329,7 +333,7 @@ void main() {
 
     test('should handle null when inner is nullable', () {
       final schema =
-          (TestStringType().nullable()).transform<int>((s) => s.length);
+          TestStringType().nullable().transform<int>((s) => s.length);
       expect(schema.parse(null), isNull);
     });
   });
@@ -352,6 +356,7 @@ void main() {
     test('should not run transforms after validation fails', () {
       final schema =
           VString().refine((v) => false, message: 'Always fails').trim();
+
       final result = schema.safeParse('  hello  ');
 
       expect(result.isValid, isFalse);

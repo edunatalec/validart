@@ -1,60 +1,54 @@
 part of 'type.dart';
 
 class _FieldEntry<T> {
-  final String name;
-  final Object? Function(T instance) extractor;
-  final VType validator;
-
   const _FieldEntry({
     required this.name,
     required this.extractor,
     required this.validator,
   });
+
+  final String name;
+  final Object? Function(T instance) extractor;
+  final VType validator;
 }
 
 class _ObjectWhenRule<T> {
-  final String field;
-  final Object? equals;
-  final Map<String, VType> then;
-
   const _ObjectWhenRule({
     required this.field,
     required this.equals,
     required this.then,
   });
+
+  final String field;
+  final Object? equals;
+  final Map<String, VType> then;
 }
 
 class _ObjectWhenMatchesRule<T> {
-  final bool Function(T entity) condition;
-  final Set<String> dependsOn;
-  final Map<String, VType> then;
-
   const _ObjectWhenMatchesRule({
     required this.condition,
     required this.dependsOn,
     required this.then,
   });
+
+  final bool Function(T entity) condition;
+  final Set<String> dependsOn;
+  final Map<String, VType> then;
 }
 
 class _ObjectWhenMatchesRawRule {
-  final bool Function(Map<String, dynamic> input) condition;
-  final Set<String> dependsOn;
-  final Map<String, VType> then;
-
   const _ObjectWhenMatchesRawRule({
     required this.condition,
     required this.dependsOn,
     required this.then,
   });
+
+  final bool Function(Map<String, dynamic> input) condition;
+  final Set<String> dependsOn;
+  final Map<String, VType> then;
 }
 
 class _ObjectRawFieldRule {
-  final bool Function(Map<String, dynamic> data) check;
-  final String path;
-  final String? message;
-  final Set<String> dependsOn;
-  final RefineStage stage;
-
   const _ObjectRawFieldRule({
     required this.check,
     required this.path,
@@ -62,6 +56,12 @@ class _ObjectRawFieldRule {
     required this.dependsOn,
     required this.stage,
   });
+
+  final bool Function(Map<String, dynamic> data) check;
+  final String path;
+  final String? message;
+  final Set<String> dependsOn;
+  final RefineStage stage;
 }
 
 /// Validates class/entity instances of type [T] via type-safe field
@@ -74,6 +74,25 @@ class _ObjectRawFieldRule {
 /// schema.validate(User(name: 'Jo', age: 25)); // true
 /// ```
 class VObject<T> extends VType<T> {
+  VObject._({super.message, super.invalidTypeMessage});
+
+  /// Creates a [VObject] — chain [field] to add type-safe field extractors.
+  ///
+  /// Pass [message] to override the default translation used
+  /// when the input is `null`.
+  ///
+  /// Unlike [VMap] (which asserts at least one declared field at factory
+  /// time), `VObject<T>` accepts an empty schema. This supports partial
+  /// construction patterns like [fieldIf] returning the receiver
+  /// unchanged when a flag is off, or building a base schema that gets
+  /// fields added later via [merge]. A schema with zero fields
+  /// validates any `T` instance trivially.
+  ///
+  /// ```dart
+  /// final schema = VObject<User>()
+  ///     .field('name', (u) => u.name, V.string());
+  /// ```
+  factory VObject({String? message, String? invalidTypeMessage}) = VObject<T>._;
   final List<_FieldEntry<T>> _fields = [];
   final List<_ObjectWhenRule<T>> _whenRules = [];
   final List<_ObjectWhenMatchesRule<T>> _whenMatchesRules = [];
@@ -81,8 +100,6 @@ class VObject<T> extends VType<T> {
   final List<_ObjectRawFieldRule> _rawFieldRules = [];
   bool _isStrict = false;
   bool _isPassthrough = false;
-
-  VObject._({super.message, super.invalidTypeMessage});
 
   @override
   String get typeName => 'object';
@@ -241,25 +258,8 @@ class VObject<T> extends VType<T> {
   /// // {'name': 'Jo', 'age': 25}
   /// ```
   Map<String, dynamic> extract(T instance) => Map.fromEntries(
-      _fields.map((f) => MapEntry(f.name, f.extractor(instance))));
-
-  /// Creates a [VObject] — chain [field] to add type-safe field extractors.
-  ///
-  /// Pass [message] to override the default translation used
-  /// when the input is `null`.
-  ///
-  /// Unlike [VMap] (which asserts at least one declared field at factory
-  /// time), `VObject<T>` accepts an empty schema. This supports partial
-  /// construction patterns like [fieldIf] returning the receiver
-  /// unchanged when a flag is off, or building a base schema that gets
-  /// fields added later via [merge]. A schema with zero fields
-  /// validates any `T` instance trivially.
-  ///
-  /// ```dart
-  /// final schema = VObject<User>()
-  ///     .field('name', (u) => u.name, V.string());
-  /// ```
-  factory VObject({String? message, String? invalidTypeMessage}) = VObject<T>._;
+        _fields.map((f) => MapEntry(f.name, f.extractor(instance))),
+      );
 
   /// Adds a field to the schema with a [name], an [extractor] to read its
   /// value from an instance of [T], and a [validator] schema.
@@ -274,11 +274,13 @@ class VObject<T> extends VType<T> {
     F? Function(T instance) extractor,
     VType<F> validator,
   ) {
-    _fields.add(_FieldEntry<T>(
-      name: name,
-      extractor: (instance) => extractor(instance),
-      validator: validator,
-    ));
+    _fields.add(
+      _FieldEntry<T>(
+        name: name,
+        extractor: (instance) => extractor(instance),
+        validator: validator,
+      ),
+    );
 
     return this;
   }
@@ -373,11 +375,13 @@ class VObject<T> extends VType<T> {
         Set<String> dependsOn,
         Map<String, VType> then,
       })> get whenMatchesRules => _whenMatchesRules
-      .map((r) => (
-            condition: r.condition,
-            dependsOn: r.dependsOn,
-            then: r.then,
-          ))
+      .map(
+        (r) => (
+          condition: r.condition,
+          dependsOn: r.dependsOn,
+          then: r.then,
+        ),
+      )
       .toList();
 
   /// The predicate-based conditional validation rules added via
@@ -389,11 +393,13 @@ class VObject<T> extends VType<T> {
         Set<String> dependsOn,
         Map<String, VType> then,
       })> get whenMatchesRawRules => _whenMatchesRawRules
-      .map((r) => (
-            condition: r.condition,
-            dependsOn: r.dependsOn,
-            then: r.then,
-          ))
+      .map(
+        (r) => (
+          condition: r.condition,
+          dependsOn: r.dependsOn,
+          then: r.then,
+        ),
+      )
       .toList();
 
   /// Creates a new schema containing only the fields named in [keys].
@@ -489,13 +495,15 @@ class VObject<T> extends VType<T> {
         continue;
       }
 
-      result._fields.add(_FieldEntry<T>(
-        name: entry.name,
-        extractor: entry.extractor,
-        validator: entry.validator.mapType<VType>(
-          <U>(inner) => _NullableWrapper<U>(inner),
+      result._fields.add(
+        _FieldEntry<T>(
+          name: entry.name,
+          extractor: entry.extractor,
+          validator: entry.validator.mapType<VType>(
+            <U>(inner) => _NullableWrapper<U>(inner),
+          ),
         ),
-      ));
+      );
     }
 
     _copyObjectStateTo(result);
@@ -693,11 +701,13 @@ class VObject<T> extends VType<T> {
       );
     }
 
-    _whenMatchesRules.add(_ObjectWhenMatchesRule<T>(
-      condition: condition,
-      dependsOn: dependsOn,
-      then: then,
-    ));
+    _whenMatchesRules.add(
+      _ObjectWhenMatchesRule<T>(
+        condition: condition,
+        dependsOn: dependsOn,
+        then: then,
+      ),
+    );
 
     return this;
   }
@@ -758,11 +768,13 @@ class VObject<T> extends VType<T> {
       );
     }
 
-    _whenMatchesRawRules.add(_ObjectWhenMatchesRawRule(
-      condition: condition,
-      dependsOn: dependsOn,
-      then: then,
-    ));
+    _whenMatchesRawRules.add(
+      _ObjectWhenMatchesRawRule(
+        condition: condition,
+        dependsOn: dependsOn,
+        then: then,
+      ),
+    );
 
     return this;
   }
@@ -925,13 +937,15 @@ class VObject<T> extends VType<T> {
     final Set<String> effectiveDeps =
         dependsOn == null ? {path} : {...dependsOn, path};
 
-    _rawFieldRules.add(_ObjectRawFieldRule(
-      check: check,
-      path: path,
-      message: message,
-      dependsOn: effectiveDeps,
-      stage: stage,
-    ));
+    _rawFieldRules.add(
+      _ObjectRawFieldRule(
+        check: check,
+        path: path,
+        message: message,
+        dependsOn: effectiveDeps,
+        stage: stage,
+      ),
+    );
 
     return this;
   }
@@ -1007,11 +1021,13 @@ class VObject<T> extends VType<T> {
       if (rule.stage != RefineStage.pre) continue;
 
       if (!rule.check(mapView!)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1122,11 +1138,13 @@ class VObject<T> extends VType<T> {
       }
 
       if (!rule.check(mapView!)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1167,11 +1185,13 @@ class VObject<T> extends VType<T> {
       if (rule.stage != RefineStage.pre) continue;
 
       if (!rule.check(mapView!)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1288,11 +1308,13 @@ class VObject<T> extends VType<T> {
       }
 
       if (!rule.check(mapView!)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1385,11 +1407,13 @@ class VObject<T> extends VType<T> {
     if (_isStrict) {
       for (final key in input.keys) {
         if (!declaredKeys.contains(key)) {
-          errors.add(VError(
-            code: VObjectCode.unrecognizedKey,
-            message: V.t(VObjectCode.unrecognizedKey, {'key': key}),
-            path: [key],
-          ));
+          errors.add(
+            VError(
+              code: VObjectCode.unrecognizedKey,
+              message: V.t(VObjectCode.unrecognizedKey, {'key': key}),
+              path: [key],
+            ),
+          );
         }
       }
     }
@@ -1399,11 +1423,13 @@ class VObject<T> extends VType<T> {
       if (rule.stage != RefineStage.pre) continue;
 
       if (!rule.check(input)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1477,11 +1503,13 @@ class VObject<T> extends VType<T> {
       }
 
       if (!rule.check(input)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1548,7 +1576,8 @@ class VObject<T> extends VType<T> {
   /// awaited when async. Throws [VException] when the schema declares
   /// `whenMatches` (entity-only) — those rules cannot run without `T`.
   Future<VResult<Map<String, dynamic>?>> safeParseRawAsync(
-      Object? value) async {
+    Object? value,
+  ) async {
     if (_whenMatchesRules.isNotEmpty) {
       throw const VException([
         VError(
@@ -1591,11 +1620,13 @@ class VObject<T> extends VType<T> {
     if (_isStrict) {
       for (final key in input.keys) {
         if (!declaredKeys.contains(key)) {
-          errors.add(VError(
-            code: VObjectCode.unrecognizedKey,
-            message: V.t(VObjectCode.unrecognizedKey, {'key': key}),
-            path: [key],
-          ));
+          errors.add(
+            VError(
+              code: VObjectCode.unrecognizedKey,
+              message: V.t(VObjectCode.unrecognizedKey, {'key': key}),
+              path: [key],
+            ),
+          );
         }
       }
     }
@@ -1604,11 +1635,13 @@ class VObject<T> extends VType<T> {
       if (rule.stage != RefineStage.pre) continue;
 
       if (!rule.check(input)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 
@@ -1688,11 +1721,13 @@ class VObject<T> extends VType<T> {
       }
 
       if (!rule.check(input)) {
-        errors.add(VError(
-          code: VCode.custom,
-          message: rule.message ?? V.t(VCode.custom),
-          path: [rule.path],
-        ));
+        errors.add(
+          VError(
+            code: VCode.custom,
+            message: rule.message ?? V.t(VCode.custom),
+            path: [rule.path],
+          ),
+        );
       }
     }
 

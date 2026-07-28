@@ -9,13 +9,13 @@ part of 'type.dart';
 /// schema.parse(Color.red); // Color.red
 /// ```
 class VEnum<T extends Enum> extends VType<T> {
-  final List<T> _values;
-
   /// Creates an enum validator that accepts only the given [_values].
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
   VEnum(this._values, {super.message, super.invalidTypeMessage});
+
+  final List<T> _values;
 
   @override
   String get typeName => 'enum';

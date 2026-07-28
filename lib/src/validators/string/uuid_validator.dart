@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Supported UUID versions for filtering validation.
 ///
@@ -45,12 +45,12 @@ extension _UuidVersionDigit on UuidVersion {
 /// Accepts versions 1 through 8 (RFC 4122 and RFC 9562) by default. Pass
 /// [version] to restrict to a specific version.
 class UuidValidator extends Validator<String> {
+  /// Creates a [UuidValidator].
+  const UuidValidator({this.version});
+
   /// Optional [UuidVersion] filter. When `null`, any supported version is
   /// accepted.
   final UuidVersion? version;
-
-  /// Creates a [UuidValidator].
-  const UuidValidator({this.version});
 
   @override
   String get code => VStringCode.uuid;

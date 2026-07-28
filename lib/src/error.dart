@@ -10,6 +10,15 @@
 /// print(error.pathString); // 'name'
 /// ```
 final class VError {
+  /// Creates a [VError] with the given [code], [message], optional [path]
+  /// and optional [context].
+  const VError({
+    required this.code,
+    required this.message,
+    this.path = const [],
+    this.context,
+  });
+
   /// Machine-readable error code (e.g., `'required'`, `'string.email'`).
   final String code;
 
@@ -26,15 +35,6 @@ final class VError {
   /// Populated by union validators with one entry per option, containing the
   /// validation errors that caused that option to be rejected.
   final List<List<VError>>? context;
-
-  /// Creates a [VError] with the given [code], [message], optional [path]
-  /// and optional [context].
-  const VError({
-    required this.code,
-    required this.message,
-    this.path = const [],
-    this.context,
-  });
 
   /// Creates a copy with a different [path] or [context].
   VError copyWith({List<Object>? path, List<List<VError>>? context}) {
@@ -113,11 +113,11 @@ bool _listEquals<T>(List<T> a, List<T> b) {
 /// }
 /// ```
 class VException implements Exception {
-  /// The list of validation errors.
-  final List<VError> errors;
-
   /// Creates a [VException] with the given [errors].
   const VException(this.errors);
+
+  /// The list of validation errors.
+  final List<VError> errors;
 
   @override
   String toString() {
@@ -142,17 +142,17 @@ class VException implements Exception {
 /// }
 /// ```
 class VAsyncRequiredException implements Exception {
-  /// Name of the sync method that was called.
-  final String methodName;
-
-  /// Name of the async variant the caller should use instead.
-  final String suggestion;
-
   /// Creates a [VAsyncRequiredException].
   const VAsyncRequiredException({
     required this.methodName,
     required this.suggestion,
   });
+
+  /// Name of the sync method that was called.
+  final String methodName;
+
+  /// Name of the async variant the caller should use instead.
+  final String suggestion;
 
   @override
   String toString() =>

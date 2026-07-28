@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a string is a valid email address.
 class EmailValidator extends Validator<String> {
@@ -12,7 +12,8 @@ class EmailValidator extends Validator<String> {
   @override
   Map<String, dynamic>? validate(String value) {
     final regex = RegExp(
-        r"^(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$");
+      r"^(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$",
+    );
     return regex.hasMatch(value) ? null : {};
   }
 }

@@ -4,55 +4,49 @@ import 'package:validart/src/v.dart';
 import 'package:validart/src/v_locale.dart';
 
 class Folder {
+  Folder({this.id, required this.name});
+
   final String? id;
   final String name;
-  Folder({this.id, required this.name});
 }
 
 class _TaggedFolder {
+  _TaggedFolder(this.name, this.tags);
   final String name;
   final List<String> tags;
-  _TaggedFolder(this.name, this.tags);
 }
 
 class _SignUp {
+  _SignUp(this.email, this.password, this.confirm);
   final String email;
   final String password;
   final String confirm;
-  _SignUp(this.email, this.password, this.confirm);
 }
 
 class _TaxPayer {
+  _TaxPayer(this.country, this.taxId);
   final String country;
   final String taxId;
-  _TaxPayer(this.country, this.taxId);
 }
 
 class _Profile {
-  final String name;
-  final int age;
-  final String email;
-  final String? bio;
   _Profile({
     required this.name,
     required this.age,
     required this.email,
     this.bio,
   });
+
+  final String name;
+  final int age;
+  final String email;
+  final String? bio;
 }
 
 enum _AccountStatus { active, suspended, deleted }
 
 class _KitchenSinkEntity {
-  final String name;
-  final int age;
-  final double balance;
-  final bool active;
-  final DateTime joined;
-  final List<String> tags;
-  final Map<String, dynamic> prefs;
-  final _AccountStatus status;
-  final Object id; // String UUID or int
+  // String UUID or int
 
   _KitchenSinkEntity({
     required this.name,
@@ -65,6 +59,16 @@ class _KitchenSinkEntity {
     required this.status,
     required this.id,
   });
+
+  final String name;
+  final int age;
+  final double balance;
+  final bool active;
+  final DateTime joined;
+  final List<String> tags;
+  final Map<String, dynamic> prefs;
+  final _AccountStatus status;
+  final Object id;
 }
 
 void main() {
@@ -92,10 +96,12 @@ void main() {
       test('should pass for Folder with all fields', () {
         final schema = VObject<Folder>();
         expect(
-          schema.validate(Folder(
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'Documents',
-          )),
+          schema.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'Documents',
+            ),
+          ),
           isTrue,
         );
       });
@@ -128,10 +134,12 @@ void main() {
         final schema =
             VObject<Folder>().field('id', (f) => f.id, VString().uuid());
         expect(
-          schema.validate(Folder(
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'Test',
-          )),
+          schema.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'Test',
+            ),
+          ),
           isTrue,
         );
       });
@@ -270,6 +278,7 @@ void main() {
           message: 'ID is required',
           code: 'missing_id',
         );
+
         final errors = schema.errors(Folder(name: 'Test'));
         expect(errors, isNotNull);
         expect(errors!.first.code, 'missing_id');
@@ -358,6 +367,7 @@ void main() {
           'folder':
               VObject<Folder>().field('name', (f) => f.name, VString().min(10)),
         });
+
         final errors = schema.errors({'folder': Folder(name: 'Doc')});
         expect(errors, isNotNull);
         expect(errors!.first.path, ['folder', 'name']);
@@ -367,6 +377,7 @@ void main() {
         final schema = VMap({
           'folder': VObject<Folder>(),
         });
+
         final errors = schema.errors({'folder': null});
         expect(errors, isNotNull);
         expect(errors!.first.code, 'object.required');
@@ -695,10 +706,12 @@ void main() {
           isFalse,
         );
         expect(
-          schema.validate(Folder(
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'longer',
-          )),
+          schema.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'longer',
+            ),
+          ),
           isTrue,
         );
       });
@@ -741,10 +754,12 @@ void main() {
 
         expect(schema.validate(Folder(name: 'x')), isTrue);
         expect(
-          schema.validate(Folder(
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'x',
-          )),
+          schema.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'x',
+            ),
+          ),
           isTrue,
         );
       });
@@ -767,10 +782,12 @@ void main() {
           reason: 'id keeps the original uuid validator',
         );
         expect(
-          schema.validate(Folder(
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'Alice',
-          )),
+          schema.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'Alice',
+            ),
+          ),
           isTrue,
         );
       });
@@ -878,9 +895,13 @@ void main() {
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string())
             .field('taxId', (t) => t.taxId, V.string())
-            .when('country', equals: 'US', then: {
-          'taxId': V.string().min(9),
-        });
+            .when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().min(9),
+          },
+        );
 
         expect(schema.validate(_TaxPayer('US', '123-45-6789')), isTrue);
         expect(schema.validate(_TaxPayer('US', 'short')), isFalse);
@@ -891,9 +912,13 @@ void main() {
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string())
             .field('taxId', (t) => t.taxId, V.string())
-            .when('country', equals: 'US', then: {
-          'taxId': V.string().min(9),
-        });
+            .when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().min(9),
+          },
+        );
 
         expect(schema.validate(_TaxPayer('BR', 'short')), isTrue);
       });
@@ -903,9 +928,13 @@ void main() {
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string())
             .field('taxId', (t) => t.taxId, V.string())
-            .when('country', equals: 'US', then: {
-          'taxId': V.string().min(9),
-        });
+            .when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().min(9),
+          },
+        );
 
         final errors = schema.errors(_TaxPayer('US', 'short'));
 
@@ -928,9 +957,13 @@ void main() {
           () => V
               .object<_TaxPayer>()
               .field('country', (t) => t.country, V.string())
-              .when('country', equals: 'US', then: {
-            'missing': V.string(),
-          }),
+              .when(
+            'country',
+            equals: 'US',
+            then: {
+              'missing': V.string(),
+            },
+          ),
           throwsA(isA<AssertionError>()),
         );
       });
@@ -940,9 +973,13 @@ void main() {
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string().min(2))
             .field('taxId', (t) => t.taxId, V.string().min(1))
-            .when('country', equals: 'US', then: {
-          'taxId': V.string().min(9),
-        });
+            .when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().min(9),
+          },
+        );
 
         final errors = schema.errors(_TaxPayer('US', ''));
 
@@ -966,41 +1003,49 @@ void main() {
         );
 
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 30,
-            email: 'a@admin.com',
-            bio: 'long enough',
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 30,
+              email: 'a@admin.com',
+              bio: 'long enough',
+            ),
+          ),
           isTrue,
         );
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 30,
-            email: 'a@admin.com',
-            bio: null,
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 30,
+              email: 'a@admin.com',
+              bio: null,
+            ),
+          ),
           isFalse,
           reason: 'predicate matches → bio must satisfy min(5)',
         );
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 17,
-            email: 'a@admin.com',
-            bio: null,
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 17,
+              email: 'a@admin.com',
+              bio: null,
+            ),
+          ),
           isTrue,
           reason: 'age < 18 → predicate false',
         );
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 30,
-            email: 'a@user.com',
-            bio: null,
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 30,
+              email: 'a@user.com',
+              bio: null,
+            ),
+          ),
           isTrue,
           reason: 'email domain not admin → predicate false',
         );
@@ -1019,12 +1064,14 @@ void main() {
           then: {'bio': V.string().min(5)},
         );
 
-        final errors = schema.errors(_Profile(
-          name: 'A',
-          age: 30,
-          email: 'a@b.com',
-          bio: 'no',
-        ));
+        final errors = schema.errors(
+          _Profile(
+            name: 'A',
+            age: 30,
+            email: 'a@b.com',
+            bio: 'no',
+          ),
+        );
 
         expect(errors, isNotNull);
         expect(errors!.first.path, ['bio']);
@@ -1078,31 +1125,37 @@ void main() {
         );
 
         expect(
-          schema.validate(_Profile(
-            name: 'AAA',
-            age: 30,
-            email: 'a@vip.com',
-            bio: 'ok',
-          )),
+          schema.validate(
+            _Profile(
+              name: 'AAA',
+              age: 30,
+              email: 'a@vip.com',
+              bio: 'ok',
+            ),
+          ),
           isTrue,
         );
         expect(
-          schema.validate(_Profile(
-            name: 'AAA',
-            age: 17,
-            email: 'a@vip.com',
-            bio: null,
-          )),
+          schema.validate(
+            _Profile(
+              name: 'AAA',
+              age: 17,
+              email: 'a@vip.com',
+              bio: null,
+            ),
+          ),
           isTrue,
           reason: 'first rule false (age) → bio stays nullable',
         );
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 30,
-            email: 'a@vip.com',
-            bio: 'ok',
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 30,
+              email: 'a@vip.com',
+              bio: 'ok',
+            ),
+          ),
           isFalse,
           reason: 'second rule fires → name must be >= 3',
         );
@@ -1211,32 +1264,38 @@ void main() {
         );
 
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 30,
-            email: 'a@b.com',
-            bio: 'something',
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 30,
+              email: 'a@b.com',
+              bio: 'something',
+            ),
+          ),
           isTrue,
           reason: 'bio non-null → predicate false → name unrestricted',
         );
         expect(
-          schema.validate(_Profile(
-            name: 'Alice',
-            age: 30,
-            email: 'a@b.com',
-            bio: null,
-          )),
+          schema.validate(
+            _Profile(
+              name: 'Alice',
+              age: 30,
+              email: 'a@b.com',
+              bio: null,
+            ),
+          ),
           isTrue,
           reason: 'bio null → predicate true → name has 5 chars',
         );
         expect(
-          schema.validate(_Profile(
-            name: 'A',
-            age: 30,
-            email: 'a@b.com',
-            bio: null,
-          )),
+          schema.validate(
+            _Profile(
+              name: 'A',
+              age: 30,
+              email: 'a@b.com',
+              bio: null,
+            ),
+          ),
           isFalse,
           reason: 'bio null → predicate true → name fails min(5)',
         );
@@ -1451,6 +1510,7 @@ void main() {
           dependsOn: const {'country'},
           then: {'taxId': V.string().min(9)},
         );
+
         final b = V
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string())
@@ -1575,6 +1635,7 @@ void main() {
           },
           path: 'country',
         );
+
         final b = V
             .object<_TaxPayer>()
             .field('taxId', (t) => t.taxId, V.string())
@@ -1859,18 +1920,22 @@ void main() {
       });
 
       test('merge propagates whenRules from both sides', () {
-        final a = V
-            .object<_Profile>()
-            .field('name', (p) => p.name, V.string())
-            .when('name', equals: 'trigger_a', then: {
-          'name': V.string().min(100),
-        });
-        final b = V
-            .object<_Profile>()
-            .field('age', (p) => p.age, V.int())
-            .when('age', equals: 7, then: {
-          'age': V.int().min(100),
-        });
+        final a =
+            V.object<_Profile>().field('name', (p) => p.name, V.string()).when(
+          'name',
+          equals: 'trigger_a',
+          then: {
+            'name': V.string().min(100),
+          },
+        );
+
+        final b = V.object<_Profile>().field('age', (p) => p.age, V.int()).when(
+          'age',
+          equals: 7,
+          then: {
+            'age': V.int().min(100),
+          },
+        );
 
         final merged = a.merge(b);
 
@@ -1913,6 +1978,7 @@ void main() {
 
           return input;
         });
+
         final b = V.object<_Profile>().preprocess((input) {
           order.add('b');
 
@@ -1977,6 +2043,7 @@ void main() {
               path: 'email',
               message: 'must be example.com',
             );
+
         final b = V.object<_Profile>().field('name', (p) => p.name, V.string());
 
         final merged = a.merge(b);
@@ -1996,16 +2063,22 @@ void main() {
             .object<Folder>()
             .field('id', (f) => f.id, V.string().nullable())
             .field('name', (f) => f.name, V.string())
-            .when('id', equals: null, then: {
-          'name': V.string().min(20),
-        });
+            .when(
+          'id',
+          equals: null,
+          then: {
+            'name': V.string().min(20),
+          },
+        );
 
         expect(schema.validate(Folder(name: 'Documents')), isFalse);
         expect(
-          schema.validate(Folder(
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'x',
-          )),
+          schema.validate(
+            Folder(
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'x',
+            ),
+          ),
           isTrue,
           reason: 'when does not fire when id is non-null',
         );
@@ -2026,23 +2099,33 @@ void main() {
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string())
             .field('taxId', (t) => t.taxId, V.string().min(1))
-            .when('country', equals: 'US', then: {
-          'taxId': V.string().min(9),
-        }).when('country', equals: 'US', then: {
-          'taxId': V.string().contains('-'),
-        });
+            .when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().min(9),
+          },
+        ).when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().contains('-'),
+          },
+        );
 
         expect(schema.validate(_TaxPayer('US', '123-45-6789')), isTrue);
         expect(schema.validate(_TaxPayer('US', '123456789')), isFalse);
       });
 
       test('when on the same field as then runs additional validation', () {
-        final schema = V
-            .object<Folder>()
-            .field('name', (f) => f.name, V.string())
-            .when('name', equals: 'x', then: {
-          'name': V.string().min(5),
-        });
+        final schema =
+            V.object<Folder>().field('name', (f) => f.name, V.string()).when(
+          'name',
+          equals: 'x',
+          then: {
+            'name': V.string().min(5),
+          },
+        );
 
         expect(schema.validate(Folder(name: 'x')), isFalse);
         expect(schema.validate(Folder(name: 'normal')), isTrue);
@@ -2064,9 +2147,13 @@ void main() {
             .object<_Profile>()
             .field('age', (p) => p.age, V.int())
             .field('name', (p) => p.name, V.string())
-            .when('age', equals: 18, then: {
-          'name': V.string().min(50),
-        });
+            .when(
+          'age',
+          equals: 18,
+          then: {
+            'name': V.string().min(50),
+          },
+        );
 
         expect(
           schema.validate(_Profile(name: 'short', age: 18, email: 'a@b.com')),
@@ -2083,9 +2170,13 @@ void main() {
             .object<_KitchenSinkEntity>()
             .field('status', (e) => e.status, V.enm(_AccountStatus.values))
             .field('name', (e) => e.name, V.string())
-            .when('status', equals: _AccountStatus.deleted, then: {
-          'name': V.string().min(100),
-        });
+            .when(
+          'status',
+          equals: _AccountStatus.deleted,
+          then: {
+            'name': V.string().min(100),
+          },
+        );
 
         final deleted = _KitchenSinkEntity(
           name: 'x',
@@ -2098,6 +2189,7 @@ void main() {
           status: _AccountStatus.deleted,
           id: 1,
         );
+
         final active = _KitchenSinkEntity(
           name: 'x',
           age: 1,
@@ -2120,9 +2212,13 @@ void main() {
             .object<_KitchenSinkEntity>()
             .field('joined', (e) => e.joined, V.date())
             .field('name', (e) => e.name, V.string())
-            .when('joined', equals: anchor, then: {
-          'name': V.string().min(50),
-        });
+            .when(
+          'joined',
+          equals: anchor,
+          then: {
+            'name': V.string().min(50),
+          },
+        );
 
         final match = _KitchenSinkEntity(
           name: 'x',
@@ -2236,9 +2332,13 @@ void main() {
             .field('age', (p) => p.age, V.int().between(0, 150))
             .field('email', (p) => p.email, V.string().email())
             .field('bio', (p) => p.bio, V.string().nullable())
-            .when('age', equals: 0, then: {
-          'name': V.string().min(20),
-        }).refineField(
+            .when(
+          'age',
+          equals: 0,
+          then: {
+            'name': V.string().min(20),
+          },
+        ).refineField(
           (p) => p.email.endsWith('@example.com'),
           path: 'email',
           message: 'must be example.com',
@@ -2278,9 +2378,13 @@ void main() {
             .object<_TaxPayer>()
             .field('country', (t) => t.country, V.string())
             .field('taxId', (t) => t.taxId, V.string().min(1))
-            .when('country', equals: 'US', then: {
-          'taxId': V.string().contains('-'),
-        });
+            .when(
+          'country',
+          equals: 'US',
+          then: {
+            'taxId': V.string().contains('-'),
+          },
+        );
 
         final listSchema = personSchema.array().min(1);
 
@@ -2588,6 +2692,7 @@ void main() {
           status: goodEntity().status,
           id: goodEntity().id,
         );
+
         final errors = schema.errors(blocked);
         expect(errors, isNotNull);
         expect(

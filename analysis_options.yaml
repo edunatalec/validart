@@ -1,7 +1,47 @@
 include: package:lints/recommended.yaml
 
+analyzer:
+  language:
+    strict-casts: true
+  errors:
+    # info by default, and the atelier pre-commit gate only reads error|warning
+    sort_constructors_first: warning
+    prefer_initializing_formals: warning
+
 linter:
   rules:
+    # Style
     prefer_single_quotes: true
-    prefer_const_declarations: true
     prefer_const_constructors: true
+    prefer_const_declarations: true
+    directives_ordering: true
+    sort_constructors_first: true
+    prefer_initializing_formals: true
+
+    # Docs (published package: release gate requires /// on the public API)
+    public_member_api_docs: true
+
+    # Async / streams
+    unawaited_futures: true
+    discarded_futures: true
+    cancel_subscriptions: true
+    close_sinks: true
+    avoid_void_async: true
+
+    # Imports
+    prefer_relative_imports: true
+
+    # Bug-prone patterns
+    avoid_type_to_string: true
+    only_throw_errors: true
+    avoid_dynamic_calls: true
+
+    # Immutability
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+
+    # Cleanliness
+    unnecessary_lambdas: true
+    unnecessary_parenthesis: true
+    unnecessary_breaks: true
+    require_trailing_commas: true

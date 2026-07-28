@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a string is a valid CVV/CVC — 3 or 4 digits.
 class CvvValidator extends Validator<String> {

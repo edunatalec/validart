@@ -1,6 +1,6 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/string/postal_code_pattern.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
+import 'postal_code_pattern.dart';
 
 /// Validates that a string is a valid postal code for any of the given
 /// patterns.
@@ -21,13 +21,13 @@ import 'package:validart/src/validators/validator.dart';
 /// so a single template like `'Invalid {name}'` works regardless of how
 /// many patterns are configured.
 class PostalCodeValidator extends Validator<String> {
-  /// The postal-code patterns accepted by this validator.
-  final List<PostalCodePattern> patterns;
-
   /// Creates a [PostalCodeValidator]. The [patterns] list must be
   /// non-empty.
   PostalCodeValidator({required this.patterns})
       : assert(patterns.isNotEmpty, 'patterns must not be empty');
+
+  /// The postal-code patterns accepted by this validator.
+  final List<PostalCodePattern> patterns;
 
   @override
   String get code => VStringCode.postalCode;

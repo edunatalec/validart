@@ -1,6 +1,6 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/string/phone_pattern.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
+import 'phone_pattern.dart';
 
 /// Validates that a string is a valid phone number.
 ///
@@ -21,13 +21,13 @@ import 'package:validart/src/validators/validator.dart';
 /// only one pattern is configured, or [VStringCode.phone] when multiple
 /// patterns are configured.
 class PhoneValidator extends Validator<String> {
-  /// The phone patterns accepted by this validator. Validation passes
-  /// when at least one of these patterns accepts the input.
-  final List<PhonePattern> patterns;
-
   /// Creates a [PhoneValidator]. The [patterns] list must be non-empty.
   PhoneValidator({required this.patterns})
       : assert(patterns.isNotEmpty, 'patterns must not be empty');
+
+  /// The phone patterns accepted by this validator. Validation passes
+  /// when at least one of these patterns accepts the input.
+  final List<PhonePattern> patterns;
 
   @override
   String get code =>

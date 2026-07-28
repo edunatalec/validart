@@ -32,17 +32,19 @@ void runStringExamples() {
   print(V.string().email().validate('user@example.com')); // true
   print(V.string().url().validate('https://example.com')); // true
   print(V.string().url().validate('ftp://example.com')); // false
-  print(V.string().url(schemes: const {'http', 'https', 'ftp'}).validate(
-      'ftp://example.com')); // true
+  print(
+    V.string().url(schemes: const {'http', 'https', 'ftp'}).validate(
+      'ftp://example.com',
+    ),
+  ); // true
   print(V.string().url(schemes: const {}).validate('google.com')); // true
-  print(V
-      .string()
-      .url(schemes: const {}).validate('https://www.google.com/foo')); // true
+  print(
+    V.string().url(schemes: const {}).validate('https://www.google.com/foo'),
+  ); // true
   print(V.string().url(hostOnly: true).validate('https://example.com')); // true
-  print(V
-      .string()
-      .url(hostOnly: true)
-      .validate('https://example.com/path')); // false
+  print(
+    V.string().url(hostOnly: true).validate('https://example.com/path'),
+  ); // false
 
   // .domain() — shortcut for "host only, no scheme, no path".
   print(V.string().domain().validate('www.google.com')); // true
@@ -51,10 +53,12 @@ void runStringExamples() {
   print(V.string().domain().validate('google.com/foo')); // false (path)
 
   print(V.string().uuid().validate('550e8400-e29b-41d4-a716-446655440000'));
-  print(V
-      .string()
-      .uuid(version: UuidVersion.v7)
-      .validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9')); // true
+  print(
+    V
+        .string()
+        .uuid(version: UuidVersion.v7)
+        .validate('018fcb2e-ea3f-7a3d-b91e-8f2e0c9b33d9'),
+  ); // true
 
   print(V.string().ip().validate('192.168.1.1')); // true
   print(V.string().pattern(r'^\d{3}$').validate('123')); // true
@@ -98,10 +102,12 @@ void runStringExamples() {
   // Password — default: 8+ chars, upper/lower/digit/special.
   print(V.string().password().validate('Str0ng!Pass')); // true
   print(V.string().password().validate('Str0ng_Pass')); // false
-  print(V
-      .string()
-      .password(specialChars: r'!@#$%^&*()-_+=<>?')
-      .validate('Str0ng_Pass')); // true
+  print(
+    V
+        .string()
+        .password(specialChars: r'!@#$%^&*()-_+=<>?')
+        .validate('Str0ng_Pass'),
+  ); // true
 
   // JWT / CVV.
   print(V.string().jwt().validate('eyJh.eyJz.SflKx')); // true
@@ -127,14 +133,17 @@ void runStringExamples() {
   print(V.string().phone().validate('14155552671')); // true
 
   // Postal code / tax ID / license plate — built-in patterns.
-  print(V
-      .string()
-      .postalCode(patterns: const [UsZipPattern()]).validate('94103')); // true
-  print(V
-      .string()
-      .taxId(patterns: const [UsSsnPattern()]).validate('123-45-6789')); // true
-  print(V.string().licensePlate(
-      patterns: const [UkPlatePattern()]).validate('AB12 CDE')); // true
+  print(
+    V.string().postalCode(patterns: const [UsZipPattern()]).validate('94103'),
+  ); // true
+  print(
+    V.string().taxId(patterns: const [UsSsnPattern()]).validate('123-45-6789'),
+  ); // true
+  print(
+    V.string().licensePlate(
+      patterns: const [UkPlatePattern()],
+    ).validate('AB12 CDE'),
+  ); // true
 
   // Multi-country — match-any: pass several patterns to the same call.
   final multiCountryPostal = V.string().postalCode(
@@ -150,8 +159,11 @@ void runStringExamples() {
   print(multiCountryPostal.validate('nope')); // false
 
   // Custom pluggable pattern — defined in shared/fixtures.dart.
-  print(V.string().taxId(
-      patterns: const [DummyTaxIdPattern()]).validate('TAX:123')); // true
+  print(
+    V.string().taxId(
+      patterns: const [DummyTaxIdPattern()],
+    ).validate('TAX:123'),
+  ); // true
 
   section('VString — pre-processing');
 

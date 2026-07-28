@@ -1,7 +1,7 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validation_mode.dart';
-import 'package:validart/src/validators/string/card_brand_pattern.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../../validation_mode.dart';
+import '../validator.dart';
+import 'card_brand_pattern.dart';
 
 /// Validates that a string is a valid credit card number using the Luhn
 /// algorithm. When [brands] is provided, the number must also match at
@@ -13,6 +13,9 @@ import 'package:validart/src/validators/validator.dart';
 /// spaces or dashes in blocks of four; [ValidationMode.unformatted]
 /// rejects any non-digit character.
 class CardValidator extends Validator<String> {
+  /// Creates a [CardValidator].
+  const CardValidator({this.brands, this.mode = ValidationMode.any});
+
   /// Optional list of accepted brands. When `null` or empty, any Luhn-valid
   /// card number is accepted.
   final List<CardBrandPattern>? brands;
@@ -20,9 +23,6 @@ class CardValidator extends Validator<String> {
   /// Controls whether separator characters are required, forbidden, or
   /// optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [CardValidator].
-  const CardValidator({this.brands, this.mode = ValidationMode.any});
 
   @override
   String get code => VStringCode.card;

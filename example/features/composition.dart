@@ -26,17 +26,21 @@ void runCompositionExamples() {
   section('VMap.extend — add fields to an existing schema');
 
   final withPassword = user.extend({'password': V.string().min(8)});
-  print(withPassword.validate({
-    'name': 'Alice',
-    'email': 'a@b.com',
-    'age': 30,
-    'password': '12345678',
-  })); // true
+  print(
+    withPassword.validate({
+      'name': 'Alice',
+      'email': 'a@b.com',
+      'age': 30,
+      'password': '12345678',
+    }),
+  ); // true
 
   section('VMap.merge — combine two schemas');
 
   final left = V.map({'a': V.string()});
+
   final right = V.map({'b': V.int()});
+
   final merged = left.merge(right);
   print(merged.validate({'a': 'x', 'b': 1})); // true
 
@@ -58,8 +62,9 @@ void runCompositionExamples() {
   });
 
   final updateDto = identified.partial(except: const ['id']);
-  print(updateDto
-      .validate({'id': '550e8400-e29b-41d4-a716-446655440000'})); // true
+  print(
+    updateDto.validate({'id': '550e8400-e29b-41d4-a716-446655440000'}),
+  ); // true
   print(updateDto.validate({'name': 'Alice'})); // false (id still required)
 
   section('VObject — pick / omit / merge stay type-safe');
@@ -70,8 +75,11 @@ void runCompositionExamples() {
   // The schema still expects a SignInDto — only the email field is
   // validated. (For partial / patch payloads on entities, prefer
   // VMap.partial on a derived map representation.)
-  print(emailOnly.validate(
-      const SignInDto(email: 'a@b.com', password: 'whatever'))); // true
+  print(
+    emailOnly.validate(
+      const SignInDto(email: 'a@b.com', password: 'whatever'),
+    ),
+  ); // true
 
   // Compose two object schemas of the same T:
   final pwdOnly = V
@@ -79,8 +87,11 @@ void runCompositionExamples() {
       .field('password', (d) => d.password, V.string().password());
   final mergedDto = SignInDto.schema.merge(pwdOnly);
   // Now the merged schema validates BOTH .field rules from both sides.
-  print(mergedDto.validate(
-      const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'))); // true
+  print(
+    mergedDto.validate(
+      const SignInDto(email: 'a@b.com', password: 'Str0ng!Pass'),
+    ),
+  ); // true
 }
 
 void main() => runCompositionExamples();

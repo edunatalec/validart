@@ -39,6 +39,7 @@ void main() {
         final schema = VMap({
           'name': VString(),
         });
+
         final result = schema.parse({'name': 'Alice'});
         expect(result, {'name': 'Alice'});
       });
@@ -49,6 +50,7 @@ void main() {
         final schema = VMap({
           'name': VString().min(3),
         });
+
         final errors = schema.errors({'name': 'Al'});
         expect(errors, isNotNull);
         expect(errors!.first.code, 'string.too_small');
@@ -60,6 +62,7 @@ void main() {
           'name': VString(),
           'email': VString().email(),
         });
+
         final errors = schema.errors({'name': 'Alice'});
         expect(errors, isNotNull);
         expect(errors!.first.code, 'string.required');
@@ -71,6 +74,7 @@ void main() {
           'name': VString().min(3),
           'date.age': VInt().min(18),
         });
+
         final errors = schema.errors({'name': 'Al', 'date.age': 5});
         expect(errors, isNotNull);
         expect(errors!.length, 2);
@@ -100,6 +104,7 @@ void main() {
             'zip': VString().min(5),
           }),
         });
+
         final errors = schema.errors({
           'address': {'zip': '123'},
         });
@@ -115,6 +120,7 @@ void main() {
             }),
           }),
         });
+
         final errors = schema.errors({
           'user': {
             'profile': {'bio': 'short'},
@@ -132,6 +138,7 @@ void main() {
           'date.age': VInt(),
           'email': VString().email(),
         });
+
         final picked = schema.pick(['name', 'email']);
         expect(picked.validate({'name': 'Alice', 'email': 'a@b.com'}), isTrue);
       });
@@ -141,6 +148,7 @@ void main() {
           'name': VString(),
           'date.age': VInt(),
         });
+
         final picked = schema.pick(['name']);
         expect(picked.validate({'name': 'Alice'}), isTrue);
       });
@@ -149,6 +157,7 @@ void main() {
         final schema = VMap({
           'name': VString(),
         });
+
         final picked = schema.pick(['name', 'nonexistent']);
         expect(picked.schema.keys, contains('name'));
         expect(picked.schema.keys, isNot(contains('nonexistent')));
@@ -162,6 +171,7 @@ void main() {
           'date.age': VInt(),
           'email': VString().email(),
         });
+
         final omitted = schema.omit(['date.age']);
         expect(
           omitted.validate({'name': 'Alice', 'email': 'a@b.com'}),
@@ -174,6 +184,7 @@ void main() {
           'name': VString(),
           'date.age': VInt(),
         });
+
         final omitted = schema.omit(['date.age']);
         expect(omitted.validate({'name': 'Alice'}), isTrue);
       });
@@ -182,12 +193,14 @@ void main() {
     group('extend', () {
       test('should add new fields to schema', () {
         final schema = VMap({'name': VString()});
+
         final extended = schema.extend({'date.age': VInt()});
         expect(extended.validate({'name': 'Alice', 'date.age': 30}), isTrue);
       });
 
       test('extended schema should require new fields', () {
         final schema = VMap({'name': VString()});
+
         final extended = schema.extend({'date.age': VInt()});
         expect(extended.validate({'name': 'Alice'}), isFalse);
       });
@@ -224,9 +237,13 @@ void main() {
         final base = VMap({
           'type': VString(),
           'cnpj': VString().nullable(),
-        }).when('type', equals: 'company', then: {
-          'cnpj': VString().min(14),
-        });
+        }).when(
+          'type',
+          equals: 'company',
+          then: {
+            'cnpj': VString().min(14),
+          },
+        );
 
         final extended = base.extend({'email': VString()});
 
@@ -244,21 +261,27 @@ void main() {
     group('merge', () {
       test('should merge two VMap schemas', () {
         final schema1 = VMap({'name': VString()});
+
         final schema2 = VMap({'date.age': VInt()});
+
         final merged = schema1.merge(schema2);
         expect(merged.validate({'name': 'Alice', 'date.age': 30}), isTrue);
       });
 
       test('merged schema should require fields from both', () {
         final schema1 = VMap({'name': VString()});
+
         final schema2 = VMap({'date.age': VInt()});
+
         final merged = schema1.merge(schema2);
         expect(merged.validate({'name': 'Alice'}), isFalse);
       });
 
       test('merge should override duplicate keys with other schema', () {
         final schema1 = VMap({'name': VString().min(1)});
+
         final schema2 = VMap({'name': VString().min(5)});
+
         final merged = schema1.merge(schema2);
         expect(merged.validate({'name': 'Al'}), isFalse);
       });
@@ -286,16 +309,24 @@ void main() {
         final a = VMap({
           'type': VString(),
           'cnpj': VString().nullable(),
-        }).when('type', equals: 'company', then: {
-          'cnpj': VString().min(14),
-        });
+        }).when(
+          'type',
+          equals: 'company',
+          then: {
+            'cnpj': VString().min(14),
+          },
+        );
 
         final b = VMap({
           'role': VString(),
           'permissions': VString().nullable(),
-        }).when('role', equals: 'admin', then: {
-          'permissions': VString().min(1),
-        });
+        }).when(
+          'role',
+          equals: 'admin',
+          then: {
+            'permissions': VString().min(1),
+          },
+        );
 
         final merged = a.merge(b);
 
@@ -327,6 +358,7 @@ void main() {
           'name': VString(),
           'date.age': VInt(),
         });
+
         final partial = schema.partial();
         expect(partial.validate(<String, dynamic>{}), isTrue);
       });
@@ -336,6 +368,7 @@ void main() {
           'name': VString().min(3),
           'date.age': VInt().min(0),
         });
+
         final partial = schema.partial();
         expect(partial.validate({'name': 'Al'}), isFalse);
       });
@@ -345,6 +378,7 @@ void main() {
           'name': VString(),
           'date.age': VInt(),
         });
+
         final partial = schema.partial();
         expect(partial.validate({'name': 'Alice'}), isTrue);
       });
@@ -602,6 +636,7 @@ void main() {
           path: 'confirm',
           message: 'Passwords must match',
         );
+
         final errors = schema.errors({
           'password': 'secret123',
           'confirm': 'different',
@@ -638,6 +673,7 @@ void main() {
 
       test('should return required error for null', () {
         final schema = VMap({'name': VString()});
+
         final errors = schema.errors(null);
         expect(errors, isNotNull);
         expect(errors!.first.code, 'map.required');
@@ -667,6 +703,7 @@ void main() {
 
       test('should return invalid_type error for non-map input', () {
         final schema = VMap({'name': VString()});
+
         final errors = schema.errors('not a map');
         expect(errors, isNotNull);
         expect(errors!.first.code, 'map.invalid_type');
@@ -751,9 +788,13 @@ void main() {
         final schema = VMap({
           'type': VString(),
           'value': VString().nullable(),
-        }).when('type', equals: 'special', then: {
-          'value': VString().min(5),
-        });
+        }).when(
+          'type',
+          equals: 'special',
+          then: {
+            'value': VString().min(5),
+          },
+        );
 
         expect(
           schema.validate({'type': 'special', 'value': 'hello'}),
@@ -769,9 +810,13 @@ void main() {
         final schema = VMap({
           'type': VString(),
           'value': VString().nullable(),
-        }).when('type', equals: 'special', then: {
-          'value': VString().min(5),
-        });
+        }).when(
+          'type',
+          equals: 'special',
+          then: {
+            'value': VString().min(5),
+          },
+        );
 
         expect(
           schema.validate({'type': 'normal', 'value': 'hi'}),
@@ -786,9 +831,13 @@ void main() {
         final schema = V.map({
           'kind': V.string().nullable(),
           'fallback': V.string().nullable(),
-        }).when('kind', equals: null, then: {
-          'fallback': V.string().min(3),
-        });
+        }).when(
+          'kind',
+          equals: null,
+          then: {
+            'fallback': V.string().min(3),
+          },
+        );
 
         expect(
           schema.validate({'kind': null, 'fallback': 'ok!'}),
@@ -816,11 +865,19 @@ void main() {
           'role': VString(),
           'level': VInt().nullable(),
           'dept': VString().nullable(),
-        }).when('role', equals: 'admin', then: {
-          'level': VInt().min(5),
-        }).when('role', equals: 'manager', then: {
-          'dept': VString().min(1),
-        });
+        }).when(
+          'role',
+          equals: 'admin',
+          then: {
+            'level': VInt().min(5),
+          },
+        ).when(
+          'role',
+          equals: 'manager',
+          then: {
+            'dept': VString().min(1),
+          },
+        );
 
         expect(schema.validate({'role': 'admin', 'level': 10}), isTrue);
         expect(schema.validate({'role': 'admin', 'level': 1}), isFalse);
@@ -968,14 +1025,18 @@ void main() {
         final schema = V.map({
           'type': V.enm(_Role.values),
           'perks': V.string().array().nullable(),
-        }).when('type', equals: _Role.admin, then: {
-          'perks': V.string().array().min(1),
-        });
+        }).when(
+          'type',
+          equals: _Role.admin,
+          then: {
+            'perks': V.string().array().min(1),
+          },
+        );
 
         expect(
           schema.validate({
             'type': _Role.admin,
-            'perks': ['pagerduty']
+            'perks': ['pagerduty'],
           }),
           isTrue,
         );
@@ -996,9 +1057,13 @@ void main() {
             V.string().min(5),
             V.int().min(1),
           ]).nullable(),
-        }).when('kind', equals: 'premium', then: {
-          'payment': V.union([V.string().min(5), V.int().min(1)]),
-        });
+        }).when(
+          'kind',
+          equals: 'premium',
+          then: {
+            'payment': V.union([V.string().min(5), V.int().min(1)]),
+          },
+        );
 
         expect(
           schema.validate({'kind': 'premium', 'payment': 'credit-card'}),
@@ -1015,9 +1080,13 @@ void main() {
         final schema = V.map({
           'type': V.string(),
           'data': V.string().nullable(),
-        }).when('type', equals: 'x', then: {
-          'data': V.string().min(3),
-        }).strict();
+        }).when(
+          'type',
+          equals: 'x',
+          then: {
+            'data': V.string().min(3),
+          },
+        ).strict();
 
         expect(
           schema.validate({'type': 'x', 'data': 'foo', 'extra': 1}),
@@ -1030,9 +1099,13 @@ void main() {
         final schema = V.map({
           'type': V.string(),
           'data': V.string().nullable(),
-        }).when('type', equals: 'x', then: {
-          'data': V.string().min(3),
-        }).passthrough();
+        }).when(
+          'type',
+          equals: 'x',
+          then: {
+            'data': V.string().min(3),
+          },
+        ).passthrough();
 
         final result = schema.parse({
           'type': 'x',
@@ -1423,8 +1496,11 @@ void main() {
         final schema = V.map({
           'role': V.string(),
           'admin_token': V.string(),
-        }).when('role',
-            equals: 'admin', then: {'admin_token': V.string().min(1)});
+        }).when(
+          'role',
+          equals: 'admin',
+          then: {'admin_token': V.string().min(1)},
+        );
 
         expect(schema.whenRules, hasLength(1));
         expect(schema.whenRules.first.field, 'role');
@@ -1503,6 +1579,7 @@ void main() {
           dependsOn: const {'flag'},
           then: {'note': V.string().min(1)},
         );
+
         final b = V.map({'count': V.int()}).whenMatches(
           (m) => (m['count'] as int) > 5,
           dependsOn: const {'count'},
@@ -1580,8 +1657,11 @@ void main() {
               'admin_token': V.string().min(1),
             })
             .refineAsync((m) async => true)
-            .when('role',
-                equals: 'admin', then: {'admin_token': V.string().min(5)});
+            .when(
+              'role',
+              equals: 'admin',
+              then: {'admin_token': V.string().min(5)},
+            );
 
         expect(
           await schema.validateAsync({'role': 'admin', 'admin_token': 'abcde'}),
@@ -1602,8 +1682,11 @@ void main() {
               'admin_token': V.string(),
             })
             .refineAsync((m) async => true)
-            .when('role',
-                equals: 'admin', then: {'admin_token': V.string().min(5)});
+            .when(
+              'role',
+              equals: 'admin',
+              then: {'admin_token': V.string().min(5)},
+            );
 
         final errors =
             await schema.errorsAsync({'role': 'admin', 'admin_token': 'no'});

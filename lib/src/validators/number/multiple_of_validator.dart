@@ -1,13 +1,13 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a number is a multiple of [factor].
 class MultipleOfValidator<T extends num> extends Validator<T> {
-  /// The factor the value must be a multiple of.
-  final T factor;
-
   /// Creates a [MultipleOfValidator] with the given [factor].
   const MultipleOfValidator({required this.factor});
+
+  /// The factor the value must be a multiple of.
+  final T factor;
 
   @override
   String get code => VNumberCode.multipleOf;

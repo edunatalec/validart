@@ -20,6 +20,7 @@ void main() {
             (v) async => v.contains('@'),
             message: 'Must contain @',
           );
+
       final errors = await schema.errorsAsync('nope');
       expect(errors!.first.message, 'Must contain @');
     });
@@ -29,6 +30,7 @@ void main() {
             (v) async => v.isNotEmpty,
             code: 'not_empty_async',
           );
+
       final errors = await schema.errorsAsync('');
       expect(errors!.first.code, 'not_empty_async');
     });
@@ -172,6 +174,7 @@ void main() {
               code: 'invalid_email_async',
             ),
       });
+
       final errors = await schema.errorsAsync({'email': 'nope'});
       expect(errors!.first.code, 'invalid_email_async');
       expect(errors.first.path, ['email']);
@@ -181,9 +184,13 @@ void main() {
       final schema = V.map({
         'type': V.string(),
         'extra': V.string().nullable(),
-      }).when('type', equals: 'x', then: {
-        'extra': V.string().refineAsync((v) async => v.length > 3),
-      });
+      }).when(
+        'type',
+        equals: 'x',
+        then: {
+          'extra': V.string().refineAsync((v) async => v.length > 3),
+        },
+      );
       expect(schema.hasAsync, isTrue);
     });
   });
@@ -225,6 +232,7 @@ void main() {
                   code: 'short_name',
                 ),
           );
+
       final errors = await schema.errorsAsync(_User('x'));
       expect(errors!.first.code, 'short_name');
       expect(errors.first.path, ['name']);
@@ -294,6 +302,7 @@ void main() {
         timeout: const Duration(milliseconds: 20),
         message: 'Timed out',
       );
+
       final errors = await schema.errorsAsync('x');
       expect(errors, isNotNull);
       expect(errors!.first.message, 'Timed out');
@@ -655,12 +664,16 @@ void main() {
           .object<_MixedUser>()
           .field('name', (u) => u.name, V.string())
           .field('email', (u) => u.email, V.string())
-          .when('name', equals: 'trigger', then: {
-        'email': V.string().refineAsync((v) async {
-          whenRan++;
-          return v.contains('@');
-        }),
-      });
+          .when(
+        'name',
+        equals: 'trigger',
+        then: {
+          'email': V.string().refineAsync((v) async {
+            whenRan++;
+            return v.contains('@');
+          }),
+        },
+      );
 
       await schema.validateAsync(_MixedUser('other', 'bad'));
       expect(whenRan, 0);
@@ -674,9 +687,13 @@ void main() {
           .object<_MixedUser>()
           .field('name', (u) => u.name, V.string())
           .field('email', (u) => u.email, V.string())
-          .when('name', equals: 'x', then: {
-        'email': V.string().refineAsync((v) async => true),
-      });
+          .when(
+        'name',
+        equals: 'x',
+        then: {
+          'email': V.string().refineAsync((v) async => true),
+        },
+      );
 
       expect(schema.hasAsync, isTrue);
     });
@@ -686,12 +703,16 @@ void main() {
           .object<_MixedUser>()
           .field('name', (u) => u.name, V.string())
           .field('email', (u) => u.email, V.string())
-          .when('name', equals: 'trigger', then: {
-        'email': V.string().refineAsync(
-              (v) async => v.contains('@'),
-              code: 'bad_email',
-            ),
-      });
+          .when(
+        'name',
+        equals: 'trigger',
+        then: {
+          'email': V.string().refineAsync(
+                (v) async => v.contains('@'),
+                code: 'bad_email',
+              ),
+        },
+      );
 
       final errors = await schema.errorsAsync(_MixedUser('trigger', 'bad'));
 
@@ -714,9 +735,13 @@ void main() {
                 ),
           )
           .field('email', (u) => u.email, V.string())
-          .when('name', equals: 'x', then: {
-        'email': V.string().min(20),
-      });
+          .when(
+        'name',
+        equals: 'x',
+        then: {
+          'email': V.string().min(20),
+        },
+      );
 
       final errors = await schema.errorsAsync(_MixedUser('x', 'bad'));
 
@@ -735,12 +760,16 @@ void main() {
       final schema = V.map({
         'type': V.string(),
         'name': V.string().nullable(),
-      }).when('type', equals: 'user', then: {
-        'name': V.string().refineAsync((v) async {
-          whenRan++;
-          return v.length >= 3;
-        }),
-      });
+      }).when(
+        'type',
+        equals: 'user',
+        then: {
+          'name': V.string().refineAsync((v) async {
+            whenRan++;
+            return v.length >= 3;
+          }),
+        },
+      );
 
       await schema.validateAsync({'type': 'other', 'name': 'x'});
       expect(whenRan, 0);
@@ -810,6 +839,7 @@ void main() {
               code: 'empty_name',
             ),
       });
+
       final schema = item.array();
 
       final errors = await schema.errorsAsync([
@@ -846,9 +876,9 @@ void main() {
 }
 
 class _MixedUser {
+  _MixedUser(this.name, [this.email = 'x@y.com']);
   final String name;
   final String email;
-  _MixedUser(this.name, [this.email = 'x@y.com']);
 }
 
 class _AlwaysOkAsync extends AsyncValidator<String> {
@@ -868,6 +898,6 @@ class _AlwaysFailAsync extends AsyncValidator<String> {
 }
 
 class _User {
-  final String name;
   _User(this.name);
+  final String name;
 }

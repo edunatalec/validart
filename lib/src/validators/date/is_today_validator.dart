@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a [DateTime] falls on the current calendar day, ignoring
 /// hour / minute / second. The comparison is against `DateTime.now()` at

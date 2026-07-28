@@ -32,12 +32,12 @@
 /// }));
 /// ```
 class VLocale {
-  final Map<String, Object> _translations;
-
   /// Creates a [VLocale] with optional custom [_translations]. Values may
   /// be either a `String` (for a direct message) or a nested `Map` whose
   /// keys form the remainder of the error code path.
   const VLocale([this._translations = const {}]);
+
+  final Map<String, Object> _translations;
 
   static const _defaults = <String, Object>{
     // Generic fallbacks — used when a prefixed key (e.g. `string.required`)

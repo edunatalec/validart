@@ -9,13 +9,13 @@ part of 'type.dart';
 /// schema.parse(['user@mail.com']); // ['user@mail.com']
 /// ```
 class VArray<T> extends VType<List<T>> {
-  final VType<T> _element;
-
   /// Creates an array validator with the given element [_element] schema.
   ///
   /// Pass [message] to override the default translation used
   /// when the input is `null`.
   VArray(this._element, {super.message, super.invalidTypeMessage});
+
+  final VType<T> _element;
 
   @override
   String get typeName => 'array';

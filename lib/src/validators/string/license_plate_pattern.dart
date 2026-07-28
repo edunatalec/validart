@@ -1,4 +1,4 @@
-import 'package:validart/src/validation_mode.dart';
+import '../../validation_mode.dart';
 
 /// A pluggable license-plate validation strategy.
 ///
@@ -43,10 +43,14 @@ abstract class LicensePlatePattern {
 /// );
 /// ```
 class UkPlatePattern extends LicensePlatePattern {
+  /// Creates a [UkPlatePattern].
+  const UkPlatePattern({this.mode = ValidationMode.any});
+
   static final _formattedRegex = RegExp(
     r'^[A-Z]{2}\d{2} [A-Z]{3}$',
     caseSensitive: false,
   );
+
   static final _unformattedRegex = RegExp(
     r'^[A-Z]{2}\d{2}[A-Z]{3}$',
     caseSensitive: false,
@@ -55,9 +59,6 @@ class UkPlatePattern extends LicensePlatePattern {
   /// Controls whether the separating space is required, forbidden, or
   /// optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [UkPlatePattern].
-  const UkPlatePattern({this.mode = ValidationMode.any});
 
   @override
   String get name => 'UK Plate';

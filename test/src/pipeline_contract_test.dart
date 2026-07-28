@@ -15,8 +15,8 @@ import 'package:validart/validart.dart';
 enum _Color { red, green, blue }
 
 class _Entity {
-  final String name;
   const _Entity(this.name);
+  final String name;
 }
 
 void _runPipelineContract<T>({
@@ -267,35 +267,35 @@ void _runPipelineContract<T>({
 void main() {
   _runPipelineContract<String>(
     typeName: 'VString',
-    factory: () => V.string(),
+    factory: V.string,
     validInput: 'hello',
     defaultVal: 'default',
   );
 
   _runPipelineContract<int>(
     typeName: 'VInt',
-    factory: () => V.int(),
+    factory: V.int,
     validInput: 42,
     defaultVal: 0,
   );
 
   _runPipelineContract<double>(
     typeName: 'VDouble',
-    factory: () => V.double(),
+    factory: V.double,
     validInput: 3.14,
     defaultVal: 0.0,
   );
 
   _runPipelineContract<bool>(
     typeName: 'VBool',
-    factory: () => V.bool(),
+    factory: V.bool,
     validInput: true,
     defaultVal: false,
   );
 
   _runPipelineContract<DateTime>(
     typeName: 'VDate',
-    factory: () => V.date(),
+    factory: V.date,
     validInput: DateTime(2024, 1, 1),
     defaultVal: DateTime(2000, 1, 1),
   );
@@ -409,7 +409,8 @@ void main() {
       () {
         var refineRan = false;
         final schema = V.map(
-            {'role': V.string(), 'audit': V.string().nullable()}).whenMatches(
+          {'role': V.string(), 'audit': V.string().nullable()},
+        ).whenMatches(
           (m) => m['role'] == 'admin',
           dependsOn: const {'role'},
           then: {'audit': V.string().min(8)},
@@ -461,10 +462,14 @@ void main() {
       final schema = V
           .object<_Entity>()
           .field('name', (e) => e.name, V.string())
-          .refineField((e) {
-        ran++;
-        return false;
-      }, path: 'name', stage: RefineStage.pre);
+          .refineField(
+        (e) {
+          ran++;
+          return false;
+        },
+        path: 'name',
+        stage: RefineStage.pre,
+      );
 
       schema.validateRaw({'name': 'Jo'});
       expect(ran, 0);
@@ -475,10 +480,13 @@ void main() {
       final schema = V
           .object<_Entity>()
           .field('name', (e) => e.name, V.string())
-          .refineFieldRaw((m) {
-        ran++;
-        return true;
-      }, path: 'name');
+          .refineFieldRaw(
+        (m) {
+          ran++;
+          return true;
+        },
+        path: 'name',
+      );
 
       schema.validateRaw({'name': 'Jo'});
       expect(ran, 1);
@@ -509,8 +517,10 @@ void main() {
           .transform<String>((e) => 'transformed');
 
       // ignore: avoid_dynamic_calls
-      expect(() => (wrapped as dynamic).parseRaw({'name': 'Jo'}),
-          throwsA(isA<NoSuchMethodError>()));
+      expect(
+        () => (wrapped as dynamic).parseRaw({'name': 'Jo'}),
+        throwsA(isA<NoSuchMethodError>()),
+      );
     });
 
     test('whenMatchesRaw.condition receives the raw map input as-is', () {
@@ -555,12 +565,13 @@ void main() {
       final schema = V
           .object<_Entity>()
           .field(
-              'name',
-              (e) => e.name,
-              V.string().refineAsync((s) async {
-                refineRan++;
-                return true;
-              }))
+            'name',
+            (e) => e.name,
+            V.string().refineAsync((s) async {
+              refineRan++;
+              return true;
+            }),
+          )
           .preprocessAsync((v) async {
         preRan++;
         return v;

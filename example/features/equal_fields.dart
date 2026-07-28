@@ -14,15 +14,19 @@ void runEqualFieldsExamples() {
     'confirm': V.string(),
   }).equalFields('confirm', 'password');
 
-  print(register.validate({
-    'password': '12345678',
-    'confirm': '12345678',
-  })); // true
+  print(
+    register.validate({
+      'password': '12345678',
+      'confirm': '12345678',
+    }),
+  ); // true
 
-  print(register.validate({
-    'password': '12345678',
-    'confirm': 'different',
-  })); // false
+  print(
+    register.validate({
+      'password': '12345678',
+      'confirm': 'different',
+    }),
+  ); // false
 
   section('VMap.equalFields — error lands in rootMessages');
 
@@ -39,17 +43,25 @@ void runEqualFieldsExamples() {
 
   // SignUpDto.schema (in shared/fixtures.dart) chains
   // .equalFields('password', 'confirm') on the object schema.
-  print(SignUpDto.schema.validate(const SignUpDto(
-    email: 'a@b.com',
-    password: 'Str0ng!Pass',
-    confirm: 'Str0ng!Pass',
-  ))); // true
+  print(
+    SignUpDto.schema.validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'Str0ng!Pass',
+      ),
+    ),
+  ); // true
 
-  print(SignUpDto.schema.validate(const SignUpDto(
-    email: 'a@b.com',
-    password: 'Str0ng!Pass',
-    confirm: 'mismatch',
-  ))); // false
+  print(
+    SignUpDto.schema.validate(
+      const SignUpDto(
+        email: 'a@b.com',
+        password: 'Str0ng!Pass',
+        confirm: 'mismatch',
+      ),
+    ),
+  ); // false
 
   section('VMap.equalFields — custom message');
 

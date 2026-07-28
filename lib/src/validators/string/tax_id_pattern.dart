@@ -1,4 +1,4 @@
-import 'package:validart/src/validation_mode.dart';
+import '../../validation_mode.dart';
 
 /// A pluggable tax-identifier validation strategy.
 ///
@@ -44,15 +44,15 @@ abstract class TaxIdPattern {
 /// );
 /// ```
 class UsSsnPattern extends TaxIdPattern {
+  /// Creates a [UsSsnPattern].
+  const UsSsnPattern({this.mode = ValidationMode.any});
+
   static final _formattedRegex = RegExp(r'^\d{3}-\d{2}-\d{4}$');
   static final _unformattedRegex = RegExp(r'^\d{9}$');
 
   /// Controls whether separators (dashes) are required, forbidden, or
   /// optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [UsSsnPattern].
-  const UsSsnPattern({this.mode = ValidationMode.any});
 
   @override
   String get name => 'US SSN';
@@ -86,8 +86,12 @@ class UsSsnPattern extends TaxIdPattern {
 /// );
 /// ```
 class UkNiNumberPattern extends TaxIdPattern {
+  /// Creates a [UkNiNumberPattern].
+  const UkNiNumberPattern({this.mode = ValidationMode.any});
+
   static final _coreRegex =
       RegExp(r'^[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\d{6}[A-D]$');
+
   static final _formattedRegex = RegExp(
     r'^[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z] \d{2} \d{2} \d{2} [A-D]$',
   );
@@ -95,9 +99,6 @@ class UkNiNumberPattern extends TaxIdPattern {
   /// Controls whether whitespace separators are required, forbidden, or
   /// optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [UkNiNumberPattern].
-  const UkNiNumberPattern({this.mode = ValidationMode.any});
 
   @override
   String get name => 'UK National Insurance';
@@ -136,15 +137,15 @@ class UkNiNumberPattern extends TaxIdPattern {
 /// );
 /// ```
 class CaSinPattern extends TaxIdPattern {
+  /// Creates a [CaSinPattern].
+  const CaSinPattern({this.mode = ValidationMode.any});
+
   static final _formattedRegex = RegExp(r'^\d{3}[ -]\d{3}[ -]\d{3}$');
   static final _unformattedRegex = RegExp(r'^\d{9}$');
 
   /// Controls whether separators (spaces or dashes) are required,
   /// forbidden, or optional. Defaults to [ValidationMode.any].
   final ValidationMode mode;
-
-  /// Creates a [CaSinPattern].
-  const CaSinPattern({this.mode = ValidationMode.any});
 
   @override
   String get name => 'Canadian SIN';

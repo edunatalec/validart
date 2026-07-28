@@ -1,27 +1,27 @@
 part of 'type.dart';
 
 class _WhenRule {
-  final String field;
-  final Object? equals;
-  final Map<String, VType> then;
-
   const _WhenRule({
     required this.field,
     required this.equals,
     required this.then,
   });
+
+  final String field;
+  final Object? equals;
+  final Map<String, VType> then;
 }
 
 class _WhenMatchesRule {
-  final bool Function(Map<String, dynamic> input) condition;
-  final Set<String> dependsOn;
-  final Map<String, VType> then;
-
   const _WhenMatchesRule({
     required this.condition,
     required this.dependsOn,
     required this.then,
   });
+
+  final bool Function(Map<String, dynamic> input) condition;
+  final Set<String> dependsOn;
+  final Map<String, VType> then;
 }
 
 /// Validates `Map<String, dynamic>` values against a field schema.
@@ -36,12 +36,6 @@ class _WhenMatchesRule {
 /// schema.parse({'name': 'Jo', 'age': 25});
 /// ```
 class VMap extends VType<Map<String, dynamic>> {
-  final Map<String, VType> _schema;
-  final List<_WhenRule> _whenRules = [];
-  final List<_WhenMatchesRule> _whenMatchesRules = [];
-  bool _isStrict = false;
-  bool _isPassthrough = false;
-
   /// Creates a map validator with the given field [_schema].
   ///
   /// Pass [message] to override the default translation used
@@ -49,6 +43,11 @@ class VMap extends VType<Map<String, dynamic>> {
   VMap(this._schema, {super.message, super.invalidTypeMessage}) {
     assert(_schema.isNotEmpty, 'Schema must have at least one field.');
   }
+  final Map<String, VType> _schema;
+  final List<_WhenRule> _whenRules = [];
+  final List<_WhenMatchesRule> _whenMatchesRules = [];
+  bool _isStrict = false;
+  bool _isPassthrough = false;
 
   @override
   String get typeName => 'map';
@@ -209,11 +208,13 @@ class VMap extends VType<Map<String, dynamic>> {
         Set<String> dependsOn,
         Map<String, VType> then,
       })> get whenMatchesRules => _whenMatchesRules
-      .map((r) => (
-            condition: r.condition,
-            dependsOn: r.dependsOn,
-            then: r.then,
-          ))
+      .map(
+        (r) => (
+          condition: r.condition,
+          dependsOn: r.dependsOn,
+          then: r.then,
+        ),
+      )
       .toList();
 
   /// Creates a new schema containing only the specified [keys].
@@ -463,11 +464,13 @@ class VMap extends VType<Map<String, dynamic>> {
       );
     }
 
-    _whenMatchesRules.add(_WhenMatchesRule(
-      condition: condition,
-      dependsOn: dependsOn,
-      then: then,
-    ));
+    _whenMatchesRules.add(
+      _WhenMatchesRule(
+        condition: condition,
+        dependsOn: dependsOn,
+        then: then,
+      ),
+    );
 
     return this;
   }
@@ -668,11 +671,13 @@ class VMap extends VType<Map<String, dynamic>> {
     if (_isStrict) {
       for (final key in input.keys) {
         if (!_schema.containsKey(key)) {
-          errors.add(VError(
-            code: VMapCode.unrecognizedKey,
-            message: V.t(VMapCode.unrecognizedKey, {'key': key}),
-            path: [key],
-          ));
+          errors.add(
+            VError(
+              code: VMapCode.unrecognizedKey,
+              message: V.t(VMapCode.unrecognizedKey, {'key': key}),
+              path: [key],
+            ),
+          );
         }
       }
     }
@@ -686,9 +691,11 @@ class VMap extends VType<Map<String, dynamic>> {
           parsed[entry.key] = result.value;
         case VFailure():
           for (final error in result.errors) {
-            errors.add(error.copyWith(
-              path: [entry.key, ...error.path],
-            ));
+            errors.add(
+              error.copyWith(
+                path: [entry.key, ...error.path],
+              ),
+            );
           }
       }
     }
@@ -704,9 +711,11 @@ class VMap extends VType<Map<String, dynamic>> {
               parsed[entry.key] = result.value;
             case VFailure():
               for (final error in result.errors) {
-                errors.add(error.copyWith(
-                  path: [entry.key, ...error.path],
-                ));
+                errors.add(
+                  error.copyWith(
+                    path: [entry.key, ...error.path],
+                  ),
+                );
               }
           }
         }
@@ -734,9 +743,11 @@ class VMap extends VType<Map<String, dynamic>> {
               parsed[entry.key] = result.value;
             case VFailure():
               for (final error in result.errors) {
-                errors.add(error.copyWith(
-                  path: [entry.key, ...error.path],
-                ));
+                errors.add(
+                  error.copyWith(
+                    path: [entry.key, ...error.path],
+                  ),
+                );
               }
           }
         }
@@ -786,11 +797,13 @@ class VMap extends VType<Map<String, dynamic>> {
     if (_isStrict) {
       for (final key in input.keys) {
         if (!_schema.containsKey(key)) {
-          errors.add(VError(
-            code: VMapCode.unrecognizedKey,
-            message: V.t(VMapCode.unrecognizedKey, {'key': key}),
-            path: [key],
-          ));
+          errors.add(
+            VError(
+              code: VMapCode.unrecognizedKey,
+              message: V.t(VMapCode.unrecognizedKey, {'key': key}),
+              path: [key],
+            ),
+          );
         }
       }
     }
@@ -806,9 +819,11 @@ class VMap extends VType<Map<String, dynamic>> {
           parsed[entry.key] = result.value;
         case VFailure():
           for (final error in result.errors) {
-            errors.add(error.copyWith(
-              path: [entry.key, ...error.path],
-            ));
+            errors.add(
+              error.copyWith(
+                path: [entry.key, ...error.path],
+              ),
+            );
           }
       }
     }
@@ -826,9 +841,11 @@ class VMap extends VType<Map<String, dynamic>> {
               parsed[entry.key] = result.value;
             case VFailure():
               for (final error in result.errors) {
-                errors.add(error.copyWith(
-                  path: [entry.key, ...error.path],
-                ));
+                errors.add(
+                  error.copyWith(
+                    path: [entry.key, ...error.path],
+                  ),
+                );
               }
           }
         }
@@ -858,9 +875,11 @@ class VMap extends VType<Map<String, dynamic>> {
               parsed[entry.key] = result.value;
             case VFailure():
               for (final error in result.errors) {
-                errors.add(error.copyWith(
-                  path: [entry.key, ...error.path],
-                ));
+                errors.add(
+                  error.copyWith(
+                    path: [entry.key, ...error.path],
+                  ),
+                );
               }
           }
         }

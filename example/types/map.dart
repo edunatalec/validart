@@ -16,23 +16,29 @@ void runMapExamples() {
     'age': V.int().min(0).nullable(),
   });
 
-  print(user.validate({
-    'name': 'Alice',
-    'email': 'alice@ex.com',
-    'age': 30,
-  })); // true
+  print(
+    user.validate({
+      'name': 'Alice',
+      'email': 'alice@ex.com',
+      'age': 30,
+    }),
+  ); // true
 
-  print(user.validate({
-    'name': 'Alice',
-    'email': 'alice@ex.com',
-    'age': null,
-  })); // true (age is nullable)
+  print(
+    user.validate({
+      'name': 'Alice',
+      'email': 'alice@ex.com',
+      'age': null,
+    }),
+  ); // true (age is nullable)
 
-  print(user.validate({
-    'name': 'Alice',
-    'email': 'bad',
-    'age': 30,
-  })); // false (invalid email)
+  print(
+    user.validate({
+      'name': 'Alice',
+      'email': 'bad',
+      'age': 30,
+    }),
+  ); // false (invalid email)
 
   section('VMap — strict / passthrough');
 
@@ -49,10 +55,12 @@ void runMapExamples() {
   section('VMap — array of maps');
 
   final users = V.map({'name': V.string().min(1)}).array();
-  print(users.validate([
-    {'name': 'Alice'},
-    {'name': 'Bob'},
-  ])); // true
+  print(
+    users.validate([
+      {'name': 'Alice'},
+      {'name': 'Bob'},
+    ]),
+  ); // true
 
   section('VMap — nested maps');
 
@@ -60,14 +68,17 @@ void runMapExamples() {
     'street': V.string().min(1),
     'zip': V.string().length(5),
   });
+
   final person = V.map({
     'name': V.string().min(1),
     'address': address,
   });
-  print(person.validate({
-    'name': 'Alice',
-    'address': {'street': '5th Ave', 'zip': '94103'},
-  })); // true
+  print(
+    person.validate({
+      'name': 'Alice',
+      'address': {'street': '5th Ave', 'zip': '94103'},
+    }),
+  ); // true
 
   // Field error paths use dot notation in `toMap()`.
   final result = person.safeParse({

@@ -41,6 +41,7 @@ void main() {
         'name': V.string().min(3),
         'email': V.string().email(),
       });
+
       final result = schema.safeParse({'name': 'Al', 'email': 'bad'});
       expect(result, isA<VFailure>());
       final map = (result as VFailure).toMap();
@@ -54,9 +55,11 @@ void main() {
           'zip': V.string().min(5),
         }),
       });
+
       final result = schema.safeParse({
-        'address': {'zip': '12'}
+        'address': {'zip': '12'},
       });
+
       final map = (result as VFailure).toMap();
       expect(map['address.zip'], isNotNull);
     });
@@ -65,7 +68,9 @@ void main() {
       final schema = V.map({
         'name': V.string().min(5).alpha(),
       });
+
       final result = schema.safeParse({'name': '12'});
+
       final map = (result as VFailure).toMap();
       expect(map.length, 1);
       expect(map.containsKey('name'), isTrue);
@@ -164,9 +169,12 @@ void main() {
     });
 
     test('should use locale message with params', () {
-      V.setLocale(const VLocale({
-        'map.fields_not_equal': '{field} deve ser igual a {other}',
-      }));
+      V.setLocale(
+        const VLocale({
+          'map.fields_not_equal': '{field} deve ser igual a {other}',
+        }),
+      );
+
       final schema = V.map({
         'password': V.string(),
         'confirm': V.string(),
@@ -201,19 +209,19 @@ void main() {
 
     test('should validate before transforming', () {
       final schema =
-          (V.string().email()).transform<String>((s) => s.toUpperCase());
+          V.string().email().transform<String>((s) => s.toUpperCase());
       expect(schema.validate('bad'), isFalse);
       expect(schema.parse('a@b.com'), 'A@B.COM');
     });
 
     test('should propagate errors from inner schema', () {
-      final schema = (V.string().min(5)).transform<int>((s) => s.length);
+      final schema = V.string().min(5).transform<int>((s) => s.length);
       final errs = schema.errors('hi');
       expect(errs!.first.code, VStringCode.tooSmall);
     });
 
     test('should return null for null when inner is nullable', () {
-      final schema = (V.string().nullable()).transform<int>((s) => s.length);
+      final schema = V.string().nullable().transform<int>((s) => s.length);
       expect(schema.parse(null), isNull);
     });
 
@@ -401,9 +409,13 @@ void main() {
       final schema = V.map({
         'type': V.string(),
         'cnpj': V.string().nullable(),
-      }).when('type', equals: 'company', then: {
-        'cnpj': V.string().min(14),
-      });
+      }).when(
+        'type',
+        equals: 'company',
+        then: {
+          'cnpj': V.string().min(14),
+        },
+      );
 
       expect(
         schema.validate({'type': 'company', 'cnpj': '12345678901234'}),
@@ -419,9 +431,13 @@ void main() {
       final schema = V.map({
         'type': V.string(),
         'cnpj': V.string().nullable(),
-      }).when('type', equals: 'company', then: {
-        'cnpj': V.string().min(14),
-      });
+      }).when(
+        'type',
+        equals: 'company',
+        then: {
+          'cnpj': V.string().min(14),
+        },
+      );
 
       expect(
         schema.validate({'type': 'person', 'cnpj': '123'}),
@@ -434,11 +450,19 @@ void main() {
         'type': V.string(),
         'cnpj': V.string().nullable(),
         'cpf': V.string().nullable(),
-      }).when('type', equals: 'company', then: {
-        'cnpj': V.string().min(14),
-      }).when('type', equals: 'person', then: {
-        'cpf': V.string().min(11),
-      });
+      }).when(
+        'type',
+        equals: 'company',
+        then: {
+          'cnpj': V.string().min(14),
+        },
+      ).when(
+        'type',
+        equals: 'person',
+        then: {
+          'cpf': V.string().min(11),
+        },
+      );
 
       expect(
         schema.validate({
@@ -460,9 +484,13 @@ void main() {
       final schema = V.map({
         'type': V.string(),
         'cnpj': V.string().nullable(),
-      }).when('type', equals: 'company', then: {
-        'cnpj': V.string().min(14),
-      });
+      }).when(
+        'type',
+        equals: 'company',
+        then: {
+          'cnpj': V.string().min(14),
+        },
+      );
 
       final errs = schema.errors({'type': 'company', 'cnpj': '123'});
       expect(errs!.first.path, ['cnpj']);
@@ -480,6 +508,7 @@ void main() {
       final result = schema.safeParse({
         'user': {'email': 'bad'},
       });
+
       final map = (result as VFailure).toMap();
       expect(map['user.email'], isNotNull);
     });
@@ -497,6 +526,7 @@ void main() {
       });
 
       final result = schema.safeParse({'x': 'ab'});
+
       final map = (result as VFailure).toMap();
       expect(map.length, 1);
     });
@@ -904,7 +934,8 @@ void main() {
         // Raw rule fired (under the `name` path)…
         expect(
           errs!.any(
-              (e) => e.path.first == 'name' && e.message == 'name forbidden'),
+            (e) => e.path.first == 'name' && e.message == 'name forbidden',
+          ),
           isTrue,
           reason: 'refineFieldRaw must run regardless of strict() rejections',
         );
@@ -989,6 +1020,7 @@ void main() {
     test('toMapFirst returns one error per field (the first registered)', () {
       // Two violations on `pwd`; toMapFirst keeps only the first.
       final schema = V.map({'pwd': V.string().min(8).alpha()});
+
       final result = schema.safeParse({'pwd': '1'});
       if (result case VFailure() && final f) {
         final map = f.toMapFirst();
@@ -999,6 +1031,7 @@ void main() {
 
     test('toMap is an alias for toMapFirst (backwards compatibility)', () {
       final schema = V.map({'pwd': V.string().min(8)});
+
       final result = schema.safeParse({'pwd': 'a'});
       if (result case VFailure() && final f) {
         expect(f.toMap(), f.toMapFirst());
@@ -1007,6 +1040,7 @@ void main() {
 
     test('toMapAll preserves every error per field in registration order', () {
       final schema = V.map({'pwd': V.string().min(8).alpha()});
+
       final result = schema.safeParse({'pwd': '1'});
       if (result case VFailure() && final f) {
         final all = f.toMapAll();
@@ -1021,12 +1055,17 @@ void main() {
     test('toMapAll excludes root-level errors (path: [])', () {
       // refine() with empty path emits a root error — must NOT appear
       // in toMapAll, only in rootMessages.
-      final schema = V.map({'name': V.string().min(1)}).refine((m) => false,
-          message: 'root rule');
+      final schema = V.map({'name': V.string().min(1)}).refine(
+        (m) => false,
+        message: 'root rule',
+      );
+
       final result = schema.safeParse({'name': 'x'});
       if (result case VFailure() && final f) {
         expect(
-            f.toMapAll().values.expand((v) => v), isNot(contains('root rule')));
+          f.toMapAll().values.expand((v) => v),
+          isNot(contains('root rule')),
+        );
         expect(f.rootMessages(), contains('root rule'));
       }
     });
@@ -1326,6 +1365,7 @@ void main() {
         const _MapRequiresName(),
         path: const ['name'],
       );
+
       final errs = schema.errors({'name': ''});
       expect(errs!.first.path, ['name']);
     });
@@ -1354,9 +1394,10 @@ class _MapRequiresName extends Validator<Map<String, dynamic>> {
 }
 
 class _DependsOnDemo {
+  const _DependsOnDemo({required this.a, required this.b});
+
   final String a;
   final String b;
-  const _DependsOnDemo({required this.a, required this.b});
 }
 
 enum _DemoColor { red, green, blue }
@@ -1366,13 +1407,13 @@ class _Dummy {
 }
 
 class _DemoUser {
-  final String name;
   const _DemoUser(this.name);
+  final String name;
 }
 
 class _RawDemo {
+  const _RawDemo({required this.value, required this.flag});
+
   final String value;
   final bool flag;
-
-  const _RawDemo({required this.value, required this.flag});
 }

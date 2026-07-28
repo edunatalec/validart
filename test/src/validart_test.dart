@@ -57,9 +57,12 @@ void main() {
     });
 
     test('should use custom messages via V.setLocale', () {
-      V.setLocale(const VLocale({
-        'string.email': 'Email inválido',
-      }));
+      V.setLocale(
+        const VLocale({
+          'string.email': 'Email inválido',
+        }),
+      );
+
       final schema = V.string().email();
       final errs = schema.errors('bad');
       expect(errs!.first.message, 'Email inválido');
@@ -186,8 +189,10 @@ void main() {
 
         test('ISO 8601 still works', () {
           expect(schema.parse('2024-01-15'), DateTime(2024, 1, 15));
-          expect(schema.parse('2024-01-15T10:30:00'),
-              DateTime(2024, 1, 15, 10, 30));
+          expect(
+            schema.parse('2024-01-15T10:30:00'),
+            DateTime(2024, 1, 15, 10, 30),
+          );
         });
 
         test('BR format DD/MM/YYYY', () {
@@ -232,6 +237,6 @@ void main() {
 }
 
 class _TestUser {
-  final String name;
   _TestUser(this.name);
+  final String name;
 }

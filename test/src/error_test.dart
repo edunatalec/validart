@@ -30,9 +30,11 @@ void main() {
       test('overrides context when provided', () {
         const original = VError(code: 'union', message: 'Union failed');
 
-        final copy = original.copyWith(context: const [
-          [VError(code: 'string.required', message: 'Required')],
-        ]);
+        final copy = original.copyWith(
+          context: const [
+            [VError(code: 'string.required', message: 'Required')],
+          ],
+        );
 
         expect(copy.context, hasLength(1));
         expect(copy.context!.first.first.code, 'string.required');

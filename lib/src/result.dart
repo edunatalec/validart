@@ -1,4 +1,4 @@
-import 'package:validart/src/error.dart';
+import 'error.dart';
 
 /// The result of a validation operation.
 ///
@@ -28,11 +28,11 @@ sealed class VResult<T> {
 
 /// A successful validation result containing the parsed [value].
 final class VSuccess<T> extends VResult<T> {
-  /// The parsed and validated value.
-  final T value;
-
   /// Creates a [VSuccess] with the given [value].
   const VSuccess(this.value);
+
+  /// The parsed and validated value.
+  final T value;
 
   @override
   bool get isValid => true;
@@ -40,11 +40,11 @@ final class VSuccess<T> extends VResult<T> {
 
 /// A failed validation result containing the list of [errors].
 final class VFailure<T> extends VResult<T> {
-  /// The list of validation errors.
-  final List<VError> errors;
-
   /// Creates a [VFailure] with the given [errors].
   const VFailure(this.errors);
+
+  /// The list of validation errors.
+  final List<VError> errors;
 
   @override
   bool get isValid => false;

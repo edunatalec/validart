@@ -1,13 +1,13 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a string ends with the given [suffix].
 class EndsWithValidator extends Validator<String> {
-  /// The suffix the string must end with.
-  final String suffix;
-
   /// Creates an [EndsWithValidator] with the given [suffix].
   const EndsWithValidator({required this.suffix});
+
+  /// The suffix the string must end with.
+  final String suffix;
 
   @override
   String get code => VStringCode.endsWith;

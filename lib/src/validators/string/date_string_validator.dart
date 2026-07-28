@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a string is a real calendar date.
 ///
@@ -13,12 +13,12 @@ import 'package:validart/src/validators/validator.dart';
 /// format parses it as a calendar-valid date. Invalid dates such as
 /// `2024-02-30`, `30/02/2024` or `2024-13-01` are rejected.
 class DateStringValidator extends Validator<String> {
+  /// Creates a [DateStringValidator].
+  const DateStringValidator({this.format});
+
   /// Optional strict format. When `null`, any format from
   /// [_defaultFormats] is accepted.
   final String? format;
-
-  /// Creates a [DateStringValidator].
-  const DateStringValidator({this.format});
 
   @override
   String get code => VStringCode.date;

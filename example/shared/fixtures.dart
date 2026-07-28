@@ -6,19 +6,19 @@ enum Color { red, green, blue }
 
 /// Plain data class consumed by `types/object.dart`.
 class Folder {
+  Folder({required this.id, required this.name});
+
   final String id;
   final String name;
-
-  Folder({required this.id, required this.name});
 }
 
 /// Minimal sign-in DTO. Demonstrates the canonical `static final schema`
 /// pattern from the README.
 class SignInDto {
+  const SignInDto({required this.email, required this.password});
+
   final String email;
   final String password;
-
-  const SignInDto({required this.email, required this.password});
 
   static final schema = V
       .object<SignInDto>()
@@ -29,15 +29,15 @@ class SignInDto {
 /// Sign-up DTO with password confirmation. Shows `equalFields` on
 /// `VObject`.
 class SignUpDto {
-  final String email;
-  final String password;
-  final String confirm;
-
   const SignUpDto({
     required this.email,
     required this.password,
     required this.confirm,
   });
+
+  final String email;
+  final String password;
+  final String confirm;
 
   static final schema = V
       .object<SignUpDto>()

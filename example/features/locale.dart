@@ -9,11 +9,13 @@ import '../shared/fixtures.dart';
 void runLocaleExamples() {
   section('V.setLocale — global overrides');
 
-  V.setLocale(const VLocale({
-    'string.email': 'Email inválido',
-    'positive': 'Deve ser positivo',
-    'required': 'Campo obrigatório',
-  }));
+  V.setLocale(
+    const VLocale({
+      'string.email': 'Email inválido',
+      'positive': 'Deve ser positivo',
+      'required': 'Campo obrigatório',
+    }),
+  );
 
   print(V.string().email().errors('bad')?.first.message);
   // 'Email inválido'
@@ -23,16 +25,18 @@ void runLocaleExamples() {
 
   section('Type-specific overrides — flat and nested coexist');
 
-  V.setLocale(const VLocale({
-    // Generic fallback (used when no type-specific entry matches).
-    'required': 'Campo obrigatório',
+  V.setLocale(
+    const VLocale({
+      // Generic fallback (used when no type-specific entry matches).
+      'required': 'Campo obrigatório',
 
-    // Nested form — affects VString only.
-    'string': {'required': 'Texto obrigatório'},
+      // Nested form — affects VString only.
+      'string': {'required': 'Texto obrigatório'},
 
-    // Flat form — affects VInt only.
-    'int.required': 'Número obrigatório',
-  }));
+      // Flat form — affects VInt only.
+      'int.required': 'Número obrigatório',
+    }),
+  );
 
   print(V.string().errors(null)?.first.message); // 'Texto obrigatório'
   print(V.int().errors(null)?.first.message); // 'Número obrigatório'

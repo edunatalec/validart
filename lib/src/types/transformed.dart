@@ -10,11 +10,11 @@ part of 'type.dart';
 /// schema.parse('42'); // 42
 /// ```
 class VTransformed<I, O> extends VType<O> {
-  final VType<I> _inner;
-  final O Function(I value) _transformFn;
-
   /// Creates a transformed validator wrapping [_inner] with [_transformFn].
   VTransformed(this._inner, this._transformFn);
+
+  final VType<I> _inner;
+  final O Function(I value) _transformFn;
 
   @override
   String get typeName => _inner.typeName;
@@ -85,12 +85,12 @@ class VTransformed<I, O> extends VType<O> {
 /// await schema.parseAsync('550e8400-...'); // User
 /// ```
 class VTransformedAsync<I, O> extends VType<O> {
-  final VType<I> _inner;
-  final Future<O> Function(I value) _transformFn;
-
   /// Creates an async-transformed validator wrapping [_inner] with
   /// [_transformFn].
   VTransformedAsync(this._inner, this._transformFn);
+
+  final VType<I> _inner;
+  final Future<O> Function(I value) _transformFn;
 
   @override
   String get typeName => _inner.typeName;

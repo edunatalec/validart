@@ -1,4 +1,6 @@
 export 'src/error.dart';
+export 'src/extensions/apply_if.dart';
+export 'src/phone_format.dart';
 export 'src/result.dart';
 export 'src/types/type.dart'
     show
@@ -19,6 +21,9 @@ export 'src/types/type.dart'
         VTransformedAsync,
         RefineStage;
 export 'src/v.dart';
+export 'src/v_code.dart';
+export 'src/v_locale.dart';
+export 'src/validation_mode.dart';
 export 'src/validators/string/card_brand_pattern.dart'
     show
         CardBrandPattern,
@@ -42,8 +47,3 @@ export 'src/validators/string/tax_id_pattern.dart'
     show TaxIdPattern, UsSsnPattern, UkNiNumberPattern, CaSinPattern;
 export 'src/validators/string/uuid_validator.dart' show UuidVersion;
 export 'src/validators/validator.dart';
-export 'src/v_code.dart';
-export 'src/v_locale.dart';
-export 'src/validation_mode.dart';
-export 'src/phone_format.dart';
-export 'src/extensions/apply_if.dart';

@@ -1,6 +1,6 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/string/url_validator.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
+import 'url_validator.dart';
 
 /// Validates that a string is a bare host: domain labels (with TLD ≥ 2
 /// alphabetic chars) or `localhost`, optionally with a `:port`. Path,

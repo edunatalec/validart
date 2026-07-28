@@ -1,9 +1,9 @@
 import 'dart:core' as core;
 import 'dart:core';
 
-import 'package:validart/src/types/type.dart';
-import 'package:validart/src/utils/date_parser.dart';
-import 'package:validart/src/v_locale.dart';
+import 'types/type.dart';
+import 'utils/date_parser.dart';
+import 'v_locale.dart';
 
 /// Entry point for creating validation schemas.
 ///
@@ -172,8 +172,11 @@ sealed class V {
     String? message,
     String? invalidTypeMessage,
   }) =>
-      VArray<T>(element,
-          message: message, invalidTypeMessage: invalidTypeMessage);
+      VArray<T>(
+        element,
+        message: message,
+        invalidTypeMessage: invalidTypeMessage,
+      );
 
   /// Creates a [VEnum] schema accepting the given enum [values]. See
   /// [string] for [message]. [invalidTypeMessage] is accepted for API
@@ -188,8 +191,11 @@ sealed class V {
     String? message,
     String? invalidTypeMessage,
   }) =>
-      VEnum<T>(values,
-          message: message, invalidTypeMessage: invalidTypeMessage);
+      VEnum<T>(
+        values,
+        message: message,
+        invalidTypeMessage: invalidTypeMessage,
+      );
 
   /// Creates a [VLiteral] schema accepting only the given [value]. See
   /// [string] for [message]. [invalidTypeMessage] is accepted for API
@@ -204,8 +210,11 @@ sealed class V {
     String? message,
     String? invalidTypeMessage,
   }) =>
-      VLiteral<T>(value,
-          message: message, invalidTypeMessage: invalidTypeMessage);
+      VLiteral<T>(
+        value,
+        message: message,
+        invalidTypeMessage: invalidTypeMessage,
+      );
 
   /// Creates a [VUnion] schema accepting any of the given [options]. See
   /// [string] for [message] and [invalidTypeMessage].

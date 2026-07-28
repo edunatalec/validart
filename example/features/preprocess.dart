@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:validart/validart.dart';
 
 import '../shared/fixtures.dart';
@@ -30,9 +32,9 @@ void runPreprocessExamples() {
   }).min(3);
 
   // Run the assertion via a sync-shaped main by awaiting in a Future.
-  () async {
+  unawaited(() async {
     print(await aliased.validateAsync('  Hello  ')); // true
-  }();
+  }());
 
   section('runPreprocessors — apply ONLY the preprocess stage');
 
@@ -57,10 +59,10 @@ void runPreprocessExamples() {
       .preprocess((v) => '${v as String}-sync')
       .preprocessAsync((v) async => '${v as String}-async');
 
-  () async {
+  unawaited(() async {
     print(await pipeline.runPreprocessorsAsync('x'));
     // 'x-sync-async'
-  }();
+  }());
 
   section('hasPreprocessors — gate downstream work');
 

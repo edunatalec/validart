@@ -79,17 +79,21 @@ void runRefineExamples() {
   );
 
   // 'A@B.COM' raw matches 'A@B.COM' expected — passes.
-  print(emailMatch.validate({
-    'email': 'A@B.COM',
-    'expected': 'A@B.COM',
-  })); // true
+  print(
+    emailMatch.validate({
+      'email': 'A@B.COM',
+      'expected': 'A@B.COM',
+    }),
+  ); // true
 
   // 'A@B.COM' raw vs 'a@b.com' expected — raw rule sees the difference
   // BEFORE toLowerCase normalizes them.
-  print(emailMatch.validate({
-    'email': 'A@B.COM',
-    'expected': 'a@b.com',
-  })); // false
+  print(
+    emailMatch.validate({
+      'email': 'A@B.COM',
+      'expected': 'a@b.com',
+    }),
+  ); // false
 
   section('refine(dependsOn:) — partial pipeline aggregation');
 

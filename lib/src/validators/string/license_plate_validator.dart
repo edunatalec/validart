@@ -1,6 +1,6 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/string/license_plate_pattern.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
+import 'license_plate_pattern.dart';
 
 /// Validates that a string is a valid license plate for any of the
 /// given patterns.
@@ -20,13 +20,13 @@ import 'package:validart/src/validators/validator.dart';
 /// like `'Invalid {name}'` works regardless of how many patterns are
 /// configured.
 class LicensePlateValidator extends Validator<String> {
-  /// The license-plate patterns accepted by this validator.
-  final List<LicensePlatePattern> patterns;
-
   /// Creates a [LicensePlateValidator]. The [patterns] list must be
   /// non-empty.
   LicensePlateValidator({required this.patterns})
       : assert(patterns.isNotEmpty, 'patterns must not be empty');
+
+  /// The license-plate patterns accepted by this validator.
+  final List<LicensePlatePattern> patterns;
 
   @override
   String get code => VStringCode.licensePlate;

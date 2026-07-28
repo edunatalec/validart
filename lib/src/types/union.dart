@@ -9,8 +9,6 @@ part of 'type.dart';
 /// schema.validate(true);    // false
 /// ```
 class VUnion extends VType<Object> {
-  final List<VType> _options;
-
   /// Creates a union validator that accepts values matching any of the
   /// [_options]. Must have at least 2 options.
   ///
@@ -19,6 +17,7 @@ class VUnion extends VType<Object> {
   VUnion(this._options, {super.message, super.invalidTypeMessage}) {
     assert(_options.length >= 2, 'Union must have at least 2 options.');
   }
+  final List<VType> _options;
 
   @override
   String get typeName => 'union';

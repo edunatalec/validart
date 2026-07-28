@@ -8,29 +8,31 @@ import 'package:validart/validart.dart';
 enum _Role { admin, user, guest }
 
 class _SignUpDto {
-  final String email;
-  final String password;
-  final String confirm;
-  final int age;
   const _SignUpDto({
     required this.email,
     required this.password,
     required this.confirm,
     required this.age,
   });
+
+  final String email;
+  final String password;
+  final String confirm;
+  final int age;
 }
 
 class _BlogPost {
-  final String title;
-  final String body;
-  final List<String> tags;
-  final _Role authorRole;
   const _BlogPost({
     required this.title,
     required this.body,
     required this.tags,
     required this.authorRole,
   });
+
+  final String title;
+  final String body;
+  final List<String> tags;
+  final _Role authorRole;
 }
 
 void main() {
@@ -110,6 +112,7 @@ void main() {
       'avatarUrl': V.string().url(),
       'age': V.int().min(13).max(120),
     });
+
     final patchShape = baseShape.partial();
 
     test('accepts empty patch (all nullable)', () {
@@ -135,11 +138,19 @@ void main() {
       'role': V.string(),
       'name': V.string().min(1),
       'permissions': V.array(V.string()).nullable(),
-    }).when('role', equals: 'admin', then: {
-      'permissions': V.array(V.string()).min(1),
-    }).when('role', equals: 'guest', then: {
-      'name': V.string().min(3),
-    });
+    }).when(
+      'role',
+      equals: 'admin',
+      then: {
+        'permissions': V.array(V.string()).min(1),
+      },
+    ).when(
+      'role',
+      equals: 'guest',
+      then: {
+        'name': V.string().min(3),
+      },
+    );
 
     test('admin without permissions fails', () {
       expect(
@@ -184,9 +195,13 @@ void main() {
       'role': V.string(),
       'level': V.int(),
       'country': V.string(),
-    }).when('role', equals: 'guest', then: {
-      'name': V.string().min(3),
-    }).whenMatches(
+    }).when(
+      'role',
+      equals: 'guest',
+      then: {
+        'name': V.string().min(3),
+      },
+    ).whenMatches(
       (m) => m['role'] == 'admin' && (m['level'] as int) > 5,
       dependsOn: const {'role', 'level'},
       then: {'audit_token': V.string().min(8)},
@@ -315,6 +330,7 @@ void main() {
               code: 'username_taken',
             ),
       });
+
       final errors = await schema.errorsAsync({'username': 'alice'});
       expect(errors, isNotNull);
       expect(errors!.first.code, 'username_taken');
@@ -505,9 +521,13 @@ void main() {
         'type': V.string(),
         'a': V.string(),
         'b': V.string(),
-      }).when('type', equals: 'strict', then: {
-        'a': V.string().min(5),
-      }).equalFields('a', 'b');
+      }).when(
+        'type',
+        equals: 'strict',
+        then: {
+          'a': V.string().min(5),
+        },
+      ).equalFields('a', 'b');
 
       final errors = schema.errors({
         'type': 'strict',
@@ -609,9 +629,13 @@ void main() {
       final schema = V.map({
         'role': V.string(),
         'name': V.string(),
-      }).when('role', equals: 'admin', then: {
-        'permissions': V.array(V.string()),
-      }).refine(
+      }).when(
+        'role',
+        equals: 'admin',
+        then: {
+          'permissions': V.array(V.string()),
+        },
+      ).refine(
         (m) => (m['permissions'] as List<dynamic>).isNotEmpty,
         code: 'needs_permission',
         dependsOn: const {'permissions'},
@@ -647,12 +671,14 @@ void main() {
           .field('age', (d) => d.age, V.int())
           .equalFields('password', 'confirm');
 
-      final errors = schema.errors(const _SignUpDto(
-        email: 'bad',
-        password: 'a',
-        confirm: 'b',
-        age: 30,
-      ));
+      final errors = schema.errors(
+        const _SignUpDto(
+          email: 'bad',
+          password: 'a',
+          confirm: 'b',
+          age: 30,
+        ),
+      );
 
       expect(
         errors!.map((e) => e.code).toSet(),
@@ -667,12 +693,14 @@ void main() {
           .field('age', (d) => d.age, V.int())
           .refine((d) => d.age >= 0, code: 'non_negative_age');
 
-      final errors = schema.errors(const _SignUpDto(
-        email: 'bad',
-        password: 'x',
-        confirm: 'x',
-        age: -1,
-      ));
+      final errors = schema.errors(
+        const _SignUpDto(
+          email: 'bad',
+          password: 'x',
+          confirm: 'x',
+          age: -1,
+        ),
+      );
 
       expect(errors!.map((e) => e.code).toSet(), {'string.email'});
     });
@@ -688,12 +716,14 @@ void main() {
         dependsOn: const {'age'},
       );
 
-      final errors = schema.errors(const _SignUpDto(
-        email: 'bad',
-        password: 'x',
-        confirm: 'x',
-        age: -1,
-      ));
+      final errors = schema.errors(
+        const _SignUpDto(
+          email: 'bad',
+          password: 'x',
+          confirm: 'x',
+          age: -1,
+        ),
+      );
 
       expect(
         errors!.map((e) => e.code).toSet(),
@@ -788,12 +818,14 @@ void main() {
           dependsOn: const {'age'},
         );
 
-        final errors = await schema.errorsAsync(const _SignUpDto(
-          email: 'bad',
-          password: 'x',
-          confirm: 'x',
-          age: -1,
-        ));
+        final errors = await schema.errorsAsync(
+          const _SignUpDto(
+            email: 'bad',
+            password: 'x',
+            confirm: 'x',
+            age: -1,
+          ),
+        );
 
         expect(
           errors!.map((e) => e.code).toSet(),
@@ -912,12 +944,14 @@ void main() {
           dependsOn: const {'age'},
         ).pick(['email', 'age']);
 
-        final errors = schema.errors(const _SignUpDto(
-          email: 'bad',
-          password: 'x',
-          confirm: 'x',
-          age: -1,
-        ));
+        final errors = schema.errors(
+          const _SignUpDto(
+            email: 'bad',
+            password: 'x',
+            confirm: 'x',
+            age: -1,
+          ),
+        );
 
         expect(
           errors!.map((e) => e.code).toSet(),
@@ -981,9 +1015,13 @@ void main() {
         // call time.
         final schema = V.map({
           'role': V.string(),
-        }).when('role', equals: 'admin', then: {
-          'permissions': V.array(V.string()),
-        }).refine(
+        }).when(
+          'role',
+          equals: 'admin',
+          then: {
+            'permissions': V.array(V.string()),
+          },
+        ).refine(
           (m) => (m['permissions'] as List<dynamic>).isNotEmpty,
           code: 'needs_permission',
           dependsOn: const {'permissions'},
@@ -1020,9 +1058,13 @@ void main() {
             .object<_SignUpDto>()
             .field('email', (d) => d.email, V.string())
             .field('age', (d) => d.age, V.int())
-            .when('email', equals: 'leak@x.com', then: {
-          'age': V.int().min(99),
-        }).refine(
+            .when(
+          'email',
+          equals: 'leak@x.com',
+          then: {
+            'age': V.int().min(99),
+          },
+        ).refine(
           (d) => d.age >= 0,
           code: 'sane_age',
           dependsOn: const {'age'},
@@ -1031,12 +1073,14 @@ void main() {
         // age key is in base schema; this just confirms the assert allows
         // base-schema names.
         expect(
-          schema.validate(const _SignUpDto(
-            email: 'a@b.com',
-            password: 'x',
-            confirm: 'x',
-            age: 30,
-          )),
+          schema.validate(
+            const _SignUpDto(
+              email: 'a@b.com',
+              password: 'x',
+              confirm: 'x',
+              age: 30,
+            ),
+          ),
           isTrue,
         );
       });
@@ -1186,6 +1230,7 @@ void main() {
         // path=['inner', ...]; failedFieldPaths={'inner'}; outer refine
         // dep={'inner'} → skip.
         final inner = V.map({'count': V.int().min(1)});
+
         final outer = V.map({
           'name': V.string(),
           'inner': inner,
@@ -1206,6 +1251,7 @@ void main() {
       test('outer refine.dependsOn runs when inner-container is fully valid',
           () {
         final inner = V.map({'count': V.int().min(1)});
+
         final outer = V.map({
           'name': V.string(),
           'inner': inner,
@@ -1379,12 +1425,14 @@ void main() {
 
         final merged = left.merge(right);
 
-        final errors = merged.errors(const _SignUpDto(
-          email: 'noatsign',
-          password: 'x',
-          confirm: 'x',
-          age: -1,
-        ));
+        final errors = merged.errors(
+          const _SignUpDto(
+            email: 'noatsign',
+            password: 'x',
+            confirm: 'x',
+            age: -1,
+          ),
+        );
 
         expect(
           errors!.map((e) => e.code).toSet(),
@@ -1556,21 +1604,25 @@ void main() {
           .omit(['confirm']).refine((d) => d.age >= 13);
 
       expect(
-        schema.validate(const _SignUpDto(
-          email: 'a@b.com',
-          password: 'x',
-          confirm: 'x',
-          age: 18,
-        )),
+        schema.validate(
+          const _SignUpDto(
+            email: 'a@b.com',
+            password: 'x',
+            confirm: 'x',
+            age: 18,
+          ),
+        ),
         isTrue,
       );
       expect(
-        schema.validate(const _SignUpDto(
-          email: 'a@b.com',
-          password: 'x',
-          confirm: 'mismatch',
-          age: 18,
-        )),
+        schema.validate(
+          const _SignUpDto(
+            email: 'a@b.com',
+            password: 'x',
+            confirm: 'mismatch',
+            age: 18,
+          ),
+        ),
         isFalse,
       );
     });
@@ -1590,12 +1642,14 @@ void main() {
         ['email', 'password', 'age'],
       );
       expect(
-        merged.validate(const _SignUpDto(
-          email: 'a@b.com',
-          password: 'x',
-          confirm: 'x',
-          age: 20,
-        )),
+        merged.validate(
+          const _SignUpDto(
+            email: 'a@b.com',
+            password: 'x',
+            confirm: 'x',
+            age: 20,
+          ),
+        ),
         isTrue,
       );
     });
@@ -1743,10 +1797,16 @@ void main() {
         'assignee': null,
       };
 
-      expect(schema.validate(dto), isFalse,
-          reason: 'priority == 1 → assignee required');
-      expect(schema.validateRaw(raw), isFalse,
-          reason: 'same behavior in raw mode');
+      expect(
+        schema.validate(dto),
+        isFalse,
+        reason: 'priority == 1 → assignee required',
+      );
+      expect(
+        schema.validateRaw(raw),
+        isFalse,
+        reason: 'same behavior in raw mode',
+      );
     });
 
     test('whenMatchesRaw.condition receives map view in both modes', () {
@@ -1758,8 +1818,11 @@ void main() {
         'assignee': null,
       });
 
-      expect(dtoErrors!.first.path, mapErrors!.first.path,
-          reason: 'whenMatchesRaw fires the same in both modes');
+      expect(
+        dtoErrors!.first.path,
+        mapErrors!.first.path,
+        reason: 'whenMatchesRaw fires the same in both modes',
+      );
     });
 
     test('entity-level refine runs in entity mode, skipped in raw mode', () {
@@ -1781,15 +1844,15 @@ void main() {
 }
 
 class _TaskDto {
-  final String title;
-  final int priority;
-  final String? assignee;
-
   _TaskDto({
     required this.title,
     required this.priority,
     required this.assignee,
   });
+
+  final String title;
+  final int priority;
+  final String? assignee;
 }
 
 /// Small helper to make `buildSchema`'s declared return type compile even
@@ -1803,15 +1866,15 @@ extension _MapObjectCast on VMap {
 /// Sums two int fields and rejects when greater than [max]. Used by the
 /// extension-point tests to simulate a third-party `Validator<Map>`.
 class _SumLessThanValidator extends Validator<Map<String, dynamic>> {
-  final String field;
-  final String other;
-  final int max;
-
   const _SumLessThanValidator({
     required this.field,
     required this.other,
     required this.max,
   });
+
+  final String field;
+  final String other;
+  final int max;
 
   @override
   String get code => 'sum_too_large';
@@ -1828,9 +1891,9 @@ class _SumLessThanValidator extends Validator<Map<String, dynamic>> {
 /// Async validator that rejects a hard-coded set of reserved names.
 /// Used by the extension-point async test.
 class _ReservedNameAsyncValidator extends AsyncValidator<Map<String, dynamic>> {
-  final String field;
-
   const _ReservedNameAsyncValidator({required this.field});
+
+  final String field;
 
   static const _reserved = {'admin', 'root', 'system'};
 

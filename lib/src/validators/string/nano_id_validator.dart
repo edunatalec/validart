@@ -1,5 +1,5 @@
-import 'package:validart/src/v_code.dart';
-import 'package:validart/src/validators/validator.dart';
+import '../../v_code.dart';
+import '../validator.dart';
 
 /// Validates that a string is a valid NanoID.
 ///
@@ -7,11 +7,11 @@ import 'package:validart/src/validators/validator.dart';
 /// is 21 characters (matching the NanoID library default); pass [length]
 /// to require a different size.
 class NanoIdValidator extends Validator<String> {
-  /// Required length. Defaults to 21 (NanoID library default).
-  final int length;
-
   /// Creates a [NanoIdValidator].
   const NanoIdValidator({this.length = 21});
+
+  /// Required length. Defaults to 21 (NanoID library default).
+  final int length;
 
   @override
   String get code => VStringCode.nanoId;
