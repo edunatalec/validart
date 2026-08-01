@@ -78,6 +78,7 @@ if (result case VFailure(:final errors)) {
 - [i18n (internationalization)](#i18n-internationalization)
 - [Extensibility](#extensibility)
 - [Example](#example)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Why validart
@@ -1971,12 +1972,16 @@ V.string().card(brands: [const EloBrand()]);
 ## Example
 
 A runnable end-to-end tour of the public API lives in
-[`example/example.dart`](example/example.dart). Run it with:
+[`example/example.dart`](https://github.com/edunatalec/validart/blob/master/example/example.dart). Run it with:
 
 ```sh
 dart run example/example.dart
 ```
 
+## Contributing
+
+[CONTRIBUTING.md](https://github.com/edunatalec/validart/blob/master/CONTRIBUTING.md) is the contract for whoever writes code here: the one command that has to be green before a pull request, what the two CI jobs check, the conventions, and the deliberate gaps a PR should not try to fix.
+
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/edunatalec/validart/blob/master/LICENSE).
