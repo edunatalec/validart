@@ -1,5 +1,3 @@
-# Validart
-
 [![pub package](https://img.shields.io/pub/v/validart.svg)](https://pub.dev/packages/validart)
 [![package publisher](https://img.shields.io/pub/publisher/validart.svg)](https://pub.dev/packages/validart/publisher)
 
@@ -7,74 +5,20 @@ A type-safe validation library for Dart, inspired by [Zod](https://zod.dev).
 
 Built for **chaining**, **schema composition**, **i18n**, and **extensibility**. Includes validators for emails, phone numbers, dates, and more.
 
-## Table of Contents
+It validates data, not widgets: no Flutter dependency, no code generation and
+no build step. Country-specific rules — Brazilian CPF, CNPJ, CEP and the like —
+live in extension packages such as
+[validart_br](https://pub.dev/packages/validart_br).
 
-- [Why Validart](#why-validart)
-- [Installation](#installation)
-- [Basic Usage](#basic-usage)
-- [Types](#types)
-  - [String](#string)
-  - [Int](#int)
-  - [Double](#double)
-  - [Bool](#bool)
-  - [Date](#date)
-- [Map (Structured Objects)](#map-structured-objects)
-  - [Schema Composition](#schema-composition)
-  - [Cross-Field Validation](#cross-field-validation)
-  - [Custom Field Validation](#custom-field-validation)
-  - [Conditional Validation](#conditional-validation)
-  - [Array of Maps](#array-of-maps)
-- [Object (Entity Validation)](#object-entity-validation)
-  - [DTO Pattern](#dto-pattern)
-  - [Errors and Entity-Level Rules](#errors-and-entity-level-rules)
-  - [Array of Entities](#array-of-entities)
-  - [Cross-Field Validation](#cross-field-validation-1)
-  - [Custom Field Validation](#custom-field-validation-1)
-  - [Conditional Validation](#conditional-validation-1)
-  - [Validating raw maps with `safeParseRaw`](#validating-raw-maps-with-safeparseraw)
-  - [Decision matrix — which API runs where](#decision-matrix--which-api-runs-where)
-  - [Schema Composition](#schema-composition-1)
-- [Array](#array)
-- [Other Types](#other-types)
-  - [Enum](#enum)
-  - [Literal](#literal)
-  - [Union](#union)
-- [Coercion](#coercion)
-- [Pipeline](#pipeline)
-  - [Pipeline order — primitives](#pipeline-order--primitives)
-  - [Pipeline order — containers (`VMap` / `VObject`)](#pipeline-order--containers-vmap--vobject)
-  - [Pipeline order — `VArray`](#pipeline-order--varray)
-  - [Async pipeline](#async-pipeline)
-  - [Transform](#transform)
-  - [Preprocess](#preprocess)
-- [Modifiers](#modifiers)
-  - [Custom pre-pipeline messages per schema](#custom-pre-pipeline-messages-per-schema)
-- [Async Validation](#async-validation)
-  - [More async primitives](#more-async-primitives)
-- [Form Patterns](#form-patterns)
-- [Form Errors](#form-errors)
-  - [Reading raw errors](#reading-raw-errors)
-  - [Root-level errors via `rootMessages()`](#root-level-errors-via-rootmessages)
-  - [Custom error codes in refine](#custom-error-codes-in-refine)
-  - [`refine` with `dependsOn`](#refine-with-dependson)
-- [i18n (Internationalization)](#i18n-internationalization)
-  - [Type-specific overrides](#type-specific-overrides)
-  - [Manual translation](#manual-translation)
-  - [Error codes](#error-codes)
-  - [Complete translation template](#complete-translation-template)
-- [Extensibility](#extensibility)
-  - [Pluggable patterns](#pluggable-patterns)
-- [License](#license)
+## Requirements
 
-## Why Validart
+Dart 3.0 or newer:
 
-- **Schema as data, not callbacks.** A `V.string().email().min(5)` is a value you can compose, reuse, share between client and server, and serialize into a form library.
-- **Type-safe entities without code generation.** `V.object<T>().field('name', (u) => u.name, V.string())` validates instances of your existing class with compile-time-checked field extractors. No build runner, no generated files.
-- **Structured errors with paths.** Every error carries `code`, `message`, `path` — drives forms, server responses, audit logs without writing parsers.
-- **i18n built-in.** Override default messages globally (`V.setLocale(VLocale({...}))`) or per validator. No tinkering with `intl` to translate error strings.
-- **Both entity and raw modes.** Validate a fully-built `T` (`safeParse`) or a `Map<String, dynamic>` straight from JSON/Firestore (`safeParseRaw`) reusing the **same schema** — no defensive `fromMap` needed before validation.
-- **Async-aware pipeline.** Mix `refineAsync` (DB lookups, remote checks) with sync rules; the schema short-circuits at the right place and surfaces async-vs-sync mistakes with `VAsyncRequiredException`.
-- **Zero runtime dependencies.** Pure Dart, works in Flutter / server / CLI / scripts.
+```sh
+dart --version
+```
+
+- No runtime dependencies. Runs in Flutter, on a server, in a CLI or a script.
 
 ## Installation
 
@@ -82,7 +26,7 @@ Built for **chaining**, **schema composition**, **i18n**, and **extensibility**.
 dart pub add validart
 ```
 
-Or in pubspec.yaml:
+Or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -93,7 +37,7 @@ dependencies:
 import 'package:validart/validart.dart';
 ```
 
-## Basic Usage
+## Quick start
 
 ```dart
 // No instantiation needed — V is a static class
@@ -104,7 +48,7 @@ schema.validate('invalid');              // false
 
 // Get structured errors
 final errors = schema.errors('invalid');
-// [VError(code: 'string.email', message: 'Invalid email address')]
+// [VError(string.email: Invalid email address)]
 
 // Parse — runs the pipeline and returns the normalized value; throws on failure
 final value = schema.parse('  USER@Example.com  ');
@@ -116,6 +60,35 @@ if (result case VFailure(:final errors)) {
   print(errors.first.message); // 'Invalid email address'
 }
 ```
+
+## Contents
+
+- [Why validart](#why-validart)
+- [Types](#types)
+- [Map (structured objects)](#map-structured-objects)
+- [Object (entity validation)](#object-entity-validation)
+- [Array](#array)
+- [Other types](#other-types)
+- [Coercion](#coercion)
+- [Pipeline](#pipeline)
+- [Modifiers](#modifiers)
+- [Async validation](#async-validation)
+- [Form patterns](#form-patterns)
+- [Form errors](#form-errors)
+- [i18n (internationalization)](#i18n-internationalization)
+- [Extensibility](#extensibility)
+- [Example](#example)
+- [License](#license)
+
+## Why validart
+
+- **Schema as data, not callbacks.** A `V.string().email().min(5)` is a value you can compose, reuse, share between client and server, and serialize into a form library.
+- **Type-safe entities without code generation.** `V.object<T>().field('name', (u) => u.name, V.string())` validates instances of your existing class with compile-time-checked field extractors. No build runner, no generated files.
+- **Structured errors with paths.** Every error carries `code`, `message`, `path` — drives forms, server responses, audit logs without writing parsers.
+- **i18n built-in.** Override default messages globally (`V.setLocale(VLocale({...}))`) or per validator. No tinkering with `intl` to translate error strings.
+- **Both entity and raw modes.** Validate a fully-built `T` (`safeParse`) or a `Map<String, dynamic>` straight from JSON/Firestore (`safeParseRaw`) reusing the **same schema** — no defensive `fromMap` needed before validation.
+- **Async-aware pipeline.** Mix `refineAsync` (DB lookups, remote checks) with sync rules; the schema short-circuits at the right place and surfaces async-vs-sync mistakes with `VAsyncRequiredException`.
+- **Zero runtime dependencies.** Pure Dart, works in Flutter / server / CLI / scripts.
 
 ## Types
 
@@ -481,7 +454,7 @@ V.date().beforeToday();                   // strictly before today (today reject
 
 Use `isToday` for "is the booking for today?", `sameDayAs(reference)` when comparing two scheduled events, and the `*Today` pair when filtering past vs future submissions. For "today or later" / "today or earlier", compose with a `VUnion` against `isToday`.
 
-## Map (Structured Objects)
+## Map (structured objects)
 
 Validates `Map<String, dynamic>` with a schema:
 
@@ -503,7 +476,7 @@ final errors = userSchema.errors({'name': '', 'email': 'bad'});
 //  VError(code: 'string.email',     path: ['email'])]
 ```
 
-### Schema Composition
+### Schema composition
 
 ```dart
 final base = V.map({'name': V.string(), 'email': V.string().email()});
@@ -518,7 +491,7 @@ base.strict();                               // reject unknown keys
 base.passthrough();                          // allow unknown keys
 ```
 
-### Cross-Field Validation
+### Cross-field validation
 
 Use `equalFields` when one field's value must match another — the classic case is password confirmation. Both fields still run their own validators first; `equalFields` checks equality afterwards and emits `map.fields_not_equal`.
 
@@ -535,7 +508,7 @@ signup.errors({'password': 'secret123', 'confirm': 'oops'})!.first.code;
 // map.fields_not_equal
 ```
 
-### Custom Field Validation
+### Custom field validation
 
 `refineField` attaches a custom predicate to a specific field path, so the resulting error lives on that field in the shape — not on the root of the map. Reach for it when a business rule depends on data already present on the map (e.g. "age must be 18+", "end date must be after start date") and the check is too specific for a generic validator.
 
@@ -591,7 +564,7 @@ On `VObject<T>`, the callback is typed against `T` (`refineField((T) => ..., ...
 
 In most cases, default `stage: post` is the right call. Reach for `stage: pre` only when the rule explicitly depends on the input as it arrived.
 
-### Conditional Validation
+### Conditional validation
 
 `when(field, equals: value, then: {...})` applies extra field validators only when another field has a specific value. Ideal for discriminated shapes ("if `type` is `'company'`, then `cnpj` is required") — fields in `then` are merged over the base schema for matching rows, and skipped entirely otherwise.
 
@@ -631,7 +604,7 @@ order.validate({'subtotal': 200.0, 'country': 'BR', 'note': null});         // f
 
 `whenMatches` runs at the same pipeline step as `when` — failures inside `then` contribute to `failedFieldPaths`, and `refine(dependsOn: {<key in then>})` is gated on those failures the same way. The rule itself is gated on its own `dependsOn`: if any of the declared dependencies failed in step 6 (per-field iteration), the predicate is not called and `then` is not applied.
 
-### Array of Maps
+### Array of maps
 
 Call `.array()` on any `VMap` to validate a list of rows (table-shaped data, CSV imports, JSON arrays of objects). Errors include the row index as the first segment of the path, followed by the field key.
 
@@ -654,7 +627,7 @@ users.errors([
 //  VError(code: 'string.email',     path: [1, 'email'])]
 ```
 
-## Object (Entity Validation)
+## Object (entity validation)
 
 Validates class instances (entities, DTOs, domain models) with **type-safe** field extraction — no runtime casts, no string keys for field access. Pick `VObject<T>` over `VMap` when you already have a typed class and want the schema to match its structure exactly.
 
@@ -675,7 +648,7 @@ final schema = V.object<User>()
 schema.validate(User(name: 'Jo', email: 'jo@x.com', age: 30)); // true
 ```
 
-### Conditional Field Declaration
+### Conditional field declaration
 
 `fieldIf(condition, name, extractor, validator)` is the same as `field(...)` when `condition` is `true`, and a no-op otherwise. Use it to keep the fluent chain unbroken when a field is only relevant under some flag (a feature toggle, a request context, an admin-only projection, a partial-update DTO):
 
@@ -688,7 +661,7 @@ VObject<UpdateCredentialDto> schemaFor({required bool allowName}) =>
 
 For VMap, the equivalent is the standard Dart map literal: `V.map({if (cond) 'name': V.string(), ...})`.
 
-### DTO Pattern
+### DTO pattern
 
 Because the schema is a plain value, DTOs can expose it as a `static final` — built once per isolate, reused at every call site:
 
@@ -709,7 +682,7 @@ SignInDto.schema.validate(
 ); // true
 ```
 
-### Errors and Entity-Level Rules
+### Errors and entity-level rules
 
 Errors include the field name in the path — same convention as `VMap`:
 
@@ -729,7 +702,7 @@ V.object<User>().refine(
 );
 ```
 
-### Array of Entities
+### Array of entities
 
 Validate a list with `.array()` — chains every operator from `VArray`:
 
@@ -741,7 +714,7 @@ batch.validate([
 ]); // true
 ```
 
-### Cross-Field Validation
+### Cross-field validation
 
 `.equalFields(a, b)` compares two declared fields via `==`. Canonical use case is DTO password confirmation:
 
@@ -768,7 +741,7 @@ schema.errors(
 // 'password must be equal to confirm'
 ```
 
-### Custom Field Validation
+### Custom field validation
 
 `.refineField(check, path:)` runs an entity-level predicate and scopes the error to a specific field path:
 
@@ -784,7 +757,7 @@ V.object<User>()
 
 `VObject<T>.refineField(check, path:, {stage, dependsOn})` accepts the same `stage:` parameter described in the VMap section above — `RefineStage.pre` runs the entity-typed callback before per-field iteration; `RefineStage.post` (default) runs after, gated by `dependsOn`. For schemas that need to also work in raw mode, `VObject<T>.refineFieldRaw((Map) => bool, path:, {stage, dependsOn})` accepts a Map-typed callback and applies in both `safeParse(T)` and `safeParseRaw(Map)`.
 
-### Conditional Validation
+### Conditional validation
 
 `.when(field, equals:, then:)` applies extra validators only when another field has a specific value:
 
@@ -893,7 +866,7 @@ V.object<User>()
 // [VError(code: 'object.unrecognized_key', path: ['extra'], message: 'Unrecognized key "extra"')]
 ```
 
-### Schema Composition
+### Schema composition
 
 `.pick([...])`, `.omit([...])`, `.merge(other)` and `.partial()` derive new schemas from existing ones. State (validators, `when` / `whenMatches` rules, `nullable`, `defaultValue`) propagates across the composition:
 
@@ -973,7 +946,7 @@ final matrix = VArray<List<int>>(V.int().array());
 matrix.validate([[1, 2], [3, 4]]); // true
 ```
 
-## Other Types
+## Other types
 
 ### Enum
 
@@ -1283,7 +1256,7 @@ V.string(message: 'Name is required')
 
 > **Out of scope:** `V.enm(...)` and `V.literal(...)` emit `enum.invalid` / `literal.invalid` codes (not `invalid_type`) when the value doesn't match — those are _value_ errors, not _type_ errors. Both factories accept `invalidTypeMessage:` for API uniformity, but the override is a no-op there; use a `VLocale` entry to customize those codes.
 
-## Async Validation
+## Async validation
 
 For checks that need IO (uniqueness in a database, remote token verification), use `refineAsync`:
 
@@ -1331,7 +1304,7 @@ final loader = V.string().uuid().transformAsync<User>(
 final user = await loader.parseAsync('550e8400-...'); // User
 ```
 
-## Form Patterns
+## Form patterns
 
 Three features that mostly exist for form workflows — grouped here for discoverability. Each is documented in detail in its own section; this is the index.
 
@@ -1343,7 +1316,7 @@ Three features that mostly exist for form workflows — grouped here for discove
 
 The first two reshape the schema before validation runs; the third lets the same schema validate both an entity `T` and the raw `Map` a form library emits. Combining them is the typical valiform / partial-update / submit-from-JSON setup.
 
-## Form Errors
+## Form errors
 
 Three field-keyed accessors on `VFailure`, each fitting a different UI shape:
 
@@ -1498,7 +1471,7 @@ Use `dependsOn: const {}` for audit / logging / always-on rules where the callba
 
 **`refineField(check, path:, dependsOn:, stage:)`** has a tighter contract: in default `stage: post`, `path` is **always** part of the dependency set, even when `dependsOn` is omitted. When you provide `dependsOn`, it is unioned with `{path}` — you only declare the *extra* fields the callback reads. Passing `dependsOn: const {}` throws an `AssertionError` (a refineField that should run regardless of field failures is a `refineField(stage: RefineStage.pre)` or a plain `refine(dependsOn: const {})`, not an empty `dependsOn` on `refineField`). In `stage: pre`, `dependsOn` is not accepted (the pre-pipeline runs unconditionally). Same contract on `VObject.refineField` and on `VObject.refineFieldRaw` (Map-typed variant). Skip semantics also apply to `whenMatches` (entity-only) and `whenMatchesRaw` (universal) on VObject, and to `whenMatches` on VMap: `dependsOn` is required, non-empty, and the entire rule (predicate + `then`) is skipped when any declared dep failed per-field.
 
-## i18n (Internationalization)
+## i18n (internationalization)
 
 Set translations using `VLocale`:
 
@@ -1995,6 +1968,15 @@ V.string().card(brands: [const EloBrand()]);
 - `phone`: the first pattern's `code` is emitted when only one pattern is configured (preserves custom codes like `invalid_phone_br`). With two or more, the generic `VStringCode.phone` (`'string.phone'`) is emitted.
 - `postalCode` / `taxId` / `licensePlate`: the code is always the generic one (`'string.postal_code'`, `'string.tax_id'`, `'string.license_plate'`). The `{name}` interpolation param joins each pattern's `name` with `/` — a single template like `'Invalid {name}'` renders as `Invalid US ZIP / UK Postcode` when multiple are configured.
 
+## Example
+
+A runnable end-to-end tour of the public API lives in
+[`example/example.dart`](example/example.dart). Run it with:
+
+```sh
+dart run example/example.dart
+```
+
 ## License
 
-See [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
