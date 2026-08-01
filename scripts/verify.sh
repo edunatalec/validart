@@ -27,7 +27,7 @@ sdk_label() {
   echo "Dart $(dart --version 2>&1 | sed -E 's/.*version: ([0-9.]+).*/\1/')"
 }
 
-TOTAL_STEPS=8
+TOTAL_STEPS=9
 if [ -f example/pubspec.yaml ]; then
   TOTAL_STEPS=$((TOTAL_STEPS + 1))
 fi
@@ -64,6 +64,25 @@ if [ "$README_VERSION" != "$VERSION" ]; then
 fi
 
 echo "README pinned at ${PACKAGE} ^${README_VERSION} ✓"
+
+step "Verifying CHANGELOG documents the pubspec version"
+
+CHANGELOG_ENTRY=$(grep -m1 -E '^## \[[0-9]' CHANGELOG.md)
+CHANGELOG_VERSION=$(echo "$CHANGELOG_ENTRY" | sed -E 's/^## \[([^]]*)\].*/\1/')
+if [ "$CHANGELOG_VERSION" != "$VERSION" ]; then
+  echo
+  echo "❌ Aborting: the newest released CHANGELOG entry is '${CHANGELOG_VERSION:-none}', but pubspec.yaml is ${VERSION}."
+  echo "   A version bump needs its own '## [${VERSION}] - YYYY-MM-DD' entry in CHANGELOG.md."
+  exit 1
+fi
+if ! echo "$CHANGELOG_ENTRY" | grep -qE ' - [0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+  echo
+  echo "❌ Aborting: the CHANGELOG entry for ${VERSION} carries no release date."
+  echo "   Expected '## [${VERSION}] - YYYY-MM-DD', found '${CHANGELOG_ENTRY}'."
+  exit 1
+fi
+
+echo "CHANGELOG documents ${VERSION} ✓"
 
 step "Analyzing"
 $CLI analyze
