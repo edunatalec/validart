@@ -1,0 +1,57 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Run the release checks
+        run: ./scripts/verify.sh
+
+  floor:
+    name: Floor (lowest supported Dart)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the SDK floor from pubspec.yaml
+        id: floor
+        run: |
+          FLOOR=$(grep -E "^  sdk:" pubspec.yaml | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)
+          echo "Floor declared in pubspec.yaml: $FLOOR"
+          echo "version=$FLOOR" >> "$GITHUB_OUTPUT"
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ steps.floor.outputs.version }}
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze
+
+      - name: Run tests
+        run: dart test

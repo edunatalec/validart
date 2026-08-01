@@ -3,47 +3,31 @@
 .packages
 pubspec.lock
 
-.flutter-plugins
-.flutter-plugins-dependencies
-.flutter-versions
-
 *.iml
 .idea/
 *.swp
 *.swo
-*.vscode/
-*.DS_Store
+.vscode/
+.DS_Store
 *.log
 
 coverage/
 lcov.info
 
 doc/api/
+doc_examples_tmp/
 
 out/
 bin/cache/
 
-*.generated.xcconfig
-*.xcworkspace/
-build/macos/
-.cocoapods/
-.metadata
-android/.gradle/
-android/app/google-services.json
-ios/Flutter/App.framework
-ios/Flutter/Flutter.podspec
-ios/Flutter/Generated.xcconfig
-ios/.symlinks/
-ios/Pods/
-windows/CMakeLists.txt.user
-windows/flutter/ephemeral/
-windows/.dart_tool/
-
-*.lock
-*.tmp
-
 CLAUDE.md
 .claude/
+.superpowers/
 scripts/
 analysis_options.yaml
 dart_test.yaml
+CONTRIBUTING.md
+.github/
+
+.fvm/
+.fvmrc
