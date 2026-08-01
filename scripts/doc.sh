@@ -26,6 +26,9 @@ if lsof -i ":$PORT" >/dev/null 2>&1; then
 fi
 
 python3 -m http.server "$PORT" --directory doc/api >/dev/null 2>&1 &
+SERVER_PID=$!
+trap 'kill "$SERVER_PID" 2>/dev/null' EXIT INT TERM HUP
+
 sleep 1
-open "http://localhost:$PORT"
-wait
+open "http://localhost:$PORT/?r=$RANDOM"
+wait "$SERVER_PID"
