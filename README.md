@@ -30,7 +30,7 @@ Or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  validart: ^3.0.1
+  validart: ^3.0.2
 ```
 
 ```dart

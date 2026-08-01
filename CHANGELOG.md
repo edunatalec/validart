@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.2] - 2026-08-01
+
+### Changed
+
+- API reference: every symbol cited in prose is now a link, each public type ends with a `See also:` block, and the library page walks through the schema pipeline instead of restating the description.
+- README follows the skeleton shared by the published packages: `## Contents` lists only what comes after it, the pitch became `## Why validart`, Requirements states the command that checks the SDK, and a new `## Example` section points at the runnable tour.
+- Dev dependency bounds loosened (`lints`, `test`) so the package resolves on the declared SDK floor, which CI now analyzes and tests on every pull request.
+
 ## [3.0.1] - 2026-07-28
 
 ### Changed
