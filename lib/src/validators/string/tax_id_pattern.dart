@@ -19,6 +19,12 @@ import '../../validation_mode.dart';
 ///   bool matches(String value) { /* check digits */ }
 /// }
 /// ```
+///
+/// See also:
+///
+///  * [VString], which consumes patterns through its tax-id validator.
+///  * [UsSsnPattern], [UkNiNumberPattern] and [CaSinPattern], the built-in
+///    implementations.
 abstract class TaxIdPattern {
   /// Creates a [TaxIdPattern].
   const TaxIdPattern();
@@ -43,6 +49,10 @@ abstract class TaxIdPattern {
 ///   patterns: [const UsSsnPattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [TaxIdPattern], the contract this implements.
 class UsSsnPattern extends TaxIdPattern {
   /// Creates a [UsSsnPattern].
   const UsSsnPattern({this.mode = ValidationMode.any});
@@ -85,6 +95,10 @@ class UsSsnPattern extends TaxIdPattern {
 ///   patterns: [const UkNiNumberPattern(mode: ValidationMode.unformatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [TaxIdPattern], the contract this implements.
 class UkNiNumberPattern extends TaxIdPattern {
   /// Creates a [UkNiNumberPattern].
   const UkNiNumberPattern({this.mode = ValidationMode.any});
@@ -136,6 +150,10 @@ class UkNiNumberPattern extends TaxIdPattern {
 ///   patterns: [const CaSinPattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [TaxIdPattern], the contract this implements.
 class CaSinPattern extends TaxIdPattern {
   /// Creates a [CaSinPattern].
   const CaSinPattern({this.mode = ValidationMode.any});

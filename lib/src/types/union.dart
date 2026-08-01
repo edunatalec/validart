@@ -8,6 +8,11 @@ part of 'type.dart';
 /// schema.validate(42);      // true
 /// schema.validate(true);    // false
 /// ```
+///
+/// See also:
+///
+///  * [V.union], the factory that creates this schema.
+///  * [VUnionCode], the error codes it emits.
 class VUnion extends VType<Object> {
   /// Creates a union validator that accepts values matching any of the
   /// [_options]. Must have at least 2 options.

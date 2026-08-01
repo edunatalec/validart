@@ -35,6 +35,12 @@ class _WhenMatchesRule {
 /// });
 /// schema.parse({'name': 'Jo', 'age': 25});
 /// ```
+///
+/// See also:
+///
+///  * [V.map], the factory that creates this schema.
+///  * [VObject], which validates instances of your own classes instead.
+///  * [VMapCode], the error codes it emits.
 class VMap extends VType<Map<String, dynamic>> {
   /// Creates a map validator with the given field [_schema].
   ///
@@ -488,7 +494,7 @@ class VMap extends VType<Map<String, dynamic>> {
   /// internally — when [field] or [other] fails its own validation, this
   /// check is skipped (the field error already covers the issue);
   /// otherwise the result is aggregated alongside any unrelated field
-  /// errors in a single `VFailure`.
+  /// errors in a single [VFailure].
   ///
   /// ```dart
   /// V.map({

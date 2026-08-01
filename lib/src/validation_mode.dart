@@ -18,6 +18,11 @@
 ///   patterns: [const UsSsnPattern(mode: ValidationMode.unformatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [VMap], which accepts a mode when validating a map.
+///  * [VObject], which accepts the same mode for entities.
 enum ValidationMode {
   /// Accept the input with or without formatting separators.
   ///

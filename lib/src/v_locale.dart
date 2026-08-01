@@ -31,6 +31,12 @@
 ///   'int.required': 'Número obrigatório',
 /// }));
 /// ```
+///
+/// See also:
+///
+///  * [V.setLocale], which installs a locale globally.
+///  * [VCode], the codes a locale provides messages for.
+///  * [VError], whose message is the result of the lookup.
 class VLocale {
   /// Creates a [VLocale] with optional custom [_translations]. Values may
   /// be either a `String` (for a direct message) or a nested `Map` whose

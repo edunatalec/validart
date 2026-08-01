@@ -16,6 +16,11 @@
 ///       value >= min ? null : {'min': min};
 /// }
 /// ```
+///
+/// See also:
+///
+///  * [AsyncValidator], for a rule that has to await something.
+///  * [VType], which accepts a validator through its add method.
 abstract class Validator<T> {
   /// Creates a [Validator].
   const Validator();
@@ -35,7 +40,7 @@ abstract class Validator<T> {
 ///
 /// Schemas that include an async validator become async-only: the
 /// synchronous consumers (`parse`, `validate`, `safeParse`, `errors`)
-/// throw `VAsyncRequiredException`; use the `*Async` variants.
+/// throw [VAsyncRequiredException]; use the `*Async` variants.
 ///
 /// ```dart
 /// class UsernameAvailableValidator extends AsyncValidator<String> {
@@ -51,6 +56,12 @@ abstract class Validator<T> {
 ///
 /// V.string().addAsync(const UsernameAvailableValidator());
 /// ```
+///
+/// See also:
+///
+///  * [Validator], for a rule that resolves synchronously.
+///  * [VAsyncRequiredException], thrown when a synchronous consumer meets
+///    one.
 abstract class AsyncValidator<T> {
   /// Creates an [AsyncValidator].
   const AsyncValidator();

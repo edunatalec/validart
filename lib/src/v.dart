@@ -13,6 +13,13 @@ import 'v_locale.dart';
 /// final schema = V.string().email();
 /// schema.parse('user@mail.com');
 /// ```
+///
+/// See also:
+///
+///  * [VType], the base of every schema these factories return.
+///  * [VCoerce], reached through [V.coerce] for converting input first.
+///  * [VLocale], installed with [V.setLocale] to translate the error
+///    codes.
 sealed class V {
   static VLocale _locale = const VLocale();
   static core.bool _treatEmptyAsNull = false;
@@ -71,8 +78,8 @@ sealed class V {
   /// pipeline starts. Pass [invalidTypeMessage] to override the default
   /// translation for the `invalid_type` error (input is non-null but
   /// has the wrong runtime type, e.g. `42` against `V.string()`); the
-  /// two parameters are independent and can be set together. `VEnum`
-  /// and `VLiteral` accept [invalidTypeMessage] for API uniformity but
+  /// two parameters are independent and can be set together. [VEnum]
+  /// and [VLiteral] accept [invalidTypeMessage] for API uniformity but
   /// emit `enum.invalid` / `literal.invalid` codes (not `invalid_type`),
   /// so the override is a no-op there — use a custom locale entry to
   /// customize those.
@@ -180,7 +187,7 @@ sealed class V {
 
   /// Creates a [VEnum] schema accepting the given enum [values]. See
   /// [string] for [message]. [invalidTypeMessage] is accepted for API
-  /// uniformity but never fires — `VEnum` emits `enum.invalid` instead
+  /// uniformity but never fires — [VEnum] emits `enum.invalid` instead
   /// of `invalid_type`.
   ///
   /// ```dart
@@ -199,7 +206,7 @@ sealed class V {
 
   /// Creates a [VLiteral] schema accepting only the given [value]. See
   /// [string] for [message]. [invalidTypeMessage] is accepted for API
-  /// uniformity but never fires — `VLiteral` emits `literal.invalid`
+  /// uniformity but never fires — [VLiteral] emits `literal.invalid`
   /// instead of `invalid_type`.
   ///
   /// ```dart
@@ -236,6 +243,11 @@ sealed class V {
 /// V.coerce.int().parse('42'); // 42
 /// V.coerce.string().parse(123); // '123'
 /// ```
+///
+/// See also:
+///
+///  * [V.coerce], the single instance every coercion schema comes from.
+///  * [VType], the base of the schemas it returns.
 class VCoerce {
   /// Creates a [VInt] schema that coerces values to [int].
   ///

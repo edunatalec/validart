@@ -6,6 +6,12 @@ part of 'type.dart';
 /// final schema = V.string().email().min(5);
 /// schema.parse('user@mail.com'); // 'user@mail.com'
 /// ```
+///
+/// See also:
+///
+///  * [V.string], the factory that creates this schema.
+///  * [VStringCode], the error codes it emits.
+///  * [VCoerce], for converting a non-string input before validating it.
 class VString extends VType<String> {
   /// Creates a [VString]. Pass [message] to override the default
   /// translation used when the input is `null`.
@@ -621,7 +627,7 @@ class VString extends VType<String> {
   ///
   /// Accepts an optional leading `+`/`-` followed by decimal digits only.
   /// Does not convert the output — the pipeline value remains a `String`.
-  /// For conversion use [V.coerce.int] instead.
+  /// For conversion use [VCoerce.int] instead.
   ///
   /// Runs in the validation phase.
   ///
@@ -640,7 +646,7 @@ class VString extends VType<String> {
   /// Accepts integer, decimal and scientific notation. Rejects `NaN`,
   /// `Infinity`, `-Infinity`, whitespace padding and empty strings. Does
   /// not convert the output — the pipeline value remains a `String`. For
-  /// conversion use [V.coerce.double] instead.
+  /// conversion use [VCoerce.double] instead.
   ///
   /// Runs in the validation phase.
   ///

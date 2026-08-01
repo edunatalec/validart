@@ -22,6 +22,12 @@
 ///
 /// V.string().card(brands: [const EloBrand()]);
 /// ```
+///
+/// See also:
+///
+///  * [VString], which consumes brands through its card validator.
+///  * [VisaBrand], [MastercardBrand], [AmexBrand], [DinersBrand],
+///    [DiscoverBrand] and [JcbBrand], the built-in implementations.
 abstract class CardBrandPattern {
   /// Creates a [CardBrandPattern].
   const CardBrandPattern();
@@ -39,6 +45,10 @@ abstract class CardBrandPattern {
 /// Matches Visa cards.
 ///
 /// Rules: starts with `4`, length 13, 16 or 19.
+///
+/// See also:
+///
+///  * [CardBrandPattern], the contract this implements.
 class VisaBrand extends CardBrandPattern {
   /// Creates a [VisaBrand].
   const VisaBrand();
@@ -59,6 +69,10 @@ class VisaBrand extends CardBrandPattern {
 /// Matches Mastercard cards.
 ///
 /// Rules: length 16 and prefix in `51-55` or `2221-2720`.
+///
+/// See also:
+///
+///  * [CardBrandPattern], the contract this implements.
 class MastercardBrand extends CardBrandPattern {
   /// Creates a [MastercardBrand].
   const MastercardBrand();
@@ -83,6 +97,10 @@ class MastercardBrand extends CardBrandPattern {
 /// Matches American Express cards.
 ///
 /// Rules: starts with `34` or `37`, length 15.
+///
+/// See also:
+///
+///  * [CardBrandPattern], the contract this implements.
 class AmexBrand extends CardBrandPattern {
   /// Creates an [AmexBrand].
   const AmexBrand();
@@ -101,6 +119,10 @@ class AmexBrand extends CardBrandPattern {
 /// Matches Diners Club cards.
 ///
 /// Rules: length 14-19 and prefix in `300-305`, `3095`, `36`, `38` or `39`.
+///
+/// See also:
+///
+///  * [CardBrandPattern], the contract this implements.
 class DinersBrand extends CardBrandPattern {
   /// Creates a [DinersBrand].
   const DinersBrand();
@@ -132,6 +154,10 @@ class DinersBrand extends CardBrandPattern {
 ///
 /// Rules: length 16-19 and prefix in `6011`, `65`, `644-649` or
 /// `622126-622925`.
+///
+/// See also:
+///
+///  * [CardBrandPattern], the contract this implements.
 class DiscoverBrand extends CardBrandPattern {
   /// Creates a [DiscoverBrand].
   const DiscoverBrand();
@@ -160,6 +186,10 @@ class DiscoverBrand extends CardBrandPattern {
 /// Matches JCB cards.
 ///
 /// Rules: length 16-19 and prefix in `3528-3589`.
+///
+/// See also:
+///
+///  * [CardBrandPattern], the contract this implements.
 class JcbBrand extends CardBrandPattern {
   /// Creates a [JcbBrand].
   const JcbBrand();

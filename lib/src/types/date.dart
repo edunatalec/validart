@@ -6,6 +6,11 @@ part of 'type.dart';
 /// final schema = V.date().after(DateTime(2024));
 /// schema.parse(DateTime(2025)); // DateTime(2025)
 /// ```
+///
+/// See also:
+///
+///  * [V.date], the factory that creates this schema.
+///  * [VDateCode], the error codes it emits.
 class VDate extends VType<DateTime> {
   /// Creates a [VDate]. Pass [message] to override the default
   /// translation used when the input is `null`.

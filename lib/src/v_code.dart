@@ -9,7 +9,7 @@
 /// Every string emitted via `error.code` follows the `<type>.<action>`
 /// convention (e.g. `string.email`, `number.positive`, `int.even`). The
 /// three generic fallbacks (`required`, `invalid_type`, `custom`) stay
-/// flat because they are type-agnostic — `VLocale` uses them as the
+/// flat because they are type-agnostic — [VLocale] uses them as the
 /// backstop when a prefixed key has no match.
 ///
 /// Sealed classes are implicitly abstract, so these types exist only as
@@ -23,6 +23,11 @@
 ///   VNumberCode.positive: 'Deve ser positivo',
 /// }));
 /// ```
+///
+/// See also:
+///
+///  * [VLocale], which maps every code to a message.
+///  * [VError], which carries the code that fired.
 sealed class VCode {
   /// Value is required (non-null). Generic fallback — prefer the
   /// type-specific constants (e.g. [VStringCode.required],
@@ -38,6 +43,11 @@ sealed class VCode {
 }
 
 /// Error codes emitted by [VString] and its validators.
+///
+/// See also:
+///
+///  * [VString], the schema that emits these codes.
+///  * [VCode], holding the type-agnostic fallbacks.
 sealed class VStringCode {
   /// String value is null. Falls back to [VCode.required].
   static const required = 'string.required';
@@ -164,6 +174,11 @@ sealed class VStringCode {
 
 /// Error codes shared by [VInt] and [VDouble] — range and sign checks
 /// that apply to any numeric value.
+///
+/// See also:
+///
+///  * [VInt] and [VDouble], the schemas that emit these codes.
+///  * [VIntCode] and [VDoubleCode], for the type-specific ones.
 sealed class VNumberCode {
   /// Number is below the minimum value.
   static const tooSmall = 'number.too_small';
@@ -188,6 +203,11 @@ sealed class VNumberCode {
 }
 
 /// Error codes emitted by [VInt] and its validators.
+///
+/// See also:
+///
+///  * [VInt], the schema that emits these codes.
+///  * [VNumberCode], holding the codes shared with [VDouble].
 sealed class VIntCode {
   /// Int value is null. Falls back to [VCode.required].
   static const required = 'int.required';
@@ -207,6 +227,11 @@ sealed class VIntCode {
 }
 
 /// Error codes emitted by [VDouble] and its validators.
+///
+/// See also:
+///
+///  * [VDouble], the schema that emits these codes.
+///  * [VNumberCode], holding the codes shared with [VInt].
 sealed class VDoubleCode {
   /// Double value is null. Falls back to [VCode.required].
   static const required = 'double.required';
@@ -224,6 +249,11 @@ sealed class VDoubleCode {
 }
 
 /// Error codes emitted by [VBool] and its validators.
+///
+/// See also:
+///
+///  * [VBool], the schema that emits these codes.
+///  * [VCode], holding the type-agnostic fallbacks.
 sealed class VBoolCode {
   /// Bool value is null. Falls back to [VCode.required].
   static const required = 'bool.required';
@@ -240,6 +270,11 @@ sealed class VBoolCode {
 }
 
 /// Error codes emitted by [VDate] and its validators.
+///
+/// See also:
+///
+///  * [VDate], the schema that emits these codes.
+///  * [VCode], holding the type-agnostic fallbacks.
 sealed class VDateCode {
   /// Date value is null. Falls back to [VCode.required].
   static const required = 'date.required';
@@ -280,6 +315,11 @@ sealed class VDateCode {
 }
 
 /// Error codes emitted by [VArray] and its validators.
+///
+/// See also:
+///
+///  * [VArray], the schema that emits these codes.
+///  * [VCode], holding the type-agnostic fallbacks.
 sealed class VArrayCode {
   /// Array value is null. Falls back to [VCode.required].
   static const required = 'array.required';
@@ -302,6 +342,11 @@ sealed class VArrayCode {
 }
 
 /// Error codes emitted by [VMap] and its validators.
+///
+/// See also:
+///
+///  * [VMap], the schema that emits these codes.
+///  * [VObjectCode], the equivalent set for entity schemas.
 sealed class VMapCode {
   /// Map value is null. Falls back to [VCode.required].
   static const required = 'map.required';
@@ -318,6 +363,11 @@ sealed class VMapCode {
 }
 
 /// Error codes emitted by [VObject] and its validators.
+///
+/// See also:
+///
+///  * [VObject], the schema that emits these codes.
+///  * [VMapCode], the equivalent set for raw-map schemas.
 sealed class VObjectCode {
   /// Object value is null. Falls back to [VCode.required].
   static const required = 'object.required';
@@ -336,6 +386,11 @@ sealed class VObjectCode {
 }
 
 /// Error codes emitted by [VEnum] and its validators.
+///
+/// See also:
+///
+///  * [VEnum], the schema that emits these codes.
+///  * [VLiteralCode], the equivalent set for literal schemas.
 sealed class VEnumCode {
   /// Enum value is null. Falls back to [VCode.required].
   static const required = 'enum.required';
@@ -349,6 +404,11 @@ sealed class VEnumCode {
 }
 
 /// Error codes emitted by [VLiteral] and its validators.
+///
+/// See also:
+///
+///  * [VLiteral], the schema that emits these codes.
+///  * [VEnumCode], the equivalent set for enum schemas.
 sealed class VLiteralCode {
   /// Literal value is null. Falls back to [VCode.required].
   static const required = 'literal.required';
@@ -362,6 +422,11 @@ sealed class VLiteralCode {
 }
 
 /// Error codes emitted by [VUnion] and its validators.
+///
+/// See also:
+///
+///  * [VUnion], the schema that emits these codes.
+///  * [VCode], holding the type-agnostic fallbacks.
 sealed class VUnionCode {
   /// Union value is null. Falls back to [VCode.required].
   static const required = 'union.required';

@@ -10,6 +10,11 @@ import '../validator.dart';
 /// V.string().uuid(version: UuidVersion.v4);         // random only
 /// V.string().uuid(version: UuidVersion.v7);         // timestamp-sorted only
 /// ```
+///
+/// See also:
+///
+///  * [VString], which accepts a version on its uuid validator.
+///  * [VStringCode], holding the code the validator emits.
 enum UuidVersion {
   /// Timestamp + MAC address (RFC 4122).
   v1,

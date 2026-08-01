@@ -21,6 +21,13 @@ import '../../validation_mode.dart';
 ///
 /// V.string().postalCode(patterns: [const BrCepPattern()]);
 /// ```
+///
+/// See also:
+///
+///  * [VString], which consumes patterns through its postal-code
+///    validator.
+///  * [UsZipPattern], [CaPostalCodePattern] and [UkPostcodePattern], the
+///    built-in implementations.
 abstract class PostalCodePattern {
   /// Creates a [PostalCodePattern].
   const PostalCodePattern();
@@ -33,6 +40,10 @@ abstract class PostalCodePattern {
 }
 
 /// Matches US ZIP codes (`12345` or `12345-6789`).
+///
+/// See also:
+///
+///  * [PostalCodePattern], the contract this implements.
 class UsZipPattern extends PostalCodePattern {
   /// Creates a [UsZipPattern].
   const UsZipPattern();
@@ -55,6 +66,10 @@ class UsZipPattern extends PostalCodePattern {
 ///   patterns: [const CaPostalCodePattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [PostalCodePattern], the contract this implements.
 class CaPostalCodePattern extends PostalCodePattern {
   /// Creates a [CaPostalCodePattern].
   const CaPostalCodePattern({this.mode = ValidationMode.any});
@@ -100,6 +115,10 @@ class CaPostalCodePattern extends PostalCodePattern {
 ///   patterns: [const UkPostcodePattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [PostalCodePattern], the contract this implements.
 class UkPostcodePattern extends PostalCodePattern {
   /// Creates a [UkPostcodePattern].
   const UkPostcodePattern({this.mode = ValidationMode.any});

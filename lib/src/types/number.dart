@@ -5,6 +5,11 @@ part of 'type.dart';
 /// ```dart
 /// V.int().min(0).max(100).parse(42); // 42
 /// ```
+///
+/// See also:
+///
+///  * [VInt] and [VDouble], the two concrete numeric schemas.
+///  * [VNumberCode], the error codes shared by both.
 abstract class VNumber<T extends num> extends VType<T> {
   /// Creates a [VNumber]. Pass [message] to override the default
   /// translation used when the input is `null`.
@@ -106,6 +111,12 @@ abstract class VNumber<T extends num> extends VType<T> {
 /// final schema = V.int().positive().even();
 /// schema.parse(4); // 4
 /// ```
+///
+/// See also:
+///
+///  * [V.int], the factory that creates this schema.
+///  * [VIntCode], the error codes specific to integers.
+///  * [VDouble], the floating-point sibling.
 class VInt extends VNumber<int> {
   /// Creates a [VInt]. Pass [message] to override the default
   /// translation used when the input is `null`.
@@ -264,6 +275,12 @@ class VInt extends VNumber<int> {
 /// final schema = V.double().positive().finite();
 /// schema.parse(3.14); // 3.14
 /// ```
+///
+/// See also:
+///
+///  * [V.double], the factory that creates this schema.
+///  * [VDoubleCode], the error codes specific to doubles.
+///  * [VInt], the integer sibling.
 class VDouble extends VNumber<double> {
   /// Creates a [VDouble]. Pass [message] to override the default
   /// translation used when the input is `null`.

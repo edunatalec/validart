@@ -7,6 +7,12 @@ part of 'type.dart';
 /// schema.parse('active');   // 'active'
 /// schema.parse('inactive'); // throws VException
 /// ```
+///
+/// See also:
+///
+///  * [V.literal], the factory that creates this schema.
+///  * [VLiteralCode], the error codes it emits.
+///  * [VEnum], for a fixed set drawn from an enum.
 class VLiteral<T> extends VType<T> {
   /// Creates a literal validator that only accepts [_expected].
   ///

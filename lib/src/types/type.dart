@@ -107,6 +107,11 @@ part 'union.dart';
 /// casing, whitespace, pre-coercion shape. The classic case is a field
 /// declared as `V.string().toLowerCase().email()` paired with a check that
 /// must see the user's original casing.
+///
+/// See also:
+///
+///  * [VMap], which accepts a stage on its field-level refine.
+///  * [VObject], which also exposes a raw-map refine for the same purpose.
 enum RefineStage {
   /// Runs after per-field validation/transforms. Callback sees parsed
   /// values; `dependsOn` gates execution.
@@ -133,6 +138,12 @@ enum RefineStage {
 ///   ..trim()       // phase 1: pre-processing
 ///   ..email();     // phase 2: validation
 /// ```
+///
+/// See also:
+///
+///  * [V], the entry point that creates every concrete schema.
+///  * [VResult], what the safe-parse family returns.
+///  * [Validator], the extension point for a custom rule.
 abstract class VType<T> {
   /// Creates a [VType].
   ///
@@ -221,7 +232,7 @@ abstract class VType<T> {
   ///
   /// Use [message] to override the default error message. Use [path] to
   /// attach the resulting error to a nested location instead of the root.
-  /// Use [dependsOn] (only meaningful inside `VMap`/`VObject`) to declare
+  /// Use [dependsOn] (only meaningful inside [VMap]/[VObject]) to declare
   /// which schema field keys this validator depends on; the validator is
   /// skipped only when one of those specific fields fails. When omitted,
   /// the conservative rule applies (skip on any field error).
@@ -246,12 +257,13 @@ abstract class VType<T> {
   }
 
   /// Adds a [Validator] that runs in the **raw** validation phase —
-  /// before any per-field iteration in container schemas (`VMap` /
-  /// `VObject`). The callback inside [validator] sees the input as it
+  /// before any per-field iteration in container schemas ([VMap] /
+  /// [VObject]). The callback inside [validator] sees the input as it
   /// arrived (after container preprocess and type check), not the
   /// post-pipeline parsed value that [add] sees.
   ///
-  /// Used by [VMap.refineFieldRaw] and [VObject.refineFieldRaw]. Outside
+  /// Used by [VMap.refineField] with [RefineStage.pre] and by
+  /// [VObject.refineFieldRaw]. Outside
   /// of container types this step never runs, so calling [addRaw] on a
   /// primitive schema is a no-op semantically (kept here for API
   /// uniformity).
@@ -278,7 +290,7 @@ abstract class VType<T> {
   /// Adds an [AsyncValidator] to the validation phase.
   ///
   /// Makes the schema async-only: sync consumers (`parse`, `validate`,
-  /// `safeParse`, `errors`) will throw `VAsyncRequiredException`; use the
+  /// `safeParse`, `errors`) will throw [VAsyncRequiredException]; use the
   /// `*Async` variants. See [add] for the meaning of [dependsOn].
   ///
   /// ```dart
@@ -376,7 +388,7 @@ abstract class VType<T> {
   ///
   /// Useful for consumers that need to mirror the schema's preprocess
   /// stage in their own scoped pipeline. For example, `valiform` calls
-  /// this on a `VMap` / `VObject` to apply container-level preprocess
+  /// this on a [VMap] / [VObject] to apply container-level preprocess
   /// before running per-field validators (matching the order
   /// [safeParse] uses internally).
   ///
@@ -1028,7 +1040,7 @@ final class _AsyncValidatorStep<T> extends _PipelineStep<T> {
 }
 
 /// Validator step that runs **before** any per-field iteration in a
-/// container schema (`VMap` / `VObject`). Receives the raw input —
+/// container schema ([VMap] / [VObject]). Receives the raw input —
 /// after the container preprocess and type check, but before each
 /// field's own pipeline (preprocess, validators, transforms) runs.
 ///
@@ -1054,8 +1066,8 @@ final class _RawValidatorStep<T> extends _PipelineStep<T> {
 }
 
 /// Extracts the first path segment from each error in [errors] as a string,
-/// dropping errors with empty paths. Used by container types (`VMap`,
-/// `VObject`) to compute the set of failed top-level field names that
+/// dropping errors with empty paths. Used by container types ([VMap],
+/// [VObject]) to compute the set of failed top-level field names that
 /// `_runPipeline` consults to decide whether entity-level validators
 /// (those declaring `dependsOn`) should run.
 Set<String> _firstSegments(List<VError> errors) {

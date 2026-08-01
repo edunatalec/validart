@@ -11,6 +11,11 @@
 ///   ],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [PhonePattern], which declares the shape a phone number must match.
+///  * [VString], which consumes the patterns through its phone validator.
 enum CountryCodeFormat {
   /// The country code (leading `+`) must be present.
   required,

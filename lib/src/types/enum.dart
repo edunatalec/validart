@@ -8,6 +8,12 @@ part of 'type.dart';
 /// final schema = V.enm(Color.values);
 /// schema.parse(Color.red); // Color.red
 /// ```
+///
+/// See also:
+///
+///  * [V.enm], the factory that creates this schema.
+///  * [VEnumCode], the error codes it emits.
+///  * [VLiteral], for a fixed value that is not an enum member.
 class VEnum<T extends Enum> extends VType<T> {
   /// Creates an enum validator that accepts only the given [_values].
   ///

@@ -19,6 +19,12 @@ import '../../validation_mode.dart';
 ///       RegExp(r'^[A-Z]{3}\d[A-Z]\d{2}$').hasMatch(value);
 /// }
 /// ```
+///
+/// See also:
+///
+///  * [VString], which consumes patterns through its license-plate
+///    validator.
+///  * [UkPlatePattern], the only built-in implementation.
 abstract class LicensePlatePattern {
   /// Creates a [LicensePlatePattern].
   const LicensePlatePattern();
@@ -42,6 +48,10 @@ abstract class LicensePlatePattern {
 ///   patterns: [const UkPlatePattern(mode: ValidationMode.formatted)],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [LicensePlatePattern], the contract this implements.
 class UkPlatePattern extends LicensePlatePattern {
   /// Creates a [UkPlatePattern].
   const UkPlatePattern({this.mode = ValidationMode.any});

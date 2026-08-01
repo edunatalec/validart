@@ -9,6 +9,13 @@
 /// final error = VError(code: 'required', message: 'Required', path: ['name']);
 /// print(error.pathString); // 'name'
 /// ```
+///
+/// See also:
+///
+///  * [VFailure], which carries the list of errors a failed parse
+///    produced.
+///  * [VCode], where the machine-readable codes are declared.
+///  * [VLocale], which resolves a code into the message a user reads.
 final class VError {
   /// Creates a [VError] with the given [code], [message], optional [path]
   /// and optional [context].
@@ -112,6 +119,12 @@ bool _listEquals<T>(List<T> a, List<T> b) {
 ///   print(e.errors);
 /// }
 /// ```
+///
+/// See also:
+///
+///  * [VError], the errors it wraps.
+///  * [VResult], returned by [VType.safeParse] when branching beats
+///    catching.
 class VException implements Exception {
   /// Creates a [VException] with the given [errors].
   const VException(this.errors);
@@ -141,6 +154,11 @@ class VException implements Exception {
 ///   await schema.validateAsync(value);
 /// }
 /// ```
+///
+/// See also:
+///
+///  * [AsyncValidator], the rule shape that turns a schema async.
+///  * [VType], which exposes the async consumers to call instead.
 class VAsyncRequiredException implements Exception {
   /// Creates a [VAsyncRequiredException].
   const VAsyncRequiredException({

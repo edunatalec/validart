@@ -9,6 +9,11 @@ part of 'type.dart';
 /// final schema = V.string().transform<int>((v) => int.parse(v));
 /// schema.parse('42'); // 42
 /// ```
+///
+/// See also:
+///
+///  * [VType], whose transform produces this wrapper.
+///  * [VTransformedAsync], the asynchronous counterpart.
 class VTransformed<I, O> extends VType<O> {
   /// Creates a transformed validator wrapping [_inner] with [_transformFn].
   VTransformed(this._inner, this._transformFn);
@@ -84,6 +89,11 @@ class VTransformed<I, O> extends VType<O> {
 /// );
 /// await schema.parseAsync('550e8400-...'); // User
 /// ```
+///
+/// See also:
+///
+///  * [VType], whose asynchronous transform produces this wrapper.
+///  * [VTransformed], the synchronous counterpart.
 class VTransformedAsync<I, O> extends VType<O> {
   /// Creates an async-transformed validator wrapping [_inner] with
   /// [_transformFn].

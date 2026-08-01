@@ -6,6 +6,11 @@ part of 'type.dart';
 /// final schema = V.bool().isTrue();
 /// schema.parse(true); // true
 /// ```
+///
+/// See also:
+///
+///  * [V.bool], the factory that creates this schema.
+///  * [VBoolCode], the error codes it emits.
 class VBool extends VType<bool> {
   /// Creates a [VBool]. Pass [message] to override the default
   /// translation used when the input is `null`.

@@ -73,6 +73,12 @@ class _ObjectRawFieldRule {
 ///     .field('age', (u) => u.age, V.int().positive());
 /// schema.validate(User(name: 'Jo', age: 25)); // true
 /// ```
+///
+/// See also:
+///
+///  * [V.object], the factory that creates this schema.
+///  * [VMap], which validates the raw map the entity is built from.
+///  * [VObjectCode], the error codes it emits.
 class VObject<T> extends VType<T> {
   VObject._({super.message, super.invalidTypeMessage});
 
@@ -328,7 +334,7 @@ class VObject<T> extends VType<T> {
   /// internally — when [fieldA] or [fieldB] fails its own validation,
   /// this check is skipped (the field error already covers the issue);
   /// otherwise the result is aggregated alongside any unrelated field
-  /// errors in a single `VFailure`.
+  /// errors in a single [VFailure].
   ///
   /// ```dart
   /// V.object<SignUpDto>()

@@ -8,6 +8,11 @@ part of 'type.dart';
 /// final schema = V.string().email().array().min(1);
 /// schema.parse(['user@mail.com']); // ['user@mail.com']
 /// ```
+///
+/// See also:
+///
+///  * [V.array], the factory that creates this schema.
+///  * [VArrayCode], the error codes it emits.
 class VArray<T> extends VType<List<T>> {
   /// Creates an array validator with the given element [_element] schema.
   ///

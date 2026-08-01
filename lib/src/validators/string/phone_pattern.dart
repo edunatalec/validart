@@ -22,6 +22,12 @@ import '../../v_code.dart';
 ///
 /// V.string().phone(patterns: [const MyCountryPhonePattern()]);
 /// ```
+///
+/// See also:
+///
+///  * [VString], which consumes patterns through its phone validator.
+///  * [E164PhonePattern], the only built-in implementation.
+///  * [CountryCodeFormat], which says how the country code may be written.
 abstract class PhonePattern {
   /// Creates a [PhonePattern].
   const PhonePattern();
@@ -52,6 +58,11 @@ abstract class PhonePattern {
 ///   ],
 /// );
 /// ```
+///
+/// See also:
+///
+///  * [PhonePattern], the contract this implements.
+///  * [CountryCodeFormat], which says how the country code may be written.
 class E164PhonePattern extends PhonePattern {
   /// Creates an [E164PhonePattern].
   const E164PhonePattern({this.countryCode = CountryCodeFormat.optional});

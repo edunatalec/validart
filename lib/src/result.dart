@@ -15,6 +15,12 @@ import 'error.dart';
 ///     print(errors);
 /// }
 /// ```
+///
+/// See also:
+///
+///  * [VSuccess], the branch carrying the normalized value.
+///  * [VFailure], the branch carrying the errors.
+///  * [VType], whose safe-parse family returns this type.
 sealed class VResult<T> {
   /// Creates a [VResult].
   const VResult();
@@ -27,6 +33,11 @@ sealed class VResult<T> {
 }
 
 /// A successful validation result containing the parsed [value].
+///
+/// See also:
+///
+///  * [VFailure], the other branch of [VResult].
+///  * [VType], whose safe-parse family returns this type.
 final class VSuccess<T> extends VResult<T> {
   /// Creates a [VSuccess] with the given [value].
   const VSuccess(this.value);
@@ -39,6 +50,11 @@ final class VSuccess<T> extends VResult<T> {
 }
 
 /// A failed validation result containing the list of [errors].
+///
+/// See also:
+///
+///  * [VError], the shape of every entry in [VFailure.errors].
+///  * [VSuccess], the other branch of [VResult].
 final class VFailure<T> extends VResult<T> {
   /// Creates a [VFailure] with the given [errors].
   const VFailure(this.errors);
