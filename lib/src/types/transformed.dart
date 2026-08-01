@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Wraps a schema and transforms its output to a different type.
 ///
+/// {@category Types}
+///
 /// Created via [VType.transform]. Runs the inner schema's full pipeline,
 /// then applies the transform function to the result.
 ///
@@ -79,6 +81,8 @@ class VTransformed<I, O> extends VType<O> {
 
 /// Wraps a schema and asynchronously transforms its output to a different
 /// type.
+///
+/// {@category Types}
 ///
 /// Created via [VType.transformAsync]. The transform function returns a
 /// [Future], which makes the schema async-only.

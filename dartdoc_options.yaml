@@ -1,0 +1,18 @@
+dartdoc:
+  categories:
+    Core:
+      displayName: Core
+      markdown: doc/core.md
+    Types:
+      displayName: Types
+      markdown: doc/types.md
+    Containers:
+      displayName: Containers
+      markdown: doc/containers.md
+    Internationalization:
+      displayName: Internationalization
+      markdown: doc/internationalization.md
+    Extensibility:
+      displayName: Extensibility
+      markdown: doc/extensibility.md
+  categoryOrder: [Core, Types, Containers, Internationalization, Extensibility]

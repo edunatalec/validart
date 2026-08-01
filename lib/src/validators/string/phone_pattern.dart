@@ -3,6 +3,8 @@ import '../../v_code.dart';
 
 /// A pluggable phone-number validation strategy.
 ///
+/// {@category Extensibility}
+///
 /// Implement this class to plug country-specific phone validation into
 /// [VString.phone]. The default implementation is [E164PhonePattern].
 ///
@@ -42,6 +44,8 @@ abstract class PhonePattern {
 
 /// Default phone pattern — validates E.164 format (`+` followed by 2–15
 /// digits).
+///
+/// {@category Extensibility}
 ///
 /// Accepts numbers like `+5511999999999` or `+14155552671`.
 ///

@@ -1,5 +1,7 @@
 /// Provides locale-aware error message translations.
 ///
+/// {@category Internationalization}
+///
 /// Uses `{param}` interpolation for dynamic values. Error codes can be
 /// given in **flat** form (`'string.required'`), **nested** form
 /// (`{'string': {'required': '...'}}`), or a mix of both.

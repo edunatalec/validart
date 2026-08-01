@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates that a value matches at least one of the given schemas.
 ///
+/// {@category Types}
+///
 /// ```dart
 /// final schema = V.union([V.string(), V.int()]);
 /// schema.validate('hello'); // true

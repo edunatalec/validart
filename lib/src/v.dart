@@ -7,6 +7,8 @@ import 'v_locale.dart';
 
 /// Entry point for creating validation schemas.
 ///
+/// {@category Core}
+///
 /// Provides static factory methods for all supported types.
 ///
 /// ```dart
@@ -238,6 +240,8 @@ sealed class V {
 }
 
 /// Provides coercion schemas that convert input values to the target type.
+///
+/// {@category Core}
 ///
 /// ```dart
 /// V.coerce.int().parse('42'); // 42

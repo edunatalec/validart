@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates [DateTime] values.
 ///
+/// {@category Types}
+///
 /// ```dart
 /// final schema = V.date().after(DateTime(2024));
 /// schema.parse(DateTime(2025)); // DateTime(2025)

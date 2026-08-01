@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates [bool] values.
 ///
+/// {@category Types}
+///
 /// ```dart
 /// final schema = V.bool().isTrue();
 /// schema.parse(true); // true

@@ -1,5 +1,7 @@
 /// A pluggable credit-card brand matching strategy.
 ///
+/// {@category Extensibility}
+///
 /// Implement this class to plug country-specific card brands into
 /// [VString.card]. The core ships with [VisaBrand], [MastercardBrand],
 /// [AmexBrand], [DinersBrand], [DiscoverBrand] and [JcbBrand]. External
@@ -44,6 +46,8 @@ abstract class CardBrandPattern {
 
 /// Matches Visa cards.
 ///
+/// {@category Extensibility}
+///
 /// Rules: starts with `4`, length 13, 16 or 19.
 ///
 /// See also:
@@ -67,6 +71,8 @@ class VisaBrand extends CardBrandPattern {
 }
 
 /// Matches Mastercard cards.
+///
+/// {@category Extensibility}
 ///
 /// Rules: length 16 and prefix in `51-55` or `2221-2720`.
 ///
@@ -96,6 +102,8 @@ class MastercardBrand extends CardBrandPattern {
 
 /// Matches American Express cards.
 ///
+/// {@category Extensibility}
+///
 /// Rules: starts with `34` or `37`, length 15.
 ///
 /// See also:
@@ -117,6 +125,8 @@ class AmexBrand extends CardBrandPattern {
 }
 
 /// Matches Diners Club cards.
+///
+/// {@category Extensibility}
 ///
 /// Rules: length 14-19 and prefix in `300-305`, `3095`, `36`, `38` or `39`.
 ///
@@ -152,6 +162,8 @@ class DinersBrand extends CardBrandPattern {
 
 /// Matches Discover cards.
 ///
+/// {@category Extensibility}
+///
 /// Rules: length 16-19 and prefix in `6011`, `65`, `644-649` or
 /// `622126-622925`.
 ///
@@ -184,6 +196,8 @@ class DiscoverBrand extends CardBrandPattern {
 }
 
 /// Matches JCB cards.
+///
+/// {@category Extensibility}
 ///
 /// Rules: length 16-19 and prefix in `3528-3589`.
 ///

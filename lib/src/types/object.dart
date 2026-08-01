@@ -67,6 +67,8 @@ class _ObjectRawFieldRule {
 /// Validates class/entity instances of type [T] via type-safe field
 /// extraction callbacks.
 ///
+/// {@category Containers}
+///
 /// ```dart
 /// final schema = V.object<T>()
 ///     .field('name', (u) => u.name, V.string().min(2))

@@ -2,6 +2,8 @@ import 'error.dart';
 
 /// The result of a validation operation.
 ///
+/// {@category Core}
+///
 /// Either a [VSuccess] containing the parsed value, or a [VFailure]
 /// containing the list of errors.
 ///
@@ -34,6 +36,8 @@ sealed class VResult<T> {
 
 /// A successful validation result containing the parsed [value].
 ///
+/// {@category Core}
+///
 /// See also:
 ///
 ///  * [VFailure], the other branch of [VResult].
@@ -50,6 +54,8 @@ final class VSuccess<T> extends VResult<T> {
 }
 
 /// A failed validation result containing the list of [errors].
+///
+/// {@category Core}
 ///
 /// See also:
 ///

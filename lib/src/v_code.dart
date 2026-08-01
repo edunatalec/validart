@@ -1,5 +1,7 @@
 /// Machine-readable error code constants used by validators.
 ///
+/// {@category Internationalization}
+///
 /// [VCode] holds only the generic fallbacks ([required], [invalidType],
 /// [custom]). Type-specific codes live in sibling sealed classes —
 /// [VStringCode], [VNumberCode], [VIntCode], [VDoubleCode], [VBoolCode],
@@ -43,6 +45,8 @@ sealed class VCode {
 }
 
 /// Error codes emitted by [VString] and its validators.
+///
+/// {@category Internationalization}
 ///
 /// See also:
 ///
@@ -175,6 +179,8 @@ sealed class VStringCode {
 /// Error codes shared by [VInt] and [VDouble] — range and sign checks
 /// that apply to any numeric value.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VInt] and [VDouble], the schemas that emit these codes.
@@ -204,6 +210,8 @@ sealed class VNumberCode {
 
 /// Error codes emitted by [VInt] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VInt], the schema that emits these codes.
@@ -228,6 +236,8 @@ sealed class VIntCode {
 
 /// Error codes emitted by [VDouble] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VDouble], the schema that emits these codes.
@@ -250,6 +260,8 @@ sealed class VDoubleCode {
 
 /// Error codes emitted by [VBool] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VBool], the schema that emits these codes.
@@ -270,6 +282,8 @@ sealed class VBoolCode {
 }
 
 /// Error codes emitted by [VDate] and its validators.
+///
+/// {@category Internationalization}
 ///
 /// See also:
 ///
@@ -316,6 +330,8 @@ sealed class VDateCode {
 
 /// Error codes emitted by [VArray] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VArray], the schema that emits these codes.
@@ -343,6 +359,8 @@ sealed class VArrayCode {
 
 /// Error codes emitted by [VMap] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VMap], the schema that emits these codes.
@@ -363,6 +381,8 @@ sealed class VMapCode {
 }
 
 /// Error codes emitted by [VObject] and its validators.
+///
+/// {@category Internationalization}
 ///
 /// See also:
 ///
@@ -387,6 +407,8 @@ sealed class VObjectCode {
 
 /// Error codes emitted by [VEnum] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VEnum], the schema that emits these codes.
@@ -405,6 +427,8 @@ sealed class VEnumCode {
 
 /// Error codes emitted by [VLiteral] and its validators.
 ///
+/// {@category Internationalization}
+///
 /// See also:
 ///
 ///  * [VLiteral], the schema that emits these codes.
@@ -422,6 +446,8 @@ sealed class VLiteralCode {
 }
 
 /// Error codes emitted by [VUnion] and its validators.
+///
+/// {@category Internationalization}
 ///
 /// See also:
 ///

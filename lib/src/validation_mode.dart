@@ -1,5 +1,7 @@
 /// Controls which formatted variants a pattern accepts.
 ///
+/// {@category Core}
+///
 /// Many string validators accept the same information in more than one
 /// shape — `123-45-6789` vs `123456789`, `K1A 0B1` vs `K1A0B1`. The mode
 /// lets callers pin the input to a specific shape instead of silently

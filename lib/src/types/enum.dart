@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates that a value belongs to a set of enum values.
 ///
+/// {@category Types}
+///
 /// ```dart
 /// enum Color { red, green, blue }
 ///

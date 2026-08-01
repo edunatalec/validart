@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Abstract base for numeric validation types ([VInt] and [VDouble]).
 ///
+/// {@category Types}
+///
 /// ```dart
 /// V.int().min(0).max(100).parse(42); // 42
 /// ```
@@ -106,6 +108,8 @@ abstract class VNumber<T extends num> extends VType<T> {
 }
 
 /// Validates [int] values.
+///
+/// {@category Types}
 ///
 /// ```dart
 /// final schema = V.int().positive().even();
@@ -270,6 +274,8 @@ class VInt extends VNumber<int> {
 }
 
 /// Validates [double] values.
+///
+/// {@category Types}
 ///
 /// ```dart
 /// final schema = V.double().positive().finite();

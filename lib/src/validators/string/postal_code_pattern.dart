@@ -2,6 +2,8 @@ import '../../validation_mode.dart';
 
 /// A pluggable postal-code validation strategy.
 ///
+/// {@category Extensibility}
+///
 /// Implement this class to plug country-specific postal-code validation
 /// into [VString.postalCode]. The core ships with [UsZipPattern],
 /// [CaPostalCodePattern] and [UkPostcodePattern]. External packages (e.g.
@@ -41,6 +43,8 @@ abstract class PostalCodePattern {
 
 /// Matches US ZIP codes (`12345` or `12345-6789`).
 ///
+/// {@category Extensibility}
+///
 /// See also:
 ///
 ///  * [PostalCodePattern], the contract this implements.
@@ -56,6 +60,8 @@ class UsZipPattern extends PostalCodePattern {
 }
 
 /// Matches Canadian postal codes (`A1A 1A1` — space optional).
+///
+/// {@category Extensibility}
 ///
 /// The [mode] field controls whether the space between the forward
 /// sortation area and local delivery unit is required, forbidden, or
@@ -106,6 +112,8 @@ class CaPostalCodePattern extends PostalCodePattern {
 }
 
 /// Matches UK postcodes (common format; full RFC is more permissive).
+///
+/// {@category Extensibility}
 ///
 /// The [mode] field controls whether the space between the outward and
 /// inward codes is required, forbidden, or optional.

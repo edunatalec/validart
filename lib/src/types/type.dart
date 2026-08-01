@@ -94,6 +94,8 @@ part 'union.dart';
 /// Controls when a [VMap.refineField], [VObject.refineField] or
 /// [VObject.refineFieldRaw] callback runs in the container pipeline.
 ///
+/// {@category Core}
+///
 /// - [RefineStage.post] (default): runs **after** every declared field has
 ///   been validated and transformed. Callback sees parsed values. Gated by
 ///   `dependsOn` — skipped when any declared dependency (including the
@@ -123,6 +125,8 @@ enum RefineStage {
 }
 
 /// Abstract base for all validation types.
+///
+/// {@category Core}
 ///
 /// The pipeline executes in three phases:
 ///

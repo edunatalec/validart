@@ -1,5 +1,7 @@
 /// Represents a single validation error.
 ///
+/// {@category Core}
+///
 /// Contains a machine-readable [code], a human-readable [message], an
 /// optional [path] indicating the location of the error in nested structures,
 /// and optional [context] with nested error lists (used by union validators
@@ -110,6 +112,8 @@ bool _listEquals<T>(List<T> a, List<T> b) {
 
 /// Exception thrown by [VType.parse] when validation fails.
 ///
+/// {@category Core}
+///
 /// Contains the list of [errors] that caused the failure.
 ///
 /// ```dart
@@ -143,6 +147,8 @@ class VException implements Exception {
 /// Thrown by synchronous consumers (`parse`, `validate`, `safeParse`,
 /// `errors`) when the schema contains async steps (added via
 /// `refineAsync`).
+///
+/// {@category Core}
 ///
 /// Use the `*Async` variants instead (`parseAsync`, `validateAsync`,
 /// `safeParseAsync`, `errorsAsync`).

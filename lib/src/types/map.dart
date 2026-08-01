@@ -26,6 +26,8 @@ class _WhenMatchesRule {
 
 /// Validates `Map<String, dynamic>` values against a field schema.
 ///
+/// {@category Containers}
+///
 /// Errors from individual fields include the field name in their path.
 ///
 /// ```dart

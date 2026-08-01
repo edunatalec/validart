@@ -4,6 +4,8 @@ import '../types/type.dart';
 /// the receiver only when [condition] is `true`, returning the receiver
 /// unchanged otherwise.
 ///
+/// {@category Core}
+///
 /// `applyIf` runs at schema-construction time, **not** at validation time —
 /// it produces a different schema based on a flag known when the schema
 /// is built (a feature toggle, a request context, a config value). For

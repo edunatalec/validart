@@ -1,5 +1,7 @@
 /// Abstract base class for all validators.
 ///
+/// {@category Extensibility}
+///
 /// A validator checks a single constraint on a value of type [T] and returns
 /// interpolation parameters on failure, or `null` on success.
 ///
@@ -34,6 +36,8 @@ abstract class Validator<T> {
 }
 
 /// Abstract base class for async validators.
+///
+/// {@category Extensibility}
 ///
 /// Like [Validator], but [validate] returns a [Future] — use this when
 /// the check needs IO (database lookup, HTTP call, etc.).

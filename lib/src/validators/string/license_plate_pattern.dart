@@ -2,6 +2,8 @@ import '../../validation_mode.dart';
 
 /// A pluggable license-plate validation strategy.
 ///
+/// {@category Extensibility}
+///
 /// The core ships with [UkPlatePattern] (post-2001 format, which is
 /// stable nationwide). Plates from countries with heavy regional variation
 /// — US (per-state) and Canada (per-province) — are intentionally not
@@ -39,6 +41,8 @@ abstract class LicensePlatePattern {
 /// Matches UK license plates in the current format (post-2001):
 /// two letters + two digits + three letters, with an optional space
 /// between the two groups (`AB12 CDE` or `AB12CDE`).
+///
+/// {@category Extensibility}
 ///
 /// The [mode] field controls whether the separating space is required,
 /// forbidden, or optional.

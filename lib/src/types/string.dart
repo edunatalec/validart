@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates [String] values.
 ///
+/// {@category Types}
+///
 /// ```dart
 /// final schema = V.string().email().min(5);
 /// schema.parse('user@mail.com'); // 'user@mail.com'

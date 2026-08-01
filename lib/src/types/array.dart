@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates `List<T>` values, applying the element schema to each item.
 ///
+/// {@category Containers}
+///
 /// Errors from individual elements include the array index in their path.
 ///
 /// ```dart

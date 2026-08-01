@@ -3,6 +3,8 @@ import '../validator.dart';
 
 /// Supported UUID versions for filtering validation.
 ///
+/// {@category Extensibility}
+///
 /// Covers RFC 4122 (`v1`–`v5`) and RFC 9562 drafts (`v6`–`v8`).
 ///
 /// ```dart

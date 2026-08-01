@@ -2,6 +2,8 @@ part of 'type.dart';
 
 /// Validates that a value is exactly equal to the expected literal.
 ///
+/// {@category Types}
+///
 /// ```dart
 /// final schema = V.literal('active');
 /// schema.parse('active');   // 'active'

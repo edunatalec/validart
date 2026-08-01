@@ -2,6 +2,8 @@ import '../../validation_mode.dart';
 
 /// A pluggable tax-identifier validation strategy.
 ///
+/// {@category Extensibility}
+///
 /// The core ships with [UsSsnPattern], [UkNiNumberPattern] and
 /// [CaSinPattern]. Country-specific tax IDs with check-digit algorithms
 /// (e.g. BR CPF/CNPJ) can be added via extension packages like
@@ -37,6 +39,8 @@ abstract class TaxIdPattern {
 }
 
 /// Matches US Social Security Numbers (`123-45-6789` or `123456789`).
+///
+/// {@category Extensibility}
 ///
 /// Format-only check — does not verify that the number has been issued.
 /// The [mode] field controls which input shape is accepted: [ValidationMode.any]
@@ -82,6 +86,8 @@ class UsSsnPattern extends TaxIdPattern {
 }
 
 /// Matches UK National Insurance numbers (`AB123456C`).
+///
+/// {@category Extensibility}
 ///
 /// Follows HMRC prefix rules: first char excludes `D/F/I/Q/U/V`, second
 /// char excludes `D/F/I/O/Q/U/V`. The trailing letter is one of `A`–`D`.
@@ -135,6 +141,8 @@ class UkNiNumberPattern extends TaxIdPattern {
 }
 
 /// Matches Canadian Social Insurance Numbers — 9 digits with Luhn check.
+///
+/// {@category Extensibility}
 ///
 /// Follows the CRA specification: the first digit must not be `0` or `8`.
 /// Numbers beginning with `9` represent temporary residents; the others
