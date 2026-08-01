@@ -12,9 +12,10 @@ One command has to be green:
 ```
 
 It is the same script the release runs, minus tag, push and publish: dependencies, README
-version pin, analyze, tests, `example/example.dart`, the examples inside the `///` docs,
-`dart doc` with zero warnings, the publish dry-run, and a pana score of 160/160. If it
-passes locally it passes in CI, because CI runs that file and nothing else.
+version pin, the CHANGELOG entry, analyze, tests, `example/example.dart`, the examples
+inside the `///` docs, `dart doc` with zero warnings, the publish dry-run, and a pana
+score of 160/160. If it passes locally it passes in CI, because CI runs that file and
+nothing else.
 
 It needs network (it asks pub.dev which pana version to use) and a Dart at or above the
 floor declared in `pubspec.yaml`. Running it changes your globally activated pana version —
@@ -85,5 +86,7 @@ These are decisions, not oversights. A PR that "fixes" one of them will be decli
 
 ## Releasing
 
-Releases are cut by the maintainer, from the default branch, with `./scripts/release.sh`.
-Nothing publishes from CI.
+Releases are cut by the maintainer, from `master`, with `./scripts/release.sh`. It refuses
+to run outside `master` or with a dirty working tree — `pub publish` packs the files on
+disk, not the commit — then runs the full `verify.sh` before tagging. Nothing publishes
+from CI.
